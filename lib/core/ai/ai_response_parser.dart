@@ -131,9 +131,84 @@ class AiResponseParser {
           amount: _number(m['habit_amount']) ?? 1,
         );
 
+
+      case AiActionKind.logSymptom:
+        if (title == null) return null;
+        return LogSymptomAction(
+          symptom: title,
+          severity: _number(m['severity'])?.round() ?? 3,
+          person: _string(m['person']),
+          note: _string(m['note_body']),
+        );
+
+      case AiActionKind.addPerson:
+        if (title == null) return null;
+        return AddPersonAction(
+          name: title,
+          relation: _string(m['relation']) ?? 'Family',
+        );
+
+      case AiActionKind.createHabit:
+        if (title == null) return null;
+        return CreateHabitAction(name: title);
+
+      case AiActionKind.createProject:
+        if (title == null) return null;
+        return CreateProjectAction(name: title);
+
+      case AiActionKind.createFolder:
+        if (title == null) return null;
+        return CreateFolderAction(name: title);
+
       case AiActionKind.startFocus:
         return StartFocusAction(
           minutes: _number(m['focus_minutes'])?.round() ?? 25,
+        );
+
+      case AiActionKind.setBudget:
+        final amount = _number(m['amount']);
+        if (amount == null || amount <= 0) return null;
+        return SetBudgetAction(
+          category: _string(m['category']),
+          amount: amount,
+        );
+
+      case AiActionKind.addLoan:
+        final amount = _number(m['amount']);
+        final person = _string(m['person']);
+        if (amount == null || amount <= 0 || person == null) return null;
+        return AddLoanAction(
+          person: person,
+          amount: amount,
+          direction: _number(m['loan_direction'])?.round() ?? 0,
+          account: _string(m['account']),
+          note: title,
+          dueDate: _date(_string(m['date'])),
+        );
+
+      case AiActionKind.addBill:
+        final amount = _number(m['amount']);
+        if (amount == null || amount <= 0 || title == null) return null;
+        return AddBillAction(
+          title: title,
+          amount: amount,
+          period: _string(m['bill_period']) ?? 'monthly',
+          interval: _number(m['bill_interval'])?.round() ?? 1,
+          category: _string(m['category']),
+          account: _string(m['account']),
+          note: _string(m['note_body']),
+          nextDueDate: _date(_string(m['date'])),
+        );
+
+      case AiActionKind.createAccount:
+        if (title == null) return null;
+        return CreateAccountAction(name: title);
+
+      case AiActionKind.createCategory:
+        if (title == null) return null;
+        return CreateCategoryAction(
+          name: title,
+          isIncome: m['is_income'] == true,
         );
     }
   }

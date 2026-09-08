@@ -224,6 +224,205 @@ final class FocusDraft extends AiDraft {
   String summary(String currencySymbol) => '$minutes minutes';
 }
 
+final class SetBudgetDraft extends AiDraft {
+  final int? categoryId;
+  final String? categoryName;
+  final double amount;
+
+  const SetBudgetDraft({
+    this.categoryId,
+    this.categoryName,
+    required this.amount,
+  });
+
+  @override
+  AiActionKind get kind => AiActionKind.setBudget;
+
+  @override
+  String get title => 'Budget ${categoryName == null ? 'Overall' : 'for $categoryName'}';
+
+  @override
+  String summary(String currencySymbol) => Fmt.money(amount, currencySymbol);
+}
+
+final class AddLoanDraft extends AiDraft {
+  final int? personId;
+  final String? personName;
+  final double amount;
+  final int direction;
+  final int? accountId;
+  final String? accountName;
+  final String? note;
+  final DateTime? dueDate;
+
+  const AddLoanDraft({
+    this.personId,
+    this.personName,
+    required this.amount,
+    required this.direction,
+    this.accountId,
+    this.accountName,
+    this.note,
+    this.dueDate,
+  });
+
+  @override
+  AiActionKind get kind => AiActionKind.addLoan;
+
+  @override
+  String get title => direction == 0
+      ? 'Lend to ${personName ?? 'Someone'}'
+      : 'Borrow from ${personName ?? 'Someone'}';
+
+  @override
+  String summary(String currencySymbol) => [
+    Fmt.money(amount, currencySymbol),
+    if (accountName != null) accountName!,
+    if (dueDate != null) 'Due ${Fmt.relativeDay(dueDate!)}',
+  ].join(' · ');
+}
+
+final class AddBillDraft extends AiDraft {
+  @override
+  final String title;
+  final double amount;
+  final String period;
+  final int interval;
+  final int? categoryId;
+  final String? categoryName;
+  final int? accountId;
+  final String? accountName;
+  final String? note;
+  final DateTime? nextDueDate;
+
+  const AddBillDraft({
+    required this.title,
+    required this.amount,
+    this.period = 'monthly',
+    this.interval = 1,
+    this.categoryId,
+    this.categoryName,
+    this.accountId,
+    this.accountName,
+    this.note,
+    this.nextDueDate,
+  });
+
+  @override
+  AiActionKind get kind => AiActionKind.addBill;
+
+  @override
+  String summary(String currencySymbol) => [
+    Fmt.money(amount, currencySymbol),
+    '$interval $period',
+    if (categoryName != null) categoryName!,
+    if (accountName != null) accountName!,
+  ].join(' · ');
+}
+
+final class CreateAccountDraft extends AiDraft {
+  @override
+  final String title;
+
+  const CreateAccountDraft({required this.title});
+
+  @override
+  AiActionKind get kind => AiActionKind.createAccount;
+
+  @override
+  String summary(String currencySymbol) => 'New account';
+}
+
+final class CreateCategoryDraft extends AiDraft {
+  @override
+  final String title;
+  final bool isIncome;
+
+  const CreateCategoryDraft({required this.title, this.isIncome = false});
+
+  @override
+  AiActionKind get kind => AiActionKind.createCategory;
+
+  @override
+  String summary(String currencySymbol) => isIncome ? 'New income category' : 'New expense category';
+}
+
+final class LogSymptomDraft extends AiDraft {
+  @override
+  final String title;
+  final int severity;
+  final int? personId;
+  final String? personName;
+  final String? note;
+
+  const LogSymptomDraft({
+    required this.title,
+    this.severity = 3,
+    this.personId,
+    this.personName,
+    this.note,
+  });
+
+  @override
+  AiActionKind get kind => AiActionKind.logSymptom;
+
+  @override
+  String summary(String currencySymbol) => 'Severity $severity';
+}
+
+final class AddPersonDraft extends AiDraft {
+  @override
+  final String title;
+  final String relation;
+
+  const AddPersonDraft({required this.title, required this.relation});
+
+  @override
+  AiActionKind get kind => AiActionKind.addPerson;
+
+  @override
+  String summary(String currencySymbol) => relation;
+}
+
+final class CreateHabitDraft extends AiDraft {
+  @override
+  final String title;
+
+  const CreateHabitDraft({required this.title});
+
+  @override
+  AiActionKind get kind => AiActionKind.createHabit;
+
+  @override
+  String summary(String currencySymbol) => 'New habit';
+}
+
+final class CreateProjectDraft extends AiDraft {
+  @override
+  final String title;
+
+  const CreateProjectDraft({required this.title});
+
+  @override
+  AiActionKind get kind => AiActionKind.createProject;
+
+  @override
+  String summary(String currencySymbol) => 'New project';
+}
+
+final class CreateFolderDraft extends AiDraft {
+  @override
+  final String title;
+
+  const CreateFolderDraft({required this.title});
+
+  @override
+  AiActionKind get kind => AiActionKind.createFolder;
+
+  @override
+  String summary(String currencySymbol) => 'New folder';
+}
+
 /// A draft plus what the resolver wants the user to know before saving.
 @immutable
 class ActionPreview {

@@ -12,6 +12,8 @@ import '../../presentation/medicine/utils/schedule_generator.dart';
 import '../../presentation/notes/repository/note_repository.dart';
 import '../../presentation/tasks/repository/task_repository.dart';
 import '../database/app_database.dart';
+import '../providers/database_provider.dart';
+import '../people/people_repository.dart';
 import '../services/notification_service.dart';
 import '../settings/app_settings.dart';
 import '../utils/formatters.dart';
@@ -55,6 +57,16 @@ class AiCommandExecutor {
       );
     }
     return switch (action) {
+      SetBudgetAction a => _budget(a, c),
+      AddLoanAction a => _loan(a, c),
+      AddBillAction a => _bill(a, c),
+      CreateAccountAction a => ActionPreview(draft: CreateAccountDraft(title: a.name)),
+      CreateCategoryAction a => ActionPreview(draft: CreateCategoryDraft(title: a.name, isIncome: a.isIncome)),
+      LogSymptomAction a => _symptom(a, c),
+      AddPersonAction a => ActionPreview(draft: AddPersonDraft(title: a.name, relation: a.relation)),
+      CreateHabitAction a => ActionPreview(draft: CreateHabitDraft(title: a.name)),
+      CreateProjectAction a => ActionPreview(draft: CreateProjectDraft(title: a.name)),
+      CreateFolderAction a => ActionPreview(draft: CreateFolderDraft(title: a.name)),
       AddExpenseAction a => _expense(a, c),
       AddTaskAction a => _task(a, c),
       AddNoteAction a => ActionPreview(
@@ -154,6 +166,98 @@ class AiCommandExecutor {
         date: a.date ?? c.now,
       ),
       warnings: warnings,
+    );
+  }
+
+
+  ActionPreview _budget(SetBudgetAction a, AiRequestContext c) {
+    final category = NameResolver.resolve(
+      a.category,
+      c.categories.where((x) => !x.isIncome).toList(),
+      (x) => [x.name],
+    );
+    return ActionPreview(
+      draft: SetBudgetDraft(
+        categoryId: category?.item.id,
+        categoryName: category?.item.name,
+        amount: a.amount,
+      ),
+    );
+  }
+
+  ActionPreview _loan(AddLoanAction a, AiRequestContext c) {
+    final person = NameResolver.resolve(
+      a.person,
+      c.people,
+      (x) => [x.name],
+    );
+    final account = NameResolver.resolve(
+      a.account,
+      c.accounts,
+      (x) => [x.name],
+    );
+    return ActionPreview(
+      draft: AddLoanDraft(
+        personId: person?.item.id,
+        personName: person?.item.name,
+        amount: a.amount,
+        direction: a.direction,
+        accountId: account?.item.id,
+        accountName: account?.item.name,
+        note: a.note,
+        dueDate: a.dueDate,
+      ),
+      warnings: [
+        if (person == null) 'No person "${a.person}" — default will be used',
+      ],
+    );
+  }
+
+  ActionPreview _bill(AddBillAction a, AiRequestContext c) {
+    final category = NameResolver.resolve(
+      a.category,
+      c.categories.where((x) => !x.isIncome).toList(),
+      (x) => [x.name],
+    );
+    final account = NameResolver.resolve(
+      a.account,
+      c.accounts,
+      (x) => [x.name],
+    );
+    return ActionPreview(
+      draft: AddBillDraft(
+        title: a.title,
+        amount: a.amount,
+        period: a.period,
+        interval: a.interval,
+        categoryId: category?.item.id,
+        categoryName: category?.item.name,
+        accountId: account?.item.id,
+        accountName: account?.item.name,
+        note: a.note,
+        nextDueDate: a.nextDueDate,
+      ),
+    );
+  }
+
+  ActionPreview _symptom(LogSymptomAction a, AiRequestContext c) {
+    final person = NameResolver.resolve(
+      a.person,
+      c.people,
+      (x) => [x.name],
+    );
+    return ActionPreview(
+      draft: LogSymptomDraft(
+        title: a.symptom,
+        severity: a.severity,
+        personId: person?.item.id,
+        personName: person?.item.name,
+        note: a.note,
+      ),
+      warnings: [
+        if (person == null && a.person != null)
+          'No person "${a.person}" — default will be used',
+      ],
     );
   }
 
@@ -271,6 +375,17 @@ class AiCommandExecutor {
       amount: a.amount,
     ),
     StartFocusAction a => FocusDraft(minutes: a.minutes),
+    SetBudgetAction a => SetBudgetDraft(categoryName: a.category, amount: a.amount),
+    AddLoanAction a => AddLoanDraft(amount: a.amount, direction: a.direction),
+    AddBillAction a => AddBillDraft(title: a.title, amount: a.amount),
+    CreateAccountAction a => CreateAccountDraft(title: a.name),
+    CreateCategoryAction a => CreateCategoryDraft(title: a.name, isIncome: a.isIncome),
+    LogSymptomAction a => LogSymptomDraft(title: a.symptom),
+    AddPersonAction a => AddPersonDraft(title: a.name, relation: a.relation),
+    CreateHabitAction a => CreateHabitDraft(title: a.name),
+    CreateProjectAction a => CreateProjectDraft(title: a.name),
+    CreateFolderAction a => CreateFolderDraft(title: a.name),
+
   };
 
   static bool _meansSelf(String name) => const {
@@ -326,6 +441,153 @@ class AiCommandExecutor {
           id: id,
           title: d.title,
           route: AppModule.expenses.route,
+        );
+
+
+      case SetBudgetDraft d:
+        final id = await _ref.read(expenseRepositoryProvider).setBudget(
+              month: DateTime(DateTime.now().year, DateTime.now().month, 1),
+              amount: d.amount,
+              categoryId: d.categoryId,
+            );
+        return SavedItem(
+          kind: d.kind,
+          id: id,
+          title: d.title,
+          route: AppModule.expenses.route,
+        );
+
+      case AddLoanDraft d:
+        final id = await _ref.read(expenseRepositoryProvider).createLoan(
+              personId: d.personId ?? 1,
+              direction: d.direction,
+              principal: d.amount,
+              accountId: d.accountId ?? 1,
+              note: d.note,
+              dueDate: d.dueDate,
+            );
+        return SavedItem(
+          kind: d.kind,
+          id: id,
+          title: d.title,
+          route: AppModule.expenses.route,
+        );
+
+      case AddBillDraft d:
+        final bill = await _ref.read(expenseRepositoryProvider).createRecurring(
+          RecurringExpensesCompanion.insert(
+            name: d.title,
+            amount: d.amount,
+            period: Value(d.period),
+            accountId: Value(d.accountId),
+            categoryId: Value(d.categoryId),
+            nextDueDate: d.nextDueDate ?? DateTime.now(),
+          )
+        );
+        return SavedItem(
+          kind: d.kind,
+          id: bill.id,
+          title: d.title,
+          route: AppModule.expenses.route,
+        );
+
+      case CreateAccountDraft d:
+        final id = await _ref.read(expenseRepositoryProvider).createAccount(
+          d.title,
+          'other',
+          0.0,
+          0,
+        );
+        return SavedItem(
+          kind: d.kind,
+          id: id,
+          title: d.title,
+          route: AppModule.expenses.route,
+        );
+
+      case CreateCategoryDraft d:
+        final id = await _ref.read(expenseRepositoryProvider).createCategory(
+          d.title,
+          'other',
+          0,
+          isIncome: d.isIncome,
+        );
+        return SavedItem(
+          kind: d.kind,
+          id: id,
+          title: d.title,
+          route: AppModule.expenses.route,
+        );
+
+      case LogSymptomDraft d:
+        final id = await _ref.read(medicineRepositoryProvider).logSymptom(
+          symptom: d.title,
+          severity: d.severity,
+          profileId: d.personId,
+          note: d.note,
+        );
+        return SavedItem(
+          kind: d.kind,
+          id: id,
+          title: d.title,
+          route: AppModule.medicine.route,
+        );
+
+      case AddPersonDraft d:
+        final id = await _ref.read(peopleRepositoryProvider).createPerson(
+          name: d.title,
+          relation: d.relation,
+        );
+        return SavedItem(
+          kind: d.kind,
+          id: id,
+          title: d.title,
+          route: AppModule.expenses.route,
+        );
+
+      case CreateHabitDraft d:
+        final id = await _ref.read(habitRepositoryProvider).createHabit(
+          HabitsCompanion.insert(
+            name: d.title,
+            icon: const Value('star'),
+            color: const Value(0),
+            goalType: const Value(0),
+            targetAmount: const Value(1.0),
+            frequencyType: const Value(0),
+            weekdayMask: const Value(127),
+            timesPerWeek: const Value(7),
+            createdAt: Value(DateTime.now()),
+          )
+        );
+        return SavedItem(
+          kind: d.kind,
+          id: id,
+          title: d.title,
+          route: AppModule.habits.route,
+        );
+
+      case CreateProjectDraft d:
+        final id = await _ref.read(taskRepositoryProvider).createProject(
+          d.title,
+          0,
+          'folder',
+        );
+        return SavedItem(
+          kind: d.kind,
+          id: id,
+          title: d.title,
+          route: AppModule.tasks.route,
+        );
+
+      case CreateFolderDraft d:
+        final id = await _ref.read(noteRepositoryProvider).createFolder(
+          d.title,
+        );
+        return SavedItem(
+          kind: d.kind,
+          id: id,
+          title: d.title,
+          route: AppModule.notes.route,
         );
 
       case TaskDraft d:

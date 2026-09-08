@@ -522,7 +522,7 @@ class SettingsScreen extends ConsumerWidget {
     const options = ['৳', '\$', '€', '₹', '£', '¥'];
     final picked = await brandSheet<String>(
       context: context,
-      builder: (_) => SheetScaffold(
+      builder: (sheetContext) => SheetScaffold(
         title: 'Currency symbol',
         child: Wrap(
           spacing: 12,
@@ -532,7 +532,7 @@ class SettingsScreen extends ConsumerWidget {
                 (s) => Pill(
                   label: s,
                   color: Theme.of(context).colorScheme.primary,
-                  onTap: () => Navigator.pop(context, s),
+                  onTap: () => Navigator.pop(sheetContext, s),
                 ),
               )
               .toList(),
@@ -548,14 +548,14 @@ class SettingsScreen extends ConsumerWidget {
   ) async {
     final picked = await brandSheet<int>(
       context: context,
-      builder: (_) => SheetScaffold(
+      builder: (sheetContext) => SheetScaffold(
         title: 'Auto-lock after',
         child: TileColumn(
           children: [0, 1, 5, 15, 30]
               .map(
                 (m) => BrandTile(
                   title: Text(m == 0 ? 'Immediately' : '$m minutes'),
-                  onTap: () => Navigator.pop(context, m),
+                  onTap: () => Navigator.pop(sheetContext, m),
                 ),
               )
               .toList(),
@@ -752,7 +752,7 @@ class _AiAssistantCard extends ConsumerWidget {
   ) async {
     final picked = await brandSheet<AiProvider>(
       context: context,
-      builder: (_) => SheetScaffold(
+      builder: (sheetContext) => SheetScaffold(
         title: 'AI provider',
         child: TileColumn(
           children: AiProvider.values
@@ -761,7 +761,7 @@ class _AiAssistantCard extends ConsumerWidget {
                   title: Text(p.label),
                   subtitle: Text('Default model ${p.defaultModel}'),
                   selected: p == current,
-                  onTap: () => Navigator.pop(context, p),
+                  onTap: () => Navigator.pop(sheetContext, p),
                 ),
               )
               .toList(),
@@ -776,43 +776,30 @@ class _AiAssistantCard extends ConsumerWidget {
     SettingsNotifier notifier,
     AppSettings settings,
   ) async {
-    final controller = TextEditingController(text: settings.aiModel);
-    final result = await brandDialog<String>(
-      context,
-      title: 'Model',
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          BrandField(
-            controller: controller,
-            hint: settings.aiProvider.defaultModel,
-            helper: 'Leave blank for the default.',
-            autofocus: true,
-            textInputAction: TextInputAction.done,
-            onSubmit: (v) => Navigator.pop(context, v),
-          ),
-          const SizedBox(height: 20),
-          BrandButton(
-            label: 'Save',
-            onPressed: () => Navigator.pop(context, controller.text),
-          ),
-          const SizedBox(height: 8),
-          BrandButton(
-            label: 'Use default',
-            kind: BrandButtonKind.outline,
-            onPressed: () => Navigator.pop(context, ''),
-          ),
-          const SizedBox(height: 8),
-          BrandButton(
-            label: 'Cancel',
-            kind: BrandButtonKind.ghost,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
+    final currentModel = settings.aiModel.isEmpty ? settings.aiProvider.defaultModel : settings.aiModel;
+    final defaultModel = settings.aiProvider.defaultModel;
+    final availableModels = settings.aiProvider.availableModels;
+
+    final picked = await brandSheet<String>(
+      context: context,
+      builder: (sheetContext) => SheetScaffold(
+        title: 'Model',
+        child: TileColumn(
+          children: availableModels
+              .map(
+                (model) => BrandTile(
+                  title: Text(model),
+                  subtitle: model == defaultModel ? const Text('Default') : null,
+                  selected: model == currentModel,
+                  onTap: () => Navigator.pop(sheetContext, model == defaultModel ? '' : model),
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
-    if (result != null) notifier.setAiModel(result);
+
+    if (picked != null) notifier.setAiModel(picked);
   }
 
   Future<void> _setApiKey(

@@ -41,48 +41,80 @@ class AiCommandSchema {
   static const _medicine = {AiActionKind.addMedicine};
   static const _habit = {AiActionKind.logHabit};
   static const _focus = {AiActionKind.startFocus};
+  static const _budget = {AiActionKind.setBudget};
+  static const _loan = {AiActionKind.addLoan};
+  static const _bill = {AiActionKind.addBill};
+  static const _account = {AiActionKind.createAccount};
+  static const _category = {AiActionKind.createCategory};
+  static const _symptom = {AiActionKind.logSymptom};
+  static const _person = {AiActionKind.addPerson};
+  static const _habitCreate = {AiActionKind.createHabit};
+  static const _project = {AiActionKind.createProject};
+  static const _folder = {AiActionKind.createFolder};
 
   static const _fields = <String, _Field>{
     'title': _Field(
       {
         'type': ['string', 'null'],
         'description':
-            'The task title, note title, expense description, or medicine '
-            'name. Short and cleaned of filler words.',
+            'The task title, note title, expense description, medicine '
+            'name, account name, category name, bill title, symptom, person name, habit name, project name, or folder name.',
       },
       {
         AiActionKind.addExpense,
         AiActionKind.addTask,
         AiActionKind.addNote,
         AiActionKind.addMedicine,
+        AiActionKind.addBill,
+        AiActionKind.createAccount,
+        AiActionKind.createCategory,
+        AiActionKind.logSymptom,
+        AiActionKind.addPerson,
+        AiActionKind.createHabit,
+        AiActionKind.createProject,
+        AiActionKind.createFolder,
       },
     ),
-    'amount': _Field({
-      'type': ['number', 'null'],
-      'description': 'Money amount for add_expense, in the app currency.',
-    }, _expense),
+    'amount': _Field(
+      {
+        'type': ['number', 'null'],
+        'description': 'Money amount.',
+      },
+      {
+        AiActionKind.addExpense,
+        AiActionKind.setBudget,
+        AiActionKind.addLoan,
+        AiActionKind.addBill,
+      },
+    ),
     'kind_detail': _Field({
       'type': ['string', 'null'],
       'description': 'For add_expense: "expense" (money out) or "income".',
     }, _expense),
-    'category': _Field({
-      'type': ['string', 'null'],
-      'description':
-          'One of the listed expense categories, exactly as written, or '
-          'null when none fits.',
-    }, _expense),
-    'account': _Field({
-      'type': ['string', 'null'],
-      'description': 'One of the listed accounts, exactly as written, or null.',
-    }, _expense),
+    'category': _Field(
+      {
+        'type': ['string', 'null'],
+        'description':
+            'One of the listed expense categories, exactly as written, or '
+            'null when none fits.',
+      },
+      {AiActionKind.addExpense, AiActionKind.setBudget, AiActionKind.addBill},
+    ),
+    'account': _Field(
+      {
+        'type': ['string', 'null'],
+        'description': 'One of the listed accounts, exactly as written, or null.',
+      },
+      {AiActionKind.addExpense, AiActionKind.addLoan, AiActionKind.addBill},
+    ),
     'person': _Field(
       {
         'type': ['string', 'null'],
         'description':
             'One of the listed people, exactly as written: who the expense '
-            'was for, or who takes the medicine. Null means the user.',
+            'was for, who takes the medicine, or who the loan is with.',
       },
-      {AiActionKind.addExpense, AiActionKind.addMedicine},
+      {AiActionKind.addExpense, AiActionKind.addMedicine, AiActionKind.addLoan, AiActionKind.logSymptom},
     ),
     'date': _Field(
       {
@@ -127,7 +159,7 @@ class AiCommandSchema {
         'type': ['string', 'null'],
         'description': 'The body text of a note, or extra notes for medicine.',
       },
-      {AiActionKind.addNote, AiActionKind.addMedicine},
+      {AiActionKind.addNote, AiActionKind.addMedicine, AiActionKind.logSymptom},
     ),
     'medicine_form': _Field({
       'type': ['string', 'null'],
@@ -168,6 +200,30 @@ class AiCommandSchema {
       'type': ['number', 'null'],
       'description': 'How much to log, in the habit unit. Default 1.',
     }, _habit),
+    'loan_direction': _Field({
+      'type': ['integer', 'null'],
+      'description': '0 for lend, 1 for borrow.',
+    }, _loan),
+    'bill_period': _Field({
+      'type': ['string', 'null'],
+      'description': 'e.g., daily, weekly, monthly, yearly.',
+    }, _bill),
+    'bill_interval': _Field({
+      'type': ['integer', 'null'],
+      'description': 'The interval multiplier for the bill period, e.g., 1.',
+    }, _bill),
+    'is_income': _Field({
+      'type': ['boolean', 'null'],
+      'description': 'True if creating an income category, false otherwise.',
+    }, _category),
+    'severity': _Field({
+      'type': ['integer', 'null'],
+      'description': 'Symptom severity from 1 (mild) to 5 (severe). Default 3.',
+    }, _symptom),
+    'relation': _Field({
+      'type': ['string', 'null'],
+      'description': 'Relation of the person, e.g., Family, Friend, Doctor.',
+    }, _person),
     'focus_minutes': _Field({
       'type': ['integer', 'null'],
       'description': 'Length of the focus session in minutes. Default 25.',
@@ -250,6 +306,16 @@ class AiCommandSchema {
         'Add a medicine course with doses per day and a length in days.',
     AiActionKind.logHabit: 'Log progress on one of the existing habits today.',
     AiActionKind.startFocus: 'Start a focus timer for a number of minutes.',
+    AiActionKind.setBudget: 'Set or update a monthly budget for a category. Use this even when the user says they added a budget.',
+    AiActionKind.addLoan: 'Track money you lend to or borrow from someone.',
+    AiActionKind.addBill: 'Add a recurring expense or subscription bill.',
+    AiActionKind.createAccount: 'Create a new financial account.',
+    AiActionKind.createCategory: 'Create a new expense or income category.',
+    AiActionKind.logSymptom: 'Log a symptom you are experiencing right now.',
+    AiActionKind.addPerson: 'Add a new person to your contacts or household.',
+    AiActionKind.createHabit: 'Create a new habit to track.',
+    AiActionKind.createProject: 'Create a new project for tasks.',
+    AiActionKind.createFolder: 'Create a new folder for notes.',
   };
 
   /// The same schema in the OpenAPI dialect Gemini's `responseSchema`

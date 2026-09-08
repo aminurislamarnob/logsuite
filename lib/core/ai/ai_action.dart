@@ -15,6 +15,16 @@ enum AiActionKind {
   addMedicine,
   logHabit,
   startFocus,
+  setBudget,
+  addLoan,
+  addBill,
+  createAccount,
+  createCategory,
+  logSymptom,
+  addPerson,
+  createHabit,
+  createProject,
+  createFolder,
 }
 
 extension AiActionKindX on AiActionKind {
@@ -25,6 +35,16 @@ extension AiActionKindX on AiActionKind {
     AiActionKind.addMedicine => 'add_medicine',
     AiActionKind.logHabit => 'log_habit',
     AiActionKind.startFocus => 'start_focus',
+    AiActionKind.setBudget => 'set_budget',
+    AiActionKind.addLoan => 'add_loan',
+    AiActionKind.addBill => 'add_bill',
+    AiActionKind.createAccount => 'create_account',
+    AiActionKind.createCategory => 'create_category',
+    AiActionKind.logSymptom => 'log_symptom',
+    AiActionKind.addPerson => 'add_person',
+    AiActionKind.createHabit => 'create_habit',
+    AiActionKind.createProject => 'create_project',
+    AiActionKind.createFolder => 'create_folder',
   };
 
   AppModule get module => switch (this) {
@@ -34,6 +54,16 @@ extension AiActionKindX on AiActionKind {
     AiActionKind.addMedicine => AppModule.medicine,
     AiActionKind.logHabit => AppModule.habits,
     AiActionKind.startFocus => AppModule.focus,
+    AiActionKind.setBudget => AppModule.expenses,
+    AiActionKind.addLoan => AppModule.expenses,
+    AiActionKind.addBill => AppModule.expenses,
+    AiActionKind.createAccount => AppModule.expenses,
+    AiActionKind.createCategory => AppModule.expenses,
+    AiActionKind.logSymptom => AppModule.medicine,
+    AiActionKind.addPerson => AppModule.expenses,
+    AiActionKind.createHabit => AppModule.habits,
+    AiActionKind.createProject => AppModule.tasks,
+    AiActionKind.createFolder => AppModule.notes,
   };
 
   String get label => switch (this) {
@@ -43,6 +73,16 @@ extension AiActionKindX on AiActionKind {
     AiActionKind.addMedicine => 'Medicine',
     AiActionKind.logHabit => 'Habit',
     AiActionKind.startFocus => 'Focus',
+    AiActionKind.setBudget => 'Budget',
+    AiActionKind.addLoan => 'Loan',
+    AiActionKind.addBill => 'Bill',
+    AiActionKind.createAccount => 'Account',
+    AiActionKind.createCategory => 'Category',
+    AiActionKind.logSymptom => 'Symptom',
+    AiActionKind.addPerson => 'Person',
+    AiActionKind.createHabit => 'Habit',
+    AiActionKind.createProject => 'Project',
+    AiActionKind.createFolder => 'Folder',
   };
 
   HugeIconData get icon => switch (this) {
@@ -52,6 +92,16 @@ extension AiActionKindX on AiActionKind {
     AiActionKind.addMedicine => AppIcons.medicine,
     AiActionKind.logHabit => AppIcons.habits,
     AiActionKind.startFocus => AppIcons.focus,
+    AiActionKind.setBudget => AppIcons.savings,
+    AiActionKind.addLoan => AppIcons.transfer,
+    AiActionKind.addBill => AppIcons.bills,
+    AiActionKind.createAccount => AppIcons.bank,
+    AiActionKind.createCategory => AppIcons.otherCategory,
+    AiActionKind.logSymptom => AppIcons.symptom,
+    AiActionKind.addPerson => AppIcons.personAdd,
+    AiActionKind.createHabit => AppIcons.habits,
+    AiActionKind.createProject => AppIcons.folderSpecial,
+    AiActionKind.createFolder => AppIcons.folder,
   };
 
   /// A method, not a getter: the accent lives in the theme and this file has
@@ -63,6 +113,16 @@ extension AiActionKindX on AiActionKind {
     AiActionKind.addMedicine => brand.medicine,
     AiActionKind.logHabit => brand.habit,
     AiActionKind.startFocus => brand.focus,
+    AiActionKind.setBudget => brand.expense,
+    AiActionKind.addLoan => brand.expense,
+    AiActionKind.addBill => brand.expense,
+    AiActionKind.createAccount => brand.expense,
+    AiActionKind.createCategory => brand.expense,
+    AiActionKind.logSymptom => brand.medicine,
+    AiActionKind.addPerson => brand.expense,
+    AiActionKind.createHabit => brand.habit,
+    AiActionKind.createProject => brand.task,
+    AiActionKind.createFolder => brand.note,
   };
 
   static AiActionKind? fromWire(String? wire) =>
@@ -194,6 +254,136 @@ final class StartFocusAction extends AiAction {
 
   @override
   AiActionKind get kind => AiActionKind.startFocus;
+}
+
+final class SetBudgetAction extends AiAction {
+  final String? category;
+  final double amount;
+
+  const SetBudgetAction({this.category, required this.amount});
+
+  @override
+  AiActionKind get kind => AiActionKind.setBudget;
+}
+
+final class AddLoanAction extends AiAction {
+  final String person;
+  final double amount;
+  final int direction;
+  final String? account;
+  final String? note;
+  final DateTime? dueDate;
+
+  const AddLoanAction({
+    required this.person,
+    required this.amount,
+    required this.direction,
+    this.account,
+    this.note,
+    this.dueDate,
+  });
+
+  @override
+  AiActionKind get kind => AiActionKind.addLoan;
+}
+
+final class AddBillAction extends AiAction {
+  final String title;
+  final double amount;
+  final String period;
+  final int interval;
+  final String? category;
+  final String? account;
+  final String? note;
+  final DateTime? nextDueDate;
+
+  const AddBillAction({
+    required this.title,
+    required this.amount,
+    this.period = 'monthly',
+    this.interval = 1,
+    this.category,
+    this.account,
+    this.note,
+    this.nextDueDate,
+  });
+
+  @override
+  AiActionKind get kind => AiActionKind.addBill;
+}
+
+final class CreateAccountAction extends AiAction {
+  final String name;
+
+  const CreateAccountAction({required this.name});
+
+  @override
+  AiActionKind get kind => AiActionKind.createAccount;
+}
+
+final class CreateCategoryAction extends AiAction {
+  final String name;
+  final bool isIncome;
+
+  const CreateCategoryAction({required this.name, this.isIncome = false});
+
+  @override
+  AiActionKind get kind => AiActionKind.createCategory;
+}
+
+
+final class LogSymptomAction extends AiAction {
+  final String symptom;
+  final int severity;
+  final String? person;
+  final String? note;
+
+  const LogSymptomAction({
+    required this.symptom,
+    this.severity = 3,
+    this.person,
+    this.note,
+  });
+
+  @override
+  AiActionKind get kind => AiActionKind.logSymptom;
+}
+
+final class AddPersonAction extends AiAction {
+  final String name;
+  final String relation;
+
+  const AddPersonAction({required this.name, this.relation = 'Family'});
+
+  @override
+  AiActionKind get kind => AiActionKind.addPerson;
+}
+
+final class CreateHabitAction extends AiAction {
+  final String name;
+
+  const CreateHabitAction({required this.name});
+
+  @override
+  AiActionKind get kind => AiActionKind.createHabit;
+}
+
+final class CreateProjectAction extends AiAction {
+  final String name;
+
+  const CreateProjectAction({required this.name});
+
+  @override
+  AiActionKind get kind => AiActionKind.createProject;
+}
+
+final class CreateFolderAction extends AiAction {
+  final String name;
+
+  const CreateFolderAction({required this.name});
+
+  @override
+  AiActionKind get kind => AiActionKind.createFolder;
 }
 
 /// Who produced a result, so the screen can badge it honestly.
