@@ -34,6 +34,27 @@ subprojects {
     }
 }
 
+// file_picker 11 skips applying the Kotlin plugin on AGP 9, expecting AGP's
+// built-in Kotlin to compile it. The Flutter template turns built-in Kotlin off
+// (android.builtInKotlin=false in gradle.properties) so the other plugins that
+// still apply the Kotlin plugin themselves keep building. With neither in play
+// its Kotlin is never compiled and FilePickerPlugin is missing at link time.
+// Applying the plugin to that one module is what the rest already do. Drop
+// this once builtInKotlin can be turned on, or file_picker applies it again.
+subprojects {
+    if (name == "file_picker") {
+        plugins.withId("com.android.library") {
+            apply(plugin = "org.jetbrains.kotlin.android")
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>()
+                .configureEach {
+                    compilerOptions.jvmTarget.set(
+                        org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+                    )
+                }
+        }
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
