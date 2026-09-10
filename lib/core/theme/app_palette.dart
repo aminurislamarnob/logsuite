@@ -111,7 +111,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
   AppPalette.coral: (
     light: PaletteSpec(
       primary: AppColors.primaryLight,
-      onPrimary: AppColors.onCoral,
+      onPrimary: const Color(0xFFFFFFFF),
       secondary: AppColors.coralDeep,
       background: AppColors.backgroundLight,
       surface: AppColors.surfaceLight,
