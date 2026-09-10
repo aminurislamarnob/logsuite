@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/presentation/habits/utils/habit_stats.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/presentation/habits/utils/habit_stats.dart';
 
 /// Builds a habit row directly, bypassing the database so the streak maths can
 /// be tested in isolation.

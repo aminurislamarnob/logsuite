@@ -1,6 +1,6 @@
-import 'package:mysuite/core/ai/ai_request_context.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/settings/app_settings.dart';
+import 'package:logsuite/core/ai/ai_request_context.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/settings/app_settings.dart';
 
 /// Hand-built rows for the AI tests, mirroring what `_seedDefaults` creates
 /// on first launch so the offline parser and the prompt see the same names

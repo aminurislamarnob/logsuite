@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/presentation/focus/providers/focus_provider.dart';
+import 'package:logsuite/presentation/focus/providers/focus_provider.dart';
 
 /// The Focus pills used to offer six sounds and ship none of them, so every
 /// tap toasted an apology.

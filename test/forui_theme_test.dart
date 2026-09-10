@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:mysuite/core/theme/app_colors.dart';
-import 'package:mysuite/core/theme/app_forui_theme.dart';
-import 'package:mysuite/core/theme/app_theme.dart';
+import 'package:logsuite/core/theme/app_colors.dart';
+import 'package:logsuite/core/theme/app_forui_theme.dart';
+import 'package:logsuite/core/theme/app_theme.dart';
 
 void main() {
   // Resolving the brand font goes through google_fonts, which needs a live

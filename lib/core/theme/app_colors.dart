@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// The mySuite palette, rebuilt around the coral fitness identity.
+/// The logSuite palette, rebuilt around the coral fitness identity.
 ///
 /// The design leans on one saturated accent (`#F15F43`) sitting on a pure white
 /// page, with content grouped into large, barely-there pastel cards rather than

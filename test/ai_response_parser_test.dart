@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/ai/ai_action.dart';
-import 'package:mysuite/core/ai/ai_client.dart';
-import 'package:mysuite/core/ai/ai_response_parser.dart';
-import 'package:mysuite/presentation/expenses/repository/expense_repository.dart';
+import 'package:logsuite/core/ai/ai_action.dart';
+import 'package:logsuite/core/ai/ai_client.dart';
+import 'package:logsuite/core/ai/ai_response_parser.dart';
+import 'package:logsuite/presentation/expenses/repository/expense_repository.dart';
 
 import 'ai_fixtures.dart';
 

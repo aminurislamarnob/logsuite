@@ -22,7 +22,7 @@ class AiPromptBuilder {
     final mm = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
 
     b.writeln(
-      'You convert one spoken command for the mySuite personal organiser '
+      'You convert one spoken command for the logSuite personal organiser '
       'into structured actions. Reply only with the JSON the schema asks for.',
     );
     b.writeln();

@@ -65,7 +65,7 @@ class SecurityService {
   /// Prompts for biometrics. Falls back to `true` only when no PIN is set and
   /// the device has no biometric hardware, so a user can never lock themselves
   /// out of their own data.
-  Future<bool> authenticate({String reason = 'Unlock mySuite'}) async {
+  Future<bool> authenticate({String reason = 'Unlock logSuite'}) async {
     try {
       if (await canUseBiometrics()) {
         return await _auth.authenticate(

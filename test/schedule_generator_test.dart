@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/presentation/medicine/utils/schedule_generator.dart';
+import 'package:logsuite/presentation/medicine/utils/schedule_generator.dart';
 
 void main() {
   final start = DateTime(2026, 3, 1); // a Sunday

@@ -1,6 +1,6 @@
 {
-    "name": "mysuite",
-    "short_name": "mysuite",
+    "name": "logSuite",
+    "short_name": "logSuite",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

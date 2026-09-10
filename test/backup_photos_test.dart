@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/people/avatar_storage.dart';
-import 'package:mysuite/core/people/people_repository.dart';
-import 'package:mysuite/core/services/export_service.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/people/avatar_storage.dart';
+import 'package:logsuite/core/people/people_repository.dart';
+import 'package:logsuite/core/services/export_service.dart';
 import 'package:path/path.dart' as p;
 
 /// The bytes a backup must carry across a restore. Not a real JPEG — the
@@ -21,8 +21,8 @@ void main() {
   late ExportService export;
 
   setUp(() {
-    root = Directory.systemTemp.createTempSync('mysuite-backup-avatars');
-    incoming = Directory.systemTemp.createTempSync('mysuite-backup-incoming');
+    root = Directory.systemTemp.createTempSync('logsuite-backup-avatars');
+    incoming = Directory.systemTemp.createTempSync('logsuite-backup-incoming');
     db = AppDatabase.forTesting(NativeDatabase.memory());
     people = PeopleRepository(db, AvatarStorage(root));
     export = ExportService(db);

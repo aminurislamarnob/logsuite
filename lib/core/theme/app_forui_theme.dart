@@ -90,7 +90,7 @@ FThemeData brandForuiThemeFrom(BrandTokens t) {
 
   return FThemeData(
     debugLabel:
-        'mySuite ${t.isDark ? 'dark' : 'light'}'
+        'logSuite ${t.isDark ? 'dark' : 'light'}'
         '${t.compact ? ' compact' : ''}',
     colors: colors,
     typography: typography,

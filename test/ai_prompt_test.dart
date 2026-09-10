@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/ai/ai_prompt.dart';
-import 'package:mysuite/core/ai/ai_request_context.dart';
-import 'package:mysuite/core/settings/app_settings.dart';
+import 'package:logsuite/core/ai/ai_prompt.dart';
+import 'package:logsuite/core/ai/ai_request_context.dart';
+import 'package:logsuite/core/settings/app_settings.dart';
 
 import 'ai_fixtures.dart';
 

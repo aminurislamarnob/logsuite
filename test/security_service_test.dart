@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/services/security_service.dart';
-import 'package:mysuite/core/settings/app_settings.dart';
+import 'package:logsuite/core/services/security_service.dart';
+import 'package:logsuite/core/settings/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Builds a container over an in-memory SharedPreferences, the way `main.dart`

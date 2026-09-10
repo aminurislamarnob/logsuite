@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/people/avatar_storage.dart';
-import 'package:mysuite/core/people/people_repository.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/people/avatar_storage.dart';
+import 'package:logsuite/core/people/people_repository.dart';
 import 'package:path/path.dart' as p;
 
 void main() {
@@ -22,8 +22,8 @@ void main() {
   Directory avatarDir() => Directory(p.join(root.path, 'avatars'));
 
   setUp(() {
-    root = Directory.systemTemp.createTempSync('mysuite-avatars');
-    incoming = Directory.systemTemp.createTempSync('mysuite-incoming');
+    root = Directory.systemTemp.createTempSync('logsuite-avatars');
+    incoming = Directory.systemTemp.createTempSync('logsuite-incoming');
     avatars = AvatarStorage(root);
     db = AppDatabase.forTesting(NativeDatabase.memory());
     people = PeopleRepository(db, avatars);

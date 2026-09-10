@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/theme/app_palette.dart';
+import 'package:logsuite/core/theme/app_palette.dart';
 
 /// WCAG 2.1 relative luminance.
 double _luminance(Color c) {

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/utils/formatters.dart';
+import 'package:logsuite/core/utils/formatters.dart';
 
 void main() {
   group('compactMoney', () {

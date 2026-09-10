@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forui/forui.dart';
-import 'package:mysuite/core/settings/app_settings.dart';
-import 'package:mysuite/core/theme/app_forui_theme.dart';
-import 'package:mysuite/core/theme/app_theme.dart';
-import 'package:mysuite/presentation/settings/how_to_content.dart';
-import 'package:mysuite/presentation/settings/how_to_screen.dart';
+import 'package:logsuite/core/settings/app_settings.dart';
+import 'package:logsuite/core/theme/app_forui_theme.dart';
+import 'package:logsuite/core/theme/app_theme.dart';
+import 'package:logsuite/presentation/settings/how_to_content.dart';
+import 'package:logsuite/presentation/settings/how_to_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The guides are content, so most of what can go wrong is a module without a

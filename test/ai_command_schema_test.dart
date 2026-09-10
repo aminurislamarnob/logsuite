@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/ai/ai_action.dart';
-import 'package:mysuite/core/ai/ai_command_schema.dart';
+import 'package:logsuite/core/ai/ai_action.dart';
+import 'package:logsuite/core/ai/ai_command_schema.dart';
 
 /// The schema is what every provider's strict mode validates against, so
 /// the properties it promises have to be the ones the parser reads, and the

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.mysuite" "\0"
-            VALUE "FileDescription", "mysuite" "\0"
+            VALUE "CompanyName", "com.logsuite" "\0"
+            VALUE "FileDescription", "logsuite" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "mysuite" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.mysuite. All rights reserved." "\0"
-            VALUE "OriginalFilename", "mysuite.exe" "\0"
-            VALUE "ProductName", "mysuite" "\0"
+            VALUE "InternalName", "logsuite" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.logsuite. All rights reserved." "\0"
+            VALUE "OriginalFilename", "logsuite.exe" "\0"
+            VALUE "ProductName", "logsuite" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

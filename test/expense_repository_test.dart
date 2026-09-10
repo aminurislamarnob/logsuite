@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/people/avatar_storage.dart';
-import 'package:mysuite/core/people/people_repository.dart';
-import 'package:mysuite/core/utils/formatters.dart';
-import 'package:mysuite/presentation/expenses/repository/expense_repository.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/people/avatar_storage.dart';
+import 'package:logsuite/core/people/people_repository.dart';
+import 'package:logsuite/core/utils/formatters.dart';
+import 'package:logsuite/presentation/expenses/repository/expense_repository.dart';
 
 void main() {
   late AppDatabase db;
@@ -25,7 +25,7 @@ void main() {
 
   setUp(() async {
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    avatarRoot = Directory.systemTemp.createTempSync('mysuite-expense');
+    avatarRoot = Directory.systemTemp.createTempSync('logsuite-expense');
     people = PeopleRepository(db, AvatarStorage(avatarRoot));
     repo = ExpenseRepository(db, people);
 

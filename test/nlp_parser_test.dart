@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/presentation/tasks/utils/nlp_parser.dart';
-import 'package:mysuite/presentation/tasks/utils/recurrence.dart';
+import 'package:logsuite/presentation/tasks/utils/nlp_parser.dart';
+import 'package:logsuite/presentation/tasks/utils/recurrence.dart';
 
 void main() {
   // 2026-03-02 is a Monday.

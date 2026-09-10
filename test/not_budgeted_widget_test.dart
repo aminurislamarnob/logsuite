@@ -5,18 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forui/forui.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/people/avatar_storage.dart';
-import 'package:mysuite/core/people/people_repository.dart';
-import 'package:mysuite/core/settings/app_settings.dart';
-import 'package:mysuite/core/theme/app_colors.dart';
-import 'package:mysuite/core/theme/app_forui_theme.dart';
-import 'package:mysuite/core/theme/app_icons.dart';
-import 'package:mysuite/core/theme/app_theme.dart';
-import 'package:mysuite/core/utils/formatters.dart';
-import 'package:mysuite/presentation/expenses/providers/expenses_provider.dart';
-import 'package:mysuite/presentation/expenses/repository/expense_repository.dart';
-import 'package:mysuite/presentation/expenses/widgets/budgets_tab.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/people/avatar_storage.dart';
+import 'package:logsuite/core/people/people_repository.dart';
+import 'package:logsuite/core/settings/app_settings.dart';
+import 'package:logsuite/core/theme/app_colors.dart';
+import 'package:logsuite/core/theme/app_forui_theme.dart';
+import 'package:logsuite/core/theme/app_icons.dart';
+import 'package:logsuite/core/theme/app_theme.dart';
+import 'package:logsuite/core/utils/formatters.dart';
+import 'package:logsuite/presentation/expenses/providers/expenses_provider.dart';
+import 'package:logsuite/presentation/expenses/repository/expense_repository.dart';
+import 'package:logsuite/presentation/expenses/widgets/budgets_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The not-budgeted row warns about a month you can still do something about,
@@ -36,7 +36,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    avatarRoot = Directory.systemTemp.createTempSync('mysuite-not-budgeted');
+    avatarRoot = Directory.systemTemp.createTempSync('logsuite-not-budgeted');
     repo = ExpenseRepository(
       db,
       PeopleRepository(db, AvatarStorage(avatarRoot)),

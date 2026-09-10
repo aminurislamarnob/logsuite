@@ -86,7 +86,7 @@ class OpenAiCompatibleClient implements AiClient {
             ? {
                 'type': 'json_schema',
                 'json_schema': {
-                  'name': 'mysuite_actions',
+                  'name': 'logsuite_actions',
                   'strict': true,
                   'schema': schema,
                 },

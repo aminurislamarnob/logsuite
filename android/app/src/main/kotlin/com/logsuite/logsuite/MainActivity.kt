@@ -1,4 +1,4 @@
-package com.mysuite.mysuite
+package com.logsuite.logsuite
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

@@ -6,10 +6,10 @@ import 'dart:io';
 import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/people/avatar_storage.dart';
-import 'package:mysuite/core/services/export_service.dart';
-import 'package:mysuite/core/services/restore_service.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/people/avatar_storage.dart';
+import 'package:logsuite/core/services/export_service.dart';
+import 'package:logsuite/core/services/restore_service.dart';
 
 /// A restore replaces every row on the device, so the thing worth proving is
 /// that it is the exact inverse of the export: back up a populated database,
@@ -24,7 +24,7 @@ void main() {
 
   setUp(() async {
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    avatarRoot = Directory.systemTemp.createTempSync('mysuite-restore');
+    avatarRoot = Directory.systemTemp.createTempSync('logsuite-restore');
     export = ExportService(db);
     restore = RestoreService(db, AvatarStorage(avatarRoot));
     // `beforeOpen` counts a fresh in-memory database as newly created, so the
@@ -259,7 +259,7 @@ void main() {
     expect(json, contains('photoData'));
 
     // Restore onto a device that has never seen that file.
-    final elsewhere = Directory.systemTemp.createTempSync('mysuite-restore-2');
+    final elsewhere = Directory.systemTemp.createTempSync('logsuite-restore-2');
     addTearDown(() => elsewhere.deleteSync(recursive: true));
     final summary = await RestoreService(
       db,
@@ -297,12 +297,12 @@ void main() {
     );
 
     test('JSON that is not a backup', () async {
-      await refuses('{"hello":"world"}', contains('not a mySuite backup'));
+      await refuses('{"hello":"world"}', contains('not a logSuite backup'));
     });
 
     test(
       'a JSON list',
-      () => refuses('[1,2,3]', contains('not a mySuite backup')),
+      () => refuses('[1,2,3]', contains('not a logSuite backup')),
     );
 
     test('a newer schema version', () async {

@@ -35,19 +35,19 @@ Future<void> main() async {
         sharedPrefsProvider.overrideWithValue(prefs),
         avatarStorageProvider.overrideWithValue(avatars),
       ],
-      child: const MySuiteApp(),
+      child: const LogSuiteApp(),
     ),
   );
 }
 
-class MySuiteApp extends ConsumerStatefulWidget {
-  const MySuiteApp({super.key});
+class LogSuiteApp extends ConsumerStatefulWidget {
+  const LogSuiteApp({super.key});
 
   @override
-  ConsumerState<MySuiteApp> createState() => _MySuiteAppState();
+  ConsumerState<LogSuiteApp> createState() => _LogSuiteAppState();
 }
 
-class _MySuiteAppState extends ConsumerState<MySuiteApp> {
+class _LogSuiteAppState extends ConsumerState<LogSuiteApp> {
   @override
   void initState() {
     super.initState();
@@ -85,7 +85,7 @@ class _MySuiteAppState extends ConsumerState<MySuiteApp> {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'mySuite',
+      title: 'logSuite',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(
         palette: settings.palette,
@@ -256,7 +256,7 @@ class _LockGateState extends ConsumerState<_LockGate>
               const AppIcon(AppIcons.lock, size: 56),
               const SizedBox(height: 20),
               const Text(
-                'mySuite is locked',
+                'logSuite is locked',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),

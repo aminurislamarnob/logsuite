@@ -59,7 +59,7 @@ class ExportService {
         ],
       ),
     ];
-    return _write('mysuite_tasks.csv', _csv.convert(rows));
+    return _write('logsuite_tasks.csv', _csv.convert(rows));
   }
 
   Future<File> expensesCsv({DateTime? from, DateTime? to}) async {
@@ -98,7 +98,7 @@ class ExportService {
         ],
       ),
     ];
-    return _write('mysuite_expenses.csv', _csv.convert(rows));
+    return _write('logsuite_expenses.csv', _csv.convert(rows));
   }
 
   Future<File> medicineCsv() async {
@@ -124,7 +124,7 @@ class ExportService {
             ];
           }),
     ];
-    return _write('mysuite_medicine.csv', _csv.convert(rows));
+    return _write('logsuite_medicine.csv', _csv.convert(rows));
   }
 
   Future<File> habitsCsv() async {
@@ -144,14 +144,14 @@ class ExportService {
         ],
       ),
     ];
-    return _write('mysuite_habits.csv', _csv.convert(rows));
+    return _write('logsuite_habits.csv', _csv.convert(rows));
   }
 
   // --- JSON (full backup) --------------------------------------------------
 
   /// A complete, restorable snapshot of every table, written to a file.
   Future<File> fullJsonBackup() async => _write(
-    'mysuite_backup_${Fmt.iso(DateTime.now())}.json',
+    'logsuite_backup_${Fmt.iso(DateTime.now())}.json',
     const JsonEncoder.withIndent('  ').convert(await fullBackupData()),
   );
 

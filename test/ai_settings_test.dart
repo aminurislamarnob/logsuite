@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/ai/ai_provider.dart';
-import 'package:mysuite/core/ai/api_key_store.dart';
-import 'package:mysuite/core/settings/app_settings.dart';
+import 'package:logsuite/core/ai/ai_provider.dart';
+import 'package:logsuite/core/ai/api_key_store.dart';
+import 'package:logsuite/core/settings/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The AI settings follow the rest of the notifier: written to prefs first,

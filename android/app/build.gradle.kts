@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.mysuite.mysuite"
+    namespace = "com.logsuite.logsuite"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -17,7 +17,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.mysuite.mysuite"
+        applicationId = "com.logsuite.logsuite"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

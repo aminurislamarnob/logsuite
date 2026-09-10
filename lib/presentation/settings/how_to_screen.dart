@@ -74,7 +74,7 @@ class _HowToScreenState extends ConsumerState<HowToScreen> {
 
     return BrandScaffold(
       header: const BrandTopBar(
-        title: 'How to use mySuite',
+        title: 'How to use logSuite',
         leadingIcon: AppIcons.back,
       ),
       child: SingleChildScrollView(

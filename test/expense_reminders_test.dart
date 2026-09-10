@@ -4,14 +4,14 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/people/avatar_storage.dart';
-import 'package:mysuite/core/people/people_repository.dart';
-import 'package:mysuite/core/providers/database_provider.dart';
-import 'package:mysuite/core/services/notification_service.dart';
-import 'package:mysuite/core/settings/app_settings.dart';
-import 'package:mysuite/presentation/expenses/repository/expense_repository.dart';
-import 'package:mysuite/presentation/expenses/utils/expense_reminders.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/people/avatar_storage.dart';
+import 'package:logsuite/core/people/people_repository.dart';
+import 'package:logsuite/core/providers/database_provider.dart';
+import 'package:logsuite/core/services/notification_service.dart';
+import 'package:logsuite/core/settings/app_settings.dart';
+import 'package:logsuite/presentation/expenses/repository/expense_repository.dart';
+import 'package:logsuite/presentation/expenses/utils/expense_reminders.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 typedef _Bill = ({int id, String name, double amount, DateTime when});
@@ -81,7 +81,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    avatarRoot = Directory.systemTemp.createTempSync('mysuite-reminders');
+    avatarRoot = Directory.systemTemp.createTempSync('logsuite-reminders');
     container = ProviderContainer(
       overrides: [
         sharedPrefsProvider.overrideWithValue(prefs),

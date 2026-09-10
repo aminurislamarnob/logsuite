@@ -1,4 +1,4 @@
-# mysuite
+# logsuite
 
 All-in-one daily productivity & wellness app.
 

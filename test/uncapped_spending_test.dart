@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/people/avatar_storage.dart';
-import 'package:mysuite/core/people/people_repository.dart';
-import 'package:mysuite/core/utils/formatters.dart';
-import 'package:mysuite/presentation/expenses/providers/expenses_provider.dart';
-import 'package:mysuite/presentation/expenses/repository/expense_repository.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/people/avatar_storage.dart';
+import 'package:logsuite/core/people/people_repository.dart';
+import 'package:logsuite/core/utils/formatters.dart';
+import 'package:logsuite/presentation/expenses/providers/expenses_provider.dart';
+import 'package:logsuite/presentation/expenses/repository/expense_repository.dart';
 
 /// The budgets tab used to show two full bars for a month whose money had all
 /// gone somewhere else. These are the rules that stop it doing that.
@@ -26,7 +26,7 @@ void main() {
 
   setUp(() async {
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    avatarRoot = Directory.systemTemp.createTempSync('mysuite-uncapped');
+    avatarRoot = Directory.systemTemp.createTempSync('logsuite-uncapped');
     repo = ExpenseRepository(
       db,
       PeopleRepository(db, AvatarStorage(avatarRoot)),

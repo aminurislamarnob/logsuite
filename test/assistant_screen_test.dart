@@ -6,18 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forui/forui.dart';
-import 'package:mysuite/core/ai/ai_client.dart';
-import 'package:mysuite/core/ai/ai_provider.dart';
-import 'package:mysuite/core/ai/ai_providers.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/people/avatar_storage.dart';
-import 'package:mysuite/core/providers/database_provider.dart';
-import 'package:mysuite/core/settings/app_settings.dart';
-import 'package:mysuite/core/theme/app_forui_theme.dart';
-import 'package:mysuite/core/theme/app_theme.dart';
-import 'package:mysuite/presentation/ai/assistant_controller.dart';
-import 'package:mysuite/presentation/ai/assistant_screen.dart';
-import 'package:mysuite/presentation/ai/widgets/action_preview_card.dart';
+import 'package:logsuite/core/ai/ai_client.dart';
+import 'package:logsuite/core/ai/ai_provider.dart';
+import 'package:logsuite/core/ai/ai_providers.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/people/avatar_storage.dart';
+import 'package:logsuite/core/providers/database_provider.dart';
+import 'package:logsuite/core/settings/app_settings.dart';
+import 'package:logsuite/core/theme/app_forui_theme.dart';
+import 'package:logsuite/core/theme/app_theme.dart';
+import 'package:logsuite/presentation/ai/assistant_controller.dart';
+import 'package:logsuite/presentation/ai/assistant_screen.dart';
+import 'package:logsuite/presentation/ai/widgets/action_preview_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ai_fixtures.dart';
@@ -53,7 +53,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    avatarRoot = Directory.systemTemp.createTempSync('mysuite-assistant-ui');
+    avatarRoot = Directory.systemTemp.createTempSync('logsuite-assistant-ui');
   });
 
   tearDown(() async {

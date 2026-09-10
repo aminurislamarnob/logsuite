@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/ai/name_resolver.dart';
-import 'package:mysuite/presentation/expenses/utils/expense_voice_parser.dart';
+import 'package:logsuite/core/ai/name_resolver.dart';
+import 'package:logsuite/presentation/expenses/utils/expense_voice_parser.dart';
 
 import 'ai_fixtures.dart';
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forui/forui.dart';
-import 'package:mysuite/core/theme/app_forui_theme.dart';
-import 'package:mysuite/core/theme/app_theme.dart';
-import 'package:mysuite/core/widgets/common.dart';
+import 'package:logsuite/core/theme/app_forui_theme.dart';
+import 'package:logsuite/core/theme/app_theme.dart';
+import 'package:logsuite/core/widgets/common.dart';
 
 Widget _host(Widget child) => MaterialApp(
   theme: AppTheme.light(),

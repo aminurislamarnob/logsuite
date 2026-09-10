@@ -404,7 +404,7 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 const BrandTile(
                   leading: AppIcon(AppIcons.info),
-                  title: Text('mySuite'),
+                  title: Text('logSuite'),
                   subtitle: Text('Version 1.0.0 · offline-first'),
                 ),
                 BrandTile(
@@ -474,7 +474,7 @@ class SettingsScreen extends ConsumerWidget {
     final FilePickerResult? picked;
     try {
       picked = await FilePicker.pickFiles(
-        dialogTitle: 'Pick a mySuite backup',
+        dialogTitle: 'Pick a logSuite backup',
         type: FileType.custom,
         allowedExtensions: const ['json'],
       );
@@ -908,7 +908,7 @@ class _HowToCard extends StatelessWidget {
               ),
             ),
             title: const Text(
-              'How to use mySuite',
+              'How to use logSuite',
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             subtitle: const Text(

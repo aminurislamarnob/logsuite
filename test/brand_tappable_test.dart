@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/widgets/common.dart';
-import 'package:mysuite/presentation/shell/app_shell.dart';
+import 'package:logsuite/core/widgets/common.dart';
+import 'package:logsuite/presentation/shell/app_shell.dart';
 
 import 'brand_theme_test.dart' show pumpBranded;
 

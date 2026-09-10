@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/services/reminder_target.dart';
+import 'package:logsuite/core/services/reminder_target.dart';
 
 void main() {
   test('each reminder kind opens its module', () {

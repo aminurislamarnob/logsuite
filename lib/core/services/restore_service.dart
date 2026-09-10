@@ -188,13 +188,13 @@ class RestoreService {
       throw const RestoreException('That file is not valid JSON.');
     }
     if (decoded is! Map<String, dynamic>) {
-      throw const RestoreException('That file is not a mySuite backup.');
+      throw const RestoreException('That file is not a logSuite backup.');
     }
     // A CSV export renamed to .json, or somebody else's backup, would decode
     // fine and then wipe the device. The section names are the giveaway.
     if (!sections.any(decoded.containsKey)) {
       throw const RestoreException(
-        'That file is not a mySuite backup. Pick a full backup (JSON).',
+        'That file is not a logSuite backup. Pick a full backup (JSON).',
       );
     }
     return decoded;
@@ -205,7 +205,7 @@ class RestoreService {
     if (version is! int) return;
     if (version > _db.schemaVersion) {
       throw RestoreException(
-        'This backup came from a newer version of mySuite (format $version). '
+        'This backup came from a newer version of logSuite (format $version). '
         'Update the app, then restore it.',
       );
     }

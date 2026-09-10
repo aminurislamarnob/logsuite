@@ -3,16 +3,16 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/ai/ai_action.dart';
-import 'package:mysuite/core/ai/ai_client.dart';
-import 'package:mysuite/core/ai/ai_provider.dart';
-import 'package:mysuite/core/ai/ai_providers.dart';
-import 'package:mysuite/core/database/app_database.dart';
-import 'package:mysuite/core/people/avatar_storage.dart';
-import 'package:mysuite/core/providers/database_provider.dart';
-import 'package:mysuite/core/services/notification_service.dart';
-import 'package:mysuite/core/settings/app_settings.dart';
-import 'package:mysuite/presentation/ai/assistant_controller.dart';
+import 'package:logsuite/core/ai/ai_action.dart';
+import 'package:logsuite/core/ai/ai_client.dart';
+import 'package:logsuite/core/ai/ai_provider.dart';
+import 'package:logsuite/core/ai/ai_providers.dart';
+import 'package:logsuite/core/database/app_database.dart';
+import 'package:logsuite/core/people/avatar_storage.dart';
+import 'package:logsuite/core/providers/database_provider.dart';
+import 'package:logsuite/core/services/notification_service.dart';
+import 'package:logsuite/core/settings/app_settings.dart';
+import 'package:logsuite/presentation/ai/assistant_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ai_fixtures.dart';
@@ -86,7 +86,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    avatarRoot = Directory.systemTemp.createTempSync('mysuite-assistant');
+    avatarRoot = Directory.systemTemp.createTempSync('logsuite-assistant');
   });
 
   tearDown(() async {

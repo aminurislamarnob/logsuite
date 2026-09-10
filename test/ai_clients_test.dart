@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:mysuite/core/ai/ai_client.dart';
-import 'package:mysuite/core/ai/ai_command_schema.dart';
-import 'package:mysuite/core/ai/ai_provider.dart';
-import 'package:mysuite/core/ai/clients/anthropic_client.dart';
-import 'package:mysuite/core/ai/clients/gemini_client.dart';
-import 'package:mysuite/core/ai/clients/openai_compatible_client.dart';
+import 'package:logsuite/core/ai/ai_client.dart';
+import 'package:logsuite/core/ai/ai_command_schema.dart';
+import 'package:logsuite/core/ai/ai_provider.dart';
+import 'package:logsuite/core/ai/clients/anthropic_client.dart';
+import 'package:logsuite/core/ai/clients/gemini_client.dart';
+import 'package:logsuite/core/ai/clients/openai_compatible_client.dart';
 
 /// Each client is checked against a recorded request: the URL, the auth
 /// header, and the field that asks for schema-bound JSON. Those are the

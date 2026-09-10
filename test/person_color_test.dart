@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mysuite/core/people/person_avatar.dart';
-import 'package:mysuite/core/theme/app_palette.dart';
-import 'package:mysuite/core/theme/app_theme.dart';
+import 'package:logsuite/core/people/person_avatar.dart';
+import 'package:logsuite/core/theme/app_palette.dart';
+import 'package:logsuite/core/theme/app_theme.dart';
 
 void main() {
   Future<Color> resolve(

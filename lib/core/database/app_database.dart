@@ -592,7 +592,7 @@ class AppDatabase extends _$AppDatabase {
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'mysuite.sqlite'));
+    final file = File(p.join(dbFolder.path, 'logsuite.sqlite'));
     sqlite3.tempDirectory = (await getTemporaryDirectory()).path;
     return NativeDatabase.createInBackground(file);
   });
