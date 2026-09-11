@@ -3,4 +3,5 @@
     <!-- The brand coral, matching AppColors.coral. Used behind the status bar
          while the photo cropper is open so its toolbar reads as one band. -->
     <color name="crop_toolbar">#FFFF6547</color>
+	<color name="ic_launcher_background">#031664</color>
 </resources>

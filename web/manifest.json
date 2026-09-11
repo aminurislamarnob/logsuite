@@ -1,6 +1,6 @@
 {
-    "name": "logSuite",
-    "short_name": "logSuite",
+    "name": "LogSuite",
+    "short_name": "LogSuite",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
