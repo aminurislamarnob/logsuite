@@ -131,7 +131,6 @@ class AiResponseParser {
           amount: _number(m['habit_amount']) ?? 1,
         );
 
-
       case AiActionKind.logSymptom:
         if (title == null) return null;
         return LogSymptomAction(

@@ -23,6 +23,7 @@ import '../tasks/providers/tasks_provider.dart';
 import '../tasks/widgets/task_tile.dart';
 import '../../core/people/person_avatar.dart';
 import '../../core/database/app_database.dart';
+import '../ai/widgets/document_source_sheet.dart';
 
 /// The home screen, laid out to the fitness reference: greeting header, a hero
 /// card for the next thing due, a pastel "My Plans" row of module stats, an
@@ -71,6 +72,16 @@ class DashboardScreen extends ConsumerWidget {
                   icon: AppIcons.sparkle,
                   tooltip: 'Speak a command',
                   onPressed: () => context.push('/assistant'),
+                ),
+                CircleIconButton(
+                  icon: AppIcons.camera,
+                  tooltip: 'Scan a document',
+                  onPressed: () async {
+                    final fromCamera = await showDocumentSourceSheet(context);
+                    if (fromCamera != null && context.mounted) {
+                      context.push('/assistant', extra: fromCamera);
+                    }
+                  },
                 ),
                 CircleIconButton(
                   icon: AppIcons.search,

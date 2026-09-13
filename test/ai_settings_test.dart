@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:logsuite/core/ai/ai_provider.dart';
 import 'package:logsuite/core/ai/api_key_store.dart';
 import 'package:logsuite/core/settings/app_settings.dart';
+import 'package:logsuite/core/settings/voice_language.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The AI settings follow the rest of the notifier: written to prefs first,
@@ -100,6 +101,25 @@ void main() {
 
       await status.clear();
       expect(container.read(aiKeyStatusProvider).value, isNull);
+    });
+  });
+  group('Voice language', () {
+    test('defaults to Auto and round-trips by name', () async {
+      final a = await _container();
+      expect(a.read(settingsProvider).voiceLanguage, VoiceLanguage.auto);
+      expect(VoiceLanguage.auto.languageCode, isNull);
+
+      a.read(settingsProvider.notifier).setVoiceLanguage(VoiceLanguage.bangla);
+      expect(a.read(sharedPrefsProvider).getString('voice_language'), 'bangla');
+
+      final b = await _container({'voice_language': 'bangla'});
+      expect(b.read(settingsProvider).voiceLanguage, VoiceLanguage.bangla);
+      expect(b.read(settingsProvider).voiceLanguage.languageCode, 'bn');
+    });
+
+    test('an unknown stored name falls back to Auto', () async {
+      final c = await _container({'voice_language': 'klingon'});
+      expect(c.read(settingsProvider).voiceLanguage, VoiceLanguage.auto);
     });
   });
 }

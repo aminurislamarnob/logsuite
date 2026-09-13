@@ -137,8 +137,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         // Not lock-gated: the assistant asks for an unlock itself, only when
         // a parsed entry is about to land in a locked module.
         path: '/assistant',
-        builder: (_, state) =>
-            AssistantScreen(initialTranscript: state.extra as String?),
+        // A String starts from typed text, a bool opens straight into a scan
+        // (true camera, false gallery).
+        builder: (_, state) => AssistantScreen(
+          initialTranscript: state.extra is String
+              ? state.extra as String
+              : null,
+          scanFromCamera: state.extra is bool ? state.extra as bool : null,
+        ),
       ),
       GoRoute(path: '/reminders', builder: (_, _) => const RemindersScreen()),
     ],

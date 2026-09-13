@@ -22,7 +22,7 @@ class AiPromptBuilder {
     final mm = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
 
     b.writeln(
-      'You convert one spoken command for the logSuite personal organiser '
+      'You convert spoken commands or scanned document text for the logSuite personal organiser '
       'into structured actions. Reply only with the JSON the schema asks for.',
     );
     b.writeln();
@@ -40,6 +40,12 @@ class AiPromptBuilder {
     b.writeln();
 
     b.writeln('Rules:');
+    b.writeln(
+      '- If the text starts with [Scanned Document], it is OCR text from an '
+      'image (receipt, invoice, note). Extract all valid actions (expenses, '
+      'notes, tasks) found in it. Make reasonable assumptions for categories and titles.',
+    );
+
     b.writeln('- One action per thing the user asked for; several are fine.');
     b.writeln(
       '- Names of categories, accounts, people, habits and projects must be '

@@ -239,7 +239,8 @@ final class SetBudgetDraft extends AiDraft {
   AiActionKind get kind => AiActionKind.setBudget;
 
   @override
-  String get title => 'Budget ${categoryName == null ? 'Overall' : 'for $categoryName'}';
+  String get title =>
+      'Budget ${categoryName == null ? 'Overall' : 'for $categoryName'}';
 
   @override
   String summary(String currencySymbol) => Fmt.money(amount, currencySymbol);
@@ -344,7 +345,8 @@ final class CreateCategoryDraft extends AiDraft {
   AiActionKind get kind => AiActionKind.createCategory;
 
   @override
-  String summary(String currencySymbol) => isIncome ? 'New income category' : 'New expense category';
+  String summary(String currencySymbol) =>
+      isIncome ? 'New income category' : 'New expense category';
 }
 
 final class LogSymptomDraft extends AiDraft {

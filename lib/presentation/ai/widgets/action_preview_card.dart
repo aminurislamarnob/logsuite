@@ -207,7 +207,6 @@ class ActionPreviewCard extends ConsumerWidget {
           if (context.mounted) context.push(item.route);
         default:
           break;
-
       }
     } on AiException catch (e) {
       if (context.mounted) brandToast(context, e.message);

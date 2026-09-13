@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ai/ai_provider.dart';
+import 'voice_language.dart';
 import '../theme/app_palette.dart';
 
 /// The six toggleable feature modules. Disabling one hides it from the modules
@@ -65,6 +66,9 @@ class AppSettings {
   /// a warning still previews, so the switch never writes a guess.
   final bool aiAutoSave;
 
+  /// The recogniser the assistant's microphone runs; see [VoiceLanguage].
+  final VoiceLanguage voiceLanguage;
+
   const AppSettings({
     this.enabledModules = const {
       AppModule.notes,
@@ -99,6 +103,7 @@ class AppSettings {
     this.aiProvider = AiProvider.anthropic,
     this.aiModel = '',
     this.aiAutoSave = false,
+    this.voiceLanguage = VoiceLanguage.auto,
   });
 
   bool isEnabled(AppModule m) => enabledModules.contains(m);
@@ -126,6 +131,7 @@ class AppSettings {
     AiProvider? aiProvider,
     String? aiModel,
     bool? aiAutoSave,
+    VoiceLanguage? voiceLanguage,
   }) {
     return AppSettings(
       enabledModules: enabledModules ?? this.enabledModules,
@@ -147,6 +153,7 @@ class AppSettings {
       aiProvider: aiProvider ?? this.aiProvider,
       aiModel: aiModel ?? this.aiModel,
       aiAutoSave: aiAutoSave ?? this.aiAutoSave,
+      voiceLanguage: voiceLanguage ?? this.voiceLanguage,
     );
   }
 }
@@ -188,6 +195,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static const _kAiProvider = 'ai_provider';
   static const _kAiModel = 'ai_model';
   static const _kAiAutoSave = 'ai_auto_save';
+  static const _kVoiceLanguage = 'voice_language';
 
   AppSettings _load() {
     Set<AppModule> parseModules(String key, Set<AppModule> fallback) {
@@ -224,6 +232,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       aiProvider: AiProviderX.byName(_prefs.getString(_kAiProvider)),
       aiModel: _prefs.getString(_kAiModel) ?? '',
       aiAutoSave: _prefs.getBool(_kAiAutoSave) ?? false,
+      voiceLanguage: VoiceLanguageX.byName(_prefs.getString(_kVoiceLanguage)),
     );
   }
 
@@ -333,5 +342,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setAiAutoSave(bool v) {
     _prefs.setBool(_kAiAutoSave, v);
     state = state.copyWith(aiAutoSave: v);
+  }
+
+  void setVoiceLanguage(VoiceLanguage v) {
+    _prefs.setString(_kVoiceLanguage, v.name);
+    state = state.copyWith(voiceLanguage: v);
   }
 }

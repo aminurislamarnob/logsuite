@@ -26,20 +26,41 @@ extension AiProviderX on AiProvider {
   /// Pre-defined models for each provider to show in a dropdown.
   List<String> get availableModels => switch (this) {
     AiProvider.anthropic => [
-      'claude-fable-5.1', 'claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4.5',
-      'claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022'
+      'claude-fable-5.1',
+      'claude-opus-5',
+      'claude-sonnet-5',
+      'claude-haiku-4.5',
+      'claude-3-7-sonnet-20250219',
+      'claude-3-5-sonnet-20241022',
+      'claude-3-5-haiku-20241022',
     ],
     AiProvider.openai => [
-      'gpt-6-astra', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
-      'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o1', 'o1-mini'
+      'gpt-6-astra',
+      'gpt-5.6-sol',
+      'gpt-5.6-terra',
+      'gpt-5.6-luna',
+      'gpt-4.1-mini',
+      'gpt-4o',
+      'gpt-4o-mini',
+      'o3-mini',
+      'o1',
+      'o1-mini',
     ],
     AiProvider.gemini => [
-      'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.1-pro',
-      'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-pro'
+      'gemini-3.8-flash',
+      'gemini-3.6-flash',
+      'gemini-3.1-pro',
+      'gemini-2.5-flash',
+      'gemini-2.5-pro',
+      'gemini-2.0-flash',
+      'gemini-1.5-pro',
     ],
     AiProvider.deepseek => [
-      'deepseek-v4-pro', 'deepseek-v4-flash', 'deepseek-v4-flash-vision-exp',
-      'deepseek-chat', 'deepseek-reasoner'
+      'deepseek-v4-pro',
+      'deepseek-v4-flash',
+      'deepseek-v4-flash-vision-exp',
+      'deepseek-chat',
+      'deepseek-reasoner',
     ],
   };
 

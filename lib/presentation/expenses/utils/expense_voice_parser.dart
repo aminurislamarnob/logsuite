@@ -89,10 +89,19 @@ class ExpenseVoiceParser {
     var note = phrase.trim();
 
     // --- Amount ---
-    // Accepts "200", "1,200", "৳200", "200 taka", "200tk".
+    // Accepts "200", "1,200", "৳200", "200 taka", "200tk", "১০০০".
+    final banglaNumerals = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    var normalizedForAmount = lower.replaceAll('৳', ' ');
+    for (int i = 0; i < banglaNumerals.length; i++) {
+      normalizedForAmount = normalizedForAmount.replaceAll(
+        banglaNumerals[i],
+        i.toString(),
+      );
+    }
+
     final amountMatch = RegExp(
       r'(\d[\d,]*(?:\.\d+)?)',
-    ).firstMatch(lower.replaceAll('৳', ' '));
+    ).firstMatch(normalizedForAmount);
     final amount = amountMatch == null
         ? null
         : double.tryParse(amountMatch.group(1)!.replaceAll(',', ''));

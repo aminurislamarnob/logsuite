@@ -16,6 +16,7 @@ import '../medicine/providers/medicine_provider.dart';
 import '../medicine/repository/medicine_repository.dart';
 import '../notes/notes_screen.dart' show newNoteFlow;
 import '../tasks/widgets/task_editor_sheet.dart';
+import '../ai/widgets/document_source_sheet.dart';
 
 class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.navigationShell});
@@ -153,6 +154,19 @@ Future<void> showQuickAdd(BuildContext context, WidgetRef ref) {
             onTap: () {
               Navigator.pop(sheetContext);
               context.push('/assistant');
+            },
+          ),
+          _tile(
+            icon: AppIcons.camera,
+            color: Theme.of(context).colorScheme.primary,
+            title: 'Scan a document',
+            subtitle: 'Scan a bill, invoice or handwritten note',
+            onTap: () async {
+              Navigator.pop(sheetContext);
+              final fromCamera = await showDocumentSourceSheet(context);
+              if (fromCamera != null && context.mounted) {
+                context.push('/assistant', extra: fromCamera);
+              }
             },
           ),
           if (settings.isEnabled(AppModule.tasks))
