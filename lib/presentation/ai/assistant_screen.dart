@@ -261,7 +261,7 @@ class _Centered extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(28, 16, 28, 40),
+        padding: pageInsets(context, top: 16, gutter: 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -433,7 +433,7 @@ class _Transcript extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+      padding: pageInsets(context),
       children: [
         const Align(alignment: Alignment.centerLeft, child: _SourceBadge()),
         const SizedBox(height: 16),
@@ -525,7 +525,12 @@ class _Preview extends ConsumerWidget {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.gutter,
+              8,
+              AppSpacing.gutter,
+              12,
+            ),
             children: [
               TintCard(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -611,7 +616,12 @@ class _Preview extends ConsumerWidget {
         SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.gutter,
+              4,
+              AppSpacing.gutter,
+              16,
+            ),
             child: Row(
               children: [
                 BrandButton(
@@ -671,7 +681,7 @@ class _SavedState extends State<_Saved> {
     final items = widget.state.items;
     final muted = context.muted;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+      padding: pageInsets(context),
       children: [
         Row(
           children: [

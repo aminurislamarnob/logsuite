@@ -6,6 +6,7 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/brand.dart';
 import '../../../core/widgets/common.dart';
 import '../providers/expenses_provider.dart';
 import 'month_stepper.dart';
@@ -22,7 +23,7 @@ class ReportsTab extends ConsumerWidget {
     final byPerson = ref.watch(spendByPersonProvider).valueOrNull ?? const [];
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+      padding: pageInsets(context, top: 8, end: PageEnd.fab),
       children: [
         const MonthStepper(),
         reportAsync.when(

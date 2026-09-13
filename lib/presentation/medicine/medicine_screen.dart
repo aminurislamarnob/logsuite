@@ -181,7 +181,7 @@ class _TodayTab extends ConsumerWidget {
     final conflicts = ref.watch(conflictsProvider);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+      padding: pageInsets(context, top: 16, end: PageEnd.fab),
       children: [
         if (adherence != null)
           Row(
@@ -427,7 +427,7 @@ class _CalendarTab extends ConsumerWidget {
       children: [
         _MonthSwitcher(month: month),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
           child: Row(
             children: ['M', 'T', 'W', 'T', 'F', 'S', 'S']
                 .map(
@@ -445,7 +445,7 @@ class _CalendarTab extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -532,7 +532,7 @@ class _CalendarTab extends ConsumerWidget {
                   title: 'No doses on ${Fmt.relativeDay(selected)}',
                 )
               : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                  padding: pageInsets(context, top: 0, end: PageEnd.fab),
                   children: selectedDoses
                       .map((v) => DoseTile(view: v))
                       .toList(),
@@ -596,7 +596,7 @@ class _TimelineTab extends ConsumerWidget {
                   title: 'Nothing scheduled this month',
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                  padding: pageInsets(context, top: 0, end: PageEnd.fab),
                   itemCount: days.length,
                   itemBuilder: (_, i) {
                     final day = days[i];
@@ -679,7 +679,7 @@ class _TableTab extends ConsumerWidget {
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+              padding: pageInsets(context, top: 0, end: PageEnd.fab),
               child: DataTable(
                 headingRowHeight: 40,
                 dataRowMinHeight: 40,
@@ -820,13 +820,13 @@ class _MedicinesTab extends ConsumerWidget {
               onAction: () => MedicineEditorSheet.show(context),
             )
           : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+              padding: pageInsets(context, top: 16, end: PageEnd.fab),
               children: list.map((m) {
                 final spec = MedicineRepository.specOf(m);
                 final total = ScheduleGenerator.totalDoses(spec);
                 final low = m.inventory <= m.lowStockThreshold;
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: cardGap),
                   child: TintCard(
                     padding: EdgeInsets.zero,
                     child: BrandTile(

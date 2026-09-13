@@ -42,7 +42,7 @@ class SettingsScreen extends ConsumerWidget {
     return BrandScaffold(
       header: const BrandTopBar(title: 'Settings', leadingIcon: null),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
+        padding: pageInsets(context, end: PageEnd.navBar),
         children: [
           const _ProfileCard(),
           const SizedBox(height: 24),

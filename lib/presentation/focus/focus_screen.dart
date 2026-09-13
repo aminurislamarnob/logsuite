@@ -70,7 +70,7 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
         ),
       ),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 48),
+        padding: pageInsets(context, top: 4),
         children: [
           if (state.phase == TimerPhase.idle)
             _buildModeSelector(state, notifier),

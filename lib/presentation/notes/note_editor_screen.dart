@@ -305,7 +305,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                8,
+                AppSpacing.gutter,
+                0,
+              ),
               child: BrandField(
                 controller: _titleController,
                 hint: 'Title',
@@ -319,7 +324,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
             ),
             if (_tags.isNotEmpty || _reminderAt != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.gutter,
+                  4,
+                  AppSpacing.gutter,
+                  0,
+                ),
                 child: Wrap(
                   spacing: 6,
                   runSpacing: 4,

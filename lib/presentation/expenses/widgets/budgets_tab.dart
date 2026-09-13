@@ -29,7 +29,7 @@ class BudgetsTab extends ConsumerWidget {
       loading: () => const Center(child: BrandSpinner()),
       error: (e, _) => Text('$e'),
       data: (rows) => ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+        padding: pageInsets(context, top: 8, end: PageEnd.fab),
         children: [
           const MonthStepper(),
           const SizedBox(height: 8),

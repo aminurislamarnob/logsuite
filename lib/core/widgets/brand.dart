@@ -176,7 +176,73 @@ const double actionGap = 8;
 /// of them with nothing between reads as one block rather than a list of rows.
 /// The Bills, Loans and Reports lists arrived at 10 by hand; this is that
 /// number, named, so every other list can agree with them.
-const double cardGap = 10;
+const double cardGap = AppSpacing.card;
+
+/// What sits under a scrolling page's last row, which decides how much room
+/// the page leaves below it.
+enum PageEnd {
+  /// Nothing: the row only has to clear the home indicator.
+  none,
+
+  /// A [BrandFab] floats over the bottom-right corner.
+  fab,
+
+  /// The shell's [CurvedNavBar] is drawn over the page.
+  navBar,
+}
+
+/// The padding a scrolling page applies to its list.
+///
+/// Every page pads its content [AppSpacing.gutter] from the sides — the same
+/// inset the top bar's circles sit at — and reserves enough underneath its
+/// last row to clear whatever floats over the page end, plus the device's
+/// bottom inset. `FScaffold` applies no bottom safe area of its own, so a
+/// constant here would either hide the last row under the home indicator or
+/// waste a finger's height on a device without one.
+EdgeInsets pageInsets(
+  BuildContext context, {
+  double top = 8,
+  PageEnd end = PageEnd.none,
+  double gutter = AppSpacing.gutter,
+}) {
+  final inset = MediaQuery.paddingOf(context).bottom;
+  final clearance = switch (end) {
+    PageEnd.none => AppSpacing.pageEnd,
+    PageEnd.fab => AppSpacing.fabClearance,
+    PageEnd.navBar => CurvedNavBar.barHeight + CurvedNavBar.overlap + 16,
+  };
+  return EdgeInsets.fromLTRB(gutter, top, gutter, clearance + inset);
+}
+
+/// Lets a horizontal rail scroll out under the page gutter.
+///
+/// A rail placed in a padded list is clipped at the padding, so its last card
+/// is cut off a gutter's width short of the screen edge and there is no sign
+/// that more follows. This lays the rail out at the full page width instead,
+/// centred over its slot, so the rail can carry the gutter as its own scroll
+/// padding: the first card lines up with the content above it and the rest run
+/// off the screen edge, the way a rail on the App Store does.
+///
+/// Must sit inside a page padded [AppSpacing.gutter] on both sides. The
+/// strip under the gutter is paint only: the page list still hit-tests its
+/// rows at the padded width, so a card is tapped and dragged inside the
+/// gutter, as before.
+class GutterBleed extends StatelessWidget {
+  final Widget child;
+
+  const GutterBleed({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    return OverflowBox(
+      alignment: Alignment.center,
+      minWidth: width,
+      maxWidth: width,
+      child: child,
+    );
+  }
+}
 
 /// The inset from a navigation drawer's edge to the cards inside it.
 ///
@@ -1009,9 +1075,9 @@ class DayStrip extends StatelessWidget {
       height: 72,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
         itemCount: days,
-        separatorBuilder: (_, _) => const SizedBox(width: 10),
+        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.card),
         itemBuilder: (context, i) {
           final day = start.add(Duration(days: i));
           final isSelected =
@@ -1269,7 +1335,8 @@ class _NavButton extends StatelessWidget {
         // A dot rather than a label keeps the bar as sparse as the reference
         // while still marking the active tab.
         label: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
           width: selected ? 16 : 0,
           height: 3,
           decoration: BoxDecoration(
@@ -1326,7 +1393,9 @@ class _NavBarPainter extends CustomPainter {
       ..lineTo(0, size.height)
       ..close();
 
-    canvas.drawShadow(fill, Colors.black.withValues(alpha: 0.28), 6, false);
+    // A soft lift rather than a drop shadow: the hairline already draws the
+    // edge, so the shadow only has to separate the bar from a busy list.
+    canvas.drawShadow(fill, Colors.black.withValues(alpha: 0.14), 8, false);
     canvas.drawPath(fill, Paint()..color = color);
     canvas.drawPath(
       top,

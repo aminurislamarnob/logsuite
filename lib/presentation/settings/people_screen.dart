@@ -41,7 +41,7 @@ class PeopleScreen extends ConsumerWidget {
         ],
       ),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+        padding: pageInsets(context, end: PageEnd.navBar),
         children: [
           const SectionHeader('Household'),
           TintCard(

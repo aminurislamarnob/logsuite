@@ -55,7 +55,7 @@ class DashboardScreen extends ConsumerWidget {
       child: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 140),
+          padding: pageInsets(context, top: 12, end: PageEnd.navBar),
           children: [
             GreetingHeader(
               greeting: '${Fmt.greeting()},',
@@ -95,12 +95,12 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: AppSpacing.section),
             const _NextUpBanner(),
-            const SizedBox(height: 26),
+            const SizedBox(height: AppSpacing.section),
             const SectionHeader('My plans'),
             const _TodaySummary(),
-            const SizedBox(height: 26),
+            const SizedBox(height: AppSpacing.section),
             const _ActivityChart(),
             if (ordered.isEmpty)
               const Padding(
@@ -112,7 +112,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             for (final key in ordered) ...[
-              const SizedBox(height: 26),
+              const SizedBox(height: AppSpacing.section),
               builders[key]!(),
             ],
           ],
@@ -293,12 +293,14 @@ class _TodaySummary extends ConsumerWidget {
     // no matter how many modules are switched on.
     return SizedBox(
       height: 132,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        clipBehavior: Clip.none,
-        itemCount: cards.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
-        itemBuilder: (context, i) => SizedBox(width: 112, child: cards[i]),
+      child: GutterBleed(
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
+          itemCount: cards.length,
+          separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.grid),
+          itemBuilder: (context, i) => SizedBox(width: 112, child: cards[i]),
+        ),
       ),
     );
   }
@@ -455,84 +457,89 @@ class _HabitsWidget extends ConsumerWidget {
         else
           SizedBox(
             height: 124,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              itemCount: habits.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (context, i) {
-                final h = habits[i];
-                final amount = today[h.id] ?? 0;
-                final color = Color(h.color);
-                final done = h.goalType == 0
-                    ? amount >= h.targetAmount
-                    : amount <= h.targetAmount;
-                return SizedBox(
-                  width: 120,
-                  child: TintCard(
-                    accent: color,
-                    padding: const EdgeInsets.all(14),
-                    onTap: () => context.push('/habits'),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            AppIcon(
-                              AppIcons.habit(h.icon),
-                              color: color,
-                              size: 22,
-                            ),
-                            const Spacer(),
-                            if (done)
+            child: GutterBleed(
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.gutter,
+                ),
+                itemCount: habits.length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.grid),
+                itemBuilder: (context, i) {
+                  final h = habits[i];
+                  final amount = today[h.id] ?? 0;
+                  final color = Color(h.color);
+                  final done = h.goalType == 0
+                      ? amount >= h.targetAmount
+                      : amount <= h.targetAmount;
+                  return SizedBox(
+                    width: 120,
+                    child: TintCard(
+                      accent: color,
+                      padding: const EdgeInsets.all(14),
+                      onTap: () => context.push('/habits'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
                               AppIcon(
-                                AppIcons.checkCircle,
-                                size: 16,
+                                AppIcons.habit(h.icon),
                                 color: color,
+                                size: 22,
                               ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Text(
-                          h.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '${_trim(amount)} / ${_trim(h.targetAmount)}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: context.muted,
+                              const Spacer(),
+                              if (done)
+                                AppIcon(
+                                  AppIcons.checkCircle,
+                                  size: 16,
+                                  color: color,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Text(
+                            h.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
                             ),
-                            // 2-tap logging straight from the dashboard.
-                            BrandTappable(
-                              onPressed: () => repo.addToDay(h.id, 1),
-                              semanticsLabel: 'Log ${h.name}',
-                              child: AppIcon(
-                                AppIcons.addCircle,
-                                color: color,
-                                size: 24,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '${_trim(amount)} / ${_trim(h.targetAmount)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: context.muted,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              // 2-tap logging straight from the dashboard.
+                              BrandTappable(
+                                onPressed: () => repo.addToDay(h.id, 1),
+                                semanticsLabel: 'Log ${h.name}',
+                                child: AppIcon(
+                                  AppIcons.addCircle,
+                                  color: color,
+                                  size: 24,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
       ],

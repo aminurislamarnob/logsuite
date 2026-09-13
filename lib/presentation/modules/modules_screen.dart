@@ -54,14 +54,14 @@ class ModulesScreen extends ConsumerWidget {
               message: 'Turn a module back on below to start using it.',
             )
           : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
+              padding: pageInsets(context, end: PageEnd.navBar),
               children: [
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
+                  crossAxisSpacing: AppSpacing.grid,
+                  mainAxisSpacing: AppSpacing.grid,
                   childAspectRatio: 1.0,
                   children: [
                     for (var i = 0; i < enabled.length; i++)
@@ -81,12 +81,12 @@ class ModulesScreen extends ConsumerWidget {
                   ],
                 ),
                 if (disabled.isNotEmpty) ...[
-                  const SizedBox(height: 30),
+                  const SizedBox(height: AppSpacing.section),
                   const SectionHeader('Switched off'),
                   ...disabled.map((m) {
                     final (icon, color) = metaFor(context, m);
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.only(bottom: cardGap),
                       child: TintCard(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 18,

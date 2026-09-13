@@ -25,7 +25,7 @@ class OverviewTab extends ConsumerWidget {
     final overall = ref.watch(currentOverallBudgetProvider).valueOrNull;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+      padding: pageInsets(context, top: 16, end: PageEnd.fab),
       children: [
         const _SummaryCard(),
         if (overall != null) ...[

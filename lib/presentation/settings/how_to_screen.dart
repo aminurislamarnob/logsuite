@@ -78,7 +78,7 @@ class _HowToScreenState extends ConsumerState<HowToScreen> {
         leadingIcon: AppIcons.back,
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(0, 8, 0, 140),
+        padding: pageInsets(context, gutter: 0, end: PageEnd.navBar),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

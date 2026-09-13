@@ -35,7 +35,7 @@ class InsightsScreen extends ConsumerWidget {
     return BrandScaffold(
       header: BrandTopBar(title: 'Insights', leadingIcon: AppIcons.back),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
+        padding: pageInsets(context, end: PageEnd.navBar),
         children: [
           _DigestCard(
             lines: _buildDigest(

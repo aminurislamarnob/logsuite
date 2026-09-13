@@ -91,9 +91,9 @@ class NotesScreen extends ConsumerWidget {
           }
           return MasonryGridView.count(
             crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+            mainAxisSpacing: AppSpacing.grid,
+            crossAxisSpacing: AppSpacing.grid,
+            padding: pageInsets(context, top: 16, end: PageEnd.fab),
             itemCount: notes.length,
             itemBuilder: (context, i) =>
                 _NoteCard(note: notes[i], scope: filter.scope),

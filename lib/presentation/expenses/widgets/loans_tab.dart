@@ -43,7 +43,7 @@ class LoansTab extends ConsumerWidget {
         }
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+          padding: pageInsets(context, top: 16, end: PageEnd.fab),
           children: [
             if (totals != null && (totals.owedToMe > 0 || totals.iOwe > 0)) ...[
               Row(
