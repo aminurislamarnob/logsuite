@@ -331,7 +331,6 @@ final class CreateCategoryAction extends AiAction {
   AiActionKind get kind => AiActionKind.createCategory;
 }
 
-
 final class LogSymptomAction extends AiAction {
   final String symptom;
   final int severity;

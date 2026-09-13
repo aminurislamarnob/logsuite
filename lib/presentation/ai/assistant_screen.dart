@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,17 +17,26 @@ import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import 'assistant_controller.dart';
 import 'widgets/action_preview_card.dart';
+import 'widgets/document_source_sheet.dart';
 
 /// The one place to say what you want added, whichever module it lands in.
 ///
-/// Every state of a command has a screen of its own here: listening, an
+/// Every state of a command has a screen of its own here: recording, an
 /// editable transcript, thinking, the preview cards, and what was saved.
-/// The mic is the default path; "Type instead" covers a quiet room.
+/// The mic is the default path and goes straight from stop to the model;
+/// "Type instead" covers a quiet room and "Scan" a receipt.
 class AssistantScreen extends ConsumerStatefulWidget {
   /// Text to start from instead of the microphone.
   final String? initialTranscript;
 
-  const AssistantScreen({super.key, this.initialTranscript});
+  /// Open straight into a scan: true for the camera, false for the gallery.
+  final bool? scanFromCamera;
+
+  const AssistantScreen({
+    super.key,
+    this.initialTranscript,
+    this.scanFromCamera,
+  });
 
   @override
   ConsumerState<AssistantScreen> createState() => _AssistantScreenState();
@@ -40,9 +52,12 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
       final controller = ref.read(assistantControllerProvider.notifier);
       controller.unlockGate = _unlock;
       final initial = widget.initialTranscript;
+      final scan = widget.scanFromCamera;
       if (initial != null && initial.trim().isNotEmpty) {
         controller.editTranscript(initial);
         controller.typeInstead();
+      } else if (scan != null) {
+        controller.scanDocument(fromCamera: scan);
       }
     });
   }
@@ -60,6 +75,11 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     if (await security.authenticate(reason: 'Unlock $label')) return true;
     if (!mounted || !security.hasPin) return false;
     return promptForPin(context, security.verifyPin, title: 'Unlock $label');
+  }
+
+  void _record(AssistantController controller) {
+    HapticFeedback.lightImpact();
+    controller.startListening();
   }
 
   @override
@@ -81,15 +101,19 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
         ],
       ),
       child: switch (state) {
-        AssistantIdle() => _Idle(onListen: controller.startListening),
+        AssistantIdle() => _Idle(onListen: () => _record(controller)),
         AssistantListening s => _Listening(
-          partial: s.partial,
-          onStop: controller.stopListening,
+          state: s,
+          onStop: () {
+            HapticFeedback.lightImpact();
+            controller.stopListening();
+          },
+          onCancel: controller.cancelListening,
         ),
         AssistantTranscript s => _Transcript(
           controller: _transcript..text = s.text,
           onChanged: controller.editTranscript,
-          onListen: controller.startListening,
+          onListen: () => _record(controller),
           onSend: controller.submit,
         ),
         AssistantThinking s => _Thinking(transcript: s.transcript),
@@ -176,12 +200,55 @@ class _MicButton extends ConsumerWidget {
           .animate(onPlay: (c) => c.repeat(reverse: true))
           .scale(
             begin: const Offset(1, 1),
-            end: const Offset(1.08, 1.08),
-            duration: 700.ms,
+            end: const Offset(1.04, 1.04),
+            duration: 900.ms,
             curve: Curves.easeInOut,
           );
     }
     return button;
+  }
+}
+
+/// Concentric rings behind the live mic that swell with the input level,
+/// so the animation answers the voice instead of looping on its own.
+class _PulseRings extends ConsumerWidget {
+  final double level;
+  final Widget child;
+
+  const _PulseRings({required this.level, required this.child});
+
+  static const _size = 88.0;
+  static const _rings = 3;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final color = context.brand.danger;
+    final reduceMotion = ref.watch(settingsProvider).reduceMotion;
+    // A floor so the rings breathe even in silence; the voice adds on top.
+    final drive = reduceMotion ? 0.0 : 0.15 + level * 0.85;
+    return SizedBox(
+      width: _size * 2.6,
+      height: _size * 2.6,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          for (var i = _rings; i >= 1; i--)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              curve: Curves.easeOut,
+              width: _size + (_size * 0.5 * i) * (0.35 + 0.65 * drive),
+              height: _size + (_size * 0.5 * i) * (0.35 + 0.65 * drive),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color.withValues(
+                  alpha: math.max(0.04, (0.22 - 0.06 * i) * (0.4 + drive)),
+                ),
+              ),
+            ),
+          child,
+        ],
+      ),
+    );
   }
 }
 
@@ -237,13 +304,26 @@ class _Idle extends StatelessWidget {
         _MicButton(live: false, onPressed: onListen),
         const SizedBox(height: 28),
         Consumer(
-          builder: (context, ref, _) => BrandButton(
-            label: 'Type instead',
-            kind: BrandButtonKind.outline,
-            expand: false,
-            onPressed: ref
-                .read(assistantControllerProvider.notifier)
-                .typeInstead,
+          builder: (context, ref, _) => Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              BrandButton(
+                label: 'Type instead',
+                kind: BrandButtonKind.outline,
+                expand: false,
+                onPressed: ref
+                    .read(assistantControllerProvider.notifier)
+                    .typeInstead,
+              ),
+              const SizedBox(width: 12),
+              BrandButton(
+                label: 'Scan instead',
+                icon: AppIcons.scan,
+                kind: BrandButtonKind.outline,
+                expand: false,
+                onPressed: () => _scan(context, ref),
+              ),
+            ],
           ),
         ),
       ],
@@ -252,35 +332,86 @@ class _Idle extends StatelessWidget {
 }
 
 class _Listening extends StatelessWidget {
-  final String partial;
-  final Future<void> Function() onStop;
+  final AssistantListening state;
+  final VoidCallback onStop;
+  final VoidCallback onCancel;
 
-  const _Listening({required this.partial, required this.onStop});
+  const _Listening({
+    required this.state,
+    required this.onStop,
+    required this.onCancel,
+  });
+
+  static String _clock(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final sec = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$sec';
+  }
 
   @override
   Widget build(BuildContext context) {
     final muted = context.muted;
+    final danger = context.brand.danger;
     return _Centered(
       children: [
-        Text(
-          'Listening…',
-          style: TextStyle(color: muted, fontSize: 13, letterSpacing: 0.4),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: danger,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const SizedBox(width: 8, height: 8),
+                )
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .fade(begin: 1, end: 0.2, duration: 800.ms),
+            const SizedBox(width: 8),
+            Text(
+              'Recording  ${_clock(state.elapsed)}',
+              style: TextStyle(
+                color: muted,
+                fontSize: 13,
+                letterSpacing: 0.4,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
         ),
+        const SizedBox(height: 8),
+        _PulseRings(
+          level: state.level,
+          child: _MicButton(live: true, onPressed: onStop),
+        ),
+        Text('Tap to send', style: TextStyle(color: muted, fontSize: 12)),
         const SizedBox(height: 20),
         ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 72),
+          constraints: const BoxConstraints(minHeight: 60),
           child: Text(
-            partial.isEmpty ? '…' : partial,
+            state.partial.isEmpty ? 'Listening…' : state.partial,
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontSize: 20, height: 1.35),
+            style: state.partial.isEmpty
+                ? TextStyle(color: muted, fontSize: 15, height: 1.4)
+                : Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(fontSize: 17, height: 1.4),
           ),
         ),
-        const SizedBox(height: 36),
-        _MicButton(live: true, onPressed: onStop),
-        const SizedBox(height: 12),
-        Text('Tap to finish', style: TextStyle(color: muted, fontSize: 12)),
+        if (state.notice != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            state.notice!,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: muted, fontSize: 12, height: 1.4),
+          ),
+        ],
+        const SizedBox(height: 20),
+        BrandButton(
+          label: 'Cancel',
+          kind: BrandButtonKind.ghost,
+          expand: false,
+          onPressed: onCancel,
+        ),
       ],
     );
   }
@@ -323,6 +454,14 @@ class _Transcript extends StatelessWidget {
               icon: AppIcons.mic,
               tooltip: 'Speak instead',
               onPressed: onListen,
+            ),
+            const SizedBox(width: 8),
+            Consumer(
+              builder: (context, ref, _) => CircleIconButton(
+                icon: AppIcons.scan,
+                tooltip: 'Scan document',
+                onPressed: () => _scan(context, ref),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -705,4 +844,11 @@ class _Failure extends ConsumerWidget {
       ],
     );
   }
+}
+
+Future<void> _scan(BuildContext context, WidgetRef ref) async {
+  final controller = ref.read(assistantControllerProvider.notifier);
+  final fromCamera = await showDocumentSourceSheet(context);
+  if (fromCamera == null) return;
+  await controller.scanDocument(fromCamera: fromCamera);
 }

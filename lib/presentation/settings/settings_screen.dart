@@ -17,6 +17,7 @@ import '../../core/services/reminder_sync.dart';
 import '../../core/services/restore_service.dart';
 import '../../core/services/security_service.dart';
 import '../../core/settings/app_settings.dart';
+import '../../core/settings/voice_language.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
@@ -716,6 +717,20 @@ class _AiAssistantCard extends ConsumerWidget {
                 onChanged: notifier.setAiAutoSave,
               ),
               BrandTile(
+                leading: const AppIcon(AppIcons.mic),
+                title: const Text('Voice language'),
+                subtitle: Text(settings.voiceLanguage.description),
+                trailing: BrandSegmented<VoiceLanguage>(
+                  options: const {
+                    VoiceLanguage.auto: 'Auto',
+                    VoiceLanguage.english: 'EN',
+                    VoiceLanguage.bangla: 'বাং',
+                  },
+                  selected: settings.voiceLanguage,
+                  onSelected: notifier.setVoiceLanguage,
+                ),
+              ),
+              BrandTile(
                 leading: const AppIcon(AppIcons.link),
                 title: const Text('Test connection'),
                 subtitle: Text(
@@ -734,10 +749,11 @@ class _AiAssistantCard extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
           child: Text(
-            'Only your words and the names of your categories, accounts, '
-            'people, habits and projects are sent to ${provider.label}. '
-            'Nothing else leaves the device. Without a key, a simpler offline '
-            'parser handles the command instead.',
+            'Speech is turned into text on this phone, and scanned images '
+            'are read on this phone; only that text and the names of your '
+            'categories, accounts, people, habits and projects are sent to '
+            '${provider.label}. Without a key, a simpler offline parser '
+            'handles the command instead.',
             style: TextStyle(fontSize: 11, color: muted, height: 1.4),
           ),
         ),
@@ -776,7 +792,9 @@ class _AiAssistantCard extends ConsumerWidget {
     SettingsNotifier notifier,
     AppSettings settings,
   ) async {
-    final currentModel = settings.aiModel.isEmpty ? settings.aiProvider.defaultModel : settings.aiModel;
+    final currentModel = settings.aiModel.isEmpty
+        ? settings.aiProvider.defaultModel
+        : settings.aiModel;
     final defaultModel = settings.aiProvider.defaultModel;
     final availableModels = settings.aiProvider.availableModels;
 
@@ -789,9 +807,14 @@ class _AiAssistantCard extends ConsumerWidget {
               .map(
                 (model) => BrandTile(
                   title: Text(model),
-                  subtitle: model == defaultModel ? const Text('Default') : null,
+                  subtitle: model == defaultModel
+                      ? const Text('Default')
+                      : null,
                   selected: model == currentModel,
-                  onTap: () => Navigator.pop(sheetContext, model == defaultModel ? '' : model),
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    model == defaultModel ? '' : model,
+                  ),
                 ),
               )
               .toList(),

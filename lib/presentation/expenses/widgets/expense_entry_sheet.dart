@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/ai/speech_service.dart';
 import '../../../core/database/app_database.dart';
@@ -17,6 +18,7 @@ import '../../settings/people_screen.dart';
 import '../categories_screen.dart';
 import '../utils/expense_reminders.dart';
 import '../utils/expense_voice_parser.dart';
+import '../../ai/widgets/document_source_sheet.dart';
 
 /// Two-tap entry: amount is prefilled and focused, category and account are
 /// one tap each, then Save.
@@ -328,7 +330,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
       actions: [
         // The parser only ever produces an expense or income, so dictating
         // into the bill form would silently leave it.
-        if (!_isBill)
+        if (!_isBill) ...[
           CircleIconButton(
             icon: _listening ? AppIcons.micOff : AppIcons.mic,
             tooltip: 'Voice entry',
@@ -336,6 +338,20 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
             size: 40,
             onPressed: _voiceEntry,
           ),
+          CircleIconButton(
+            icon: AppIcons.scan,
+            tooltip: 'Scan receipt',
+            size: 40,
+            onPressed: () async {
+              final fromCamera = await showDocumentSourceSheet(context);
+              if (fromCamera == null || !context.mounted) return;
+              // The scan lands in the assistant, which previews every entry
+              // it finds; this sheet only ever holds one.
+              Navigator.of(context).pop();
+              context.push('/assistant', extra: fromCamera);
+            },
+          ),
+        ],
         BrandButton(
           label: 'Save',
           kind: BrandButtonKind.ghost,

@@ -9,7 +9,10 @@ import '../../core/ai/ai_command_executor.dart';
 import '../../core/ai/ai_command_service.dart';
 import '../../core/ai/ai_drafts.dart';
 import '../../core/ai/speech_service.dart';
+import '../../core/services/document_scanner.dart';
+import '../../core/services/ocr_service.dart';
 import '../../core/settings/app_settings.dart';
+import '../../core/settings/voice_language.dart';
 
 /// The assistant screen's states, in the order a command moves through them.
 sealed class AssistantState {
@@ -20,10 +23,35 @@ class AssistantIdle extends AssistantState {
   const AssistantIdle();
 }
 
+/// The microphone is open. [partial] is everything heard so far across
+/// every recogniser session of this recording, [level] the current input
+/// loudness from 0 to 1 for the animation, [elapsed] the recording clock.
 class AssistantListening extends AssistantState {
   final String partial;
+  final double level;
+  final Duration elapsed;
 
-  const AssistantListening(this.partial);
+  /// Shown under the mic when the language from Settings has no recogniser
+  /// on this device and the session runs in the device language instead.
+  final String? notice;
+
+  const AssistantListening({
+    this.partial = '',
+    this.level = 0,
+    this.elapsed = Duration.zero,
+    this.notice,
+  });
+
+  AssistantListening copyWith({
+    String? partial,
+    double? level,
+    Duration? elapsed,
+  }) => AssistantListening(
+    partial: partial ?? this.partial,
+    level: level ?? this.level,
+    elapsed: elapsed ?? this.elapsed,
+    notice: notice,
+  );
 }
 
 class AssistantTranscript extends AssistantState {
@@ -146,6 +174,7 @@ class AssistantController extends StateNotifier<AssistantState> {
   final SpeechService _speech;
   StreamSubscription<bool>? _listening;
   Timer? _finishTimer;
+  Timer? _clock;
   String _transcript = '';
 
   /// Asked before writing into a locked module. Set by the screen, which can
@@ -157,6 +186,7 @@ class AssistantController extends StateNotifier<AssistantState> {
   @override
   void dispose() {
     _finishTimer?.cancel();
+    _clock?.cancel();
     _listening?.cancel();
     if (_speech.isListening) _speech.cancel();
     super.dispose();
@@ -164,51 +194,170 @@ class AssistantController extends StateNotifier<AssistantState> {
 
   // --- Listening -----------------------------------------------------------
 
+  /// A forgotten open mic stops itself here and sends what it heard.
+  static const maxRecording = Duration(minutes: 2);
+
+  /// How long the recogniser waits in silence before ending a session. The
+  /// recording survives it: the next session starts at once.
+  static const _sessionPause = Duration(seconds: 3);
+
+  /// Both platforms report "not listening" a moment *before* they deliver
+  /// the final result; this is how long to wait for it.
+  static const _finalGrace = Duration(milliseconds: 600);
+
+  /// Words from sessions that already delivered their final result.
+  String _committed = '';
+
+  /// The live session's latest partial.
+  String _current = '';
+
+  /// False once the user tapped stop or the cap ran out: no more sessions.
+  bool _recording = false;
+  DateTime? _startedAt;
+  SpeechLocale? _locale;
+
+  /// Opens the mic and keeps it open until [stopListening], [cancelListening]
+  /// or [maxRecording]. On-device recognisers end a session after a pause,
+  /// so this restarts one each time and stitches the transcripts, which is
+  /// what lets the user stop to remember a price mid-command.
   Future<void> startListening() async {
     _transcript = '';
-    state = const AssistantListening('');
-    final started = await _speech.listen(
+    _committed = '';
+    _current = '';
+    _recording = true;
+    _startedAt = DateTime.now();
+    _locale = await _speech.resolveLocale();
+    if (!mounted) return;
+    state = AssistantListening(
+      notice: _locale!.fellBack
+          ? 'No ${_ref.read(settingsProvider).voiceLanguage.label} recogniser '
+                'on this device. Listening in the device language.'
+          : null,
+    );
+    final started = await _startSession();
+    if (!started) {
+      _recording = false;
+      if (mounted) {
+        state = const AssistantFailure(
+          kind: AssistantErrorKind.noSpeech,
+          message: 'Speech recognition is unavailable on this device.',
+        );
+      }
+      return;
+    }
+    _clock?.cancel();
+    _clock = Timer.periodic(const Duration(milliseconds: 250), (_) => _tick());
+  }
+
+  Future<bool> _startSession() {
+    final remaining = maxRecording - _elapsed;
+    return _speech.listen(
+      locale: _locale,
+      listenFor: remaining.isNegative ? Duration.zero : remaining,
+      pauseFor: _sessionPause,
+      onSoundLevel: _onSoundLevel,
       onResult: (words, isFinal) {
-        if (!mounted) return;
-        _transcript = words;
+        if (!mounted || state is! AssistantListening) return;
         if (isFinal) {
-          _finishListening();
+          _commit(words);
         } else {
-          state = AssistantListening(words);
+          _current = words;
+          _publish();
         }
       },
     );
-    if (!started && mounted) {
-      state = const AssistantFailure(
-        kind: AssistantErrorKind.noSpeech,
-        message: 'Speech recognition is unavailable on this device.',
-      );
-    }
   }
 
+  Duration get _elapsed => _startedAt == null
+      ? Duration.zero
+      : DateTime.now().difference(_startedAt!);
+
+  void _commit(String words) {
+    _current = '';
+    final w = words.trim();
+    if (w.isNotEmpty) _committed = _committed.isEmpty ? w : '$_committed $w';
+    _publish();
+  }
+
+  String get _stitched => _current.trim().isEmpty
+      ? _committed
+      : '$_committed ${_current.trim()}'.trim();
+
+  void _publish({double? level}) {
+    final s = state;
+    if (s is! AssistantListening) return;
+    state = s.copyWith(partial: _stitched, level: level, elapsed: _elapsed);
+  }
+
+  void _tick() {
+    if (!mounted || state is! AssistantListening) {
+      _clock?.cancel();
+      return;
+    }
+    if (_recording && _elapsed >= maxRecording) {
+      stopListening();
+      return;
+    }
+    _publish();
+  }
+
+  /// The plugin reports decibels: roughly -2..10 on Android and -50..0 on
+  /// iOS. Both are squashed into 0..1 for the rings.
+  void _onSoundLevel(double db) {
+    if (!mounted || state is! AssistantListening) return;
+    final level = db < 0
+        ? ((db + 50) / 50).clamp(0.0, 1.0)
+        : (db / 10).clamp(0.0, 1.0);
+    _publish(level: level);
+  }
+
+  /// The user tapped stop. What has been heard goes to the model.
   Future<void> stopListening() async {
+    if (!_recording) return;
+    _recording = false;
+    _clock?.cancel();
     await _speech.stop();
   }
 
-  /// The recogniser went quiet on its own, or after [stopListening].
-  ///
-  /// Both platforms report "not listening" a moment *before* they deliver
-  /// the final result, so finishing here at once would submit the last
-  /// partial and then submit again when the final words landed. Give the
-  /// final result a short window; if it never comes, go with what we have.
+  /// The user changed their mind. Nothing is sent.
+  Future<void> cancelListening() async {
+    _recording = false;
+    _clock?.cancel();
+    _finishTimer?.cancel();
+    await _speech.cancel();
+    if (!mounted) return;
+    discard();
+  }
+
+  /// A session went quiet: the user paused, the platform's own cap hit, or
+  /// [stopListening] ran. Wait briefly for the session's final words, then
+  /// either start the next session or finish the recording.
   void _onListening(bool active) {
     if (active || !mounted || state is! AssistantListening) return;
     _finishTimer?.cancel();
-    _finishTimer = Timer(const Duration(milliseconds: 600), _finishListening);
+    _finishTimer = Timer(_finalGrace, _onSessionEnded);
   }
 
-  /// Runs once per listening session: the first of the final result and the
-  /// grace timer wins, and `submit` leaves the Listening state synchronously
-  /// so the other cannot follow.
+  Future<void> _onSessionEnded() async {
+    _finishTimer = null;
+    if (!mounted || state is! AssistantListening) return;
+    // The final result never came; keep the last partial rather than lose it.
+    if (_current.trim().isNotEmpty) _commit(_current);
+    if (_recording && _elapsed < maxRecording) {
+      final started = await _startSession();
+      if (started || !mounted || state is! AssistantListening) return;
+      _recording = false;
+    }
+    _finishListening();
+  }
+
+  /// Runs once per recording, when no more sessions will start.
   void _finishListening() {
     _finishTimer?.cancel();
     _finishTimer = null;
+    _clock?.cancel();
     if (!mounted || state is! AssistantListening) return;
+    _transcript = _stitched;
     if (_transcript.trim().isEmpty) {
       state = const AssistantFailure(
         kind: AssistantErrorKind.noSpeech,
@@ -216,8 +365,38 @@ class AssistantController extends StateNotifier<AssistantState> {
       );
       return;
     }
-    // Straight into parsing: the preview is where the user checks the words.
-    unawaited(submit());
+    // No review step: the preview cards are where the user checks the result.
+    submit();
+  }
+
+  // --- Scanning ------------------------------------------------------------
+
+  /// Camera or gallery, an optional crop, on-device OCR, then the text goes
+  /// to the model the same way spoken words do. The image never leaves the
+  /// phone.
+  Future<void> scanDocument({required bool fromCamera}) async {
+    final image = await _ref
+        .read(documentScannerProvider)
+        .pick(fromCamera: fromCamera);
+    if (image == null || !mounted) return;
+
+    state = const AssistantThinking('Reading the document…');
+    final text = await _ref.read(ocrServiceProvider).extractText(image);
+    if (!mounted) return;
+
+    if (text == null || text.trim().isEmpty) {
+      state = const AssistantFailure(
+        kind: AssistantErrorKind.nothingParsed,
+        message:
+            'No text could be read from that image. Try a sharper photo, '
+            'or type it instead.',
+      );
+      return;
+    }
+
+    // The prefix is what the prompt keys on to treat this as OCR output.
+    _transcript = '[Scanned Document]\n${text.trim()}';
+    await submit();
   }
 
   // --- Typing --------------------------------------------------------------

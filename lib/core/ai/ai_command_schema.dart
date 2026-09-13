@@ -103,7 +103,8 @@ class AiCommandSchema {
     'account': _Field(
       {
         'type': ['string', 'null'],
-        'description': 'One of the listed accounts, exactly as written, or null.',
+        'description':
+            'One of the listed accounts, exactly as written, or null.',
       },
       {AiActionKind.addExpense, AiActionKind.addLoan, AiActionKind.addBill},
     ),
@@ -114,7 +115,12 @@ class AiCommandSchema {
             'One of the listed people, exactly as written: who the expense '
             'was for, who takes the medicine, or who the loan is with.',
       },
-      {AiActionKind.addExpense, AiActionKind.addMedicine, AiActionKind.addLoan, AiActionKind.logSymptom},
+      {
+        AiActionKind.addExpense,
+        AiActionKind.addMedicine,
+        AiActionKind.addLoan,
+        AiActionKind.logSymptom,
+      },
     ),
     'date': _Field(
       {
@@ -306,7 +312,8 @@ class AiCommandSchema {
         'Add a medicine course with doses per day and a length in days.',
     AiActionKind.logHabit: 'Log progress on one of the existing habits today.',
     AiActionKind.startFocus: 'Start a focus timer for a number of minutes.',
-    AiActionKind.setBudget: 'Set or update a monthly budget for a category. Use this even when the user says they added a budget.',
+    AiActionKind.setBudget:
+        'Set or update a monthly budget for a category. Use this even when the user says they added a budget.',
     AiActionKind.addLoan: 'Track money you lend to or borrow from someone.',
     AiActionKind.addBill: 'Add a recurring expense or subscription bill.',
     AiActionKind.createAccount: 'Create a new financial account.',

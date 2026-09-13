@@ -60,13 +60,25 @@ class AiCommandExecutor {
       SetBudgetAction a => _budget(a, c),
       AddLoanAction a => _loan(a, c),
       AddBillAction a => _bill(a, c),
-      CreateAccountAction a => ActionPreview(draft: CreateAccountDraft(title: a.name)),
-      CreateCategoryAction a => ActionPreview(draft: CreateCategoryDraft(title: a.name, isIncome: a.isIncome)),
+      CreateAccountAction a => ActionPreview(
+        draft: CreateAccountDraft(title: a.name),
+      ),
+      CreateCategoryAction a => ActionPreview(
+        draft: CreateCategoryDraft(title: a.name, isIncome: a.isIncome),
+      ),
       LogSymptomAction a => _symptom(a, c),
-      AddPersonAction a => ActionPreview(draft: AddPersonDraft(title: a.name, relation: a.relation)),
-      CreateHabitAction a => ActionPreview(draft: CreateHabitDraft(title: a.name)),
-      CreateProjectAction a => ActionPreview(draft: CreateProjectDraft(title: a.name)),
-      CreateFolderAction a => ActionPreview(draft: CreateFolderDraft(title: a.name)),
+      AddPersonAction a => ActionPreview(
+        draft: AddPersonDraft(title: a.name, relation: a.relation),
+      ),
+      CreateHabitAction a => ActionPreview(
+        draft: CreateHabitDraft(title: a.name),
+      ),
+      CreateProjectAction a => ActionPreview(
+        draft: CreateProjectDraft(title: a.name),
+      ),
+      CreateFolderAction a => ActionPreview(
+        draft: CreateFolderDraft(title: a.name),
+      ),
       AddExpenseAction a => _expense(a, c),
       AddTaskAction a => _task(a, c),
       AddNoteAction a => ActionPreview(
@@ -169,7 +181,6 @@ class AiCommandExecutor {
     );
   }
 
-
   ActionPreview _budget(SetBudgetAction a, AiRequestContext c) {
     final category = NameResolver.resolve(
       a.category,
@@ -186,11 +197,7 @@ class AiCommandExecutor {
   }
 
   ActionPreview _loan(AddLoanAction a, AiRequestContext c) {
-    final person = NameResolver.resolve(
-      a.person,
-      c.people,
-      (x) => [x.name],
-    );
+    final person = NameResolver.resolve(a.person, c.people, (x) => [x.name]);
     final account = NameResolver.resolve(
       a.account,
       c.accounts,
@@ -241,11 +248,7 @@ class AiCommandExecutor {
   }
 
   ActionPreview _symptom(LogSymptomAction a, AiRequestContext c) {
-    final person = NameResolver.resolve(
-      a.person,
-      c.people,
-      (x) => [x.name],
-    );
+    final person = NameResolver.resolve(a.person, c.people, (x) => [x.name]);
     return ActionPreview(
       draft: LogSymptomDraft(
         title: a.symptom,
@@ -375,17 +378,22 @@ class AiCommandExecutor {
       amount: a.amount,
     ),
     StartFocusAction a => FocusDraft(minutes: a.minutes),
-    SetBudgetAction a => SetBudgetDraft(categoryName: a.category, amount: a.amount),
+    SetBudgetAction a => SetBudgetDraft(
+      categoryName: a.category,
+      amount: a.amount,
+    ),
     AddLoanAction a => AddLoanDraft(amount: a.amount, direction: a.direction),
     AddBillAction a => AddBillDraft(title: a.title, amount: a.amount),
     CreateAccountAction a => CreateAccountDraft(title: a.name),
-    CreateCategoryAction a => CreateCategoryDraft(title: a.name, isIncome: a.isIncome),
+    CreateCategoryAction a => CreateCategoryDraft(
+      title: a.name,
+      isIncome: a.isIncome,
+    ),
     LogSymptomAction a => LogSymptomDraft(title: a.symptom),
     AddPersonAction a => AddPersonDraft(title: a.name, relation: a.relation),
     CreateHabitAction a => CreateHabitDraft(title: a.name),
     CreateProjectAction a => CreateProjectDraft(title: a.name),
     CreateFolderAction a => CreateFolderDraft(title: a.name),
-
   };
 
   static bool _meansSelf(String name) => const {
@@ -443,9 +451,10 @@ class AiCommandExecutor {
           route: AppModule.expenses.route,
         );
 
-
       case SetBudgetDraft d:
-        final id = await _ref.read(expenseRepositoryProvider).setBudget(
+        final id = await _ref
+            .read(expenseRepositoryProvider)
+            .setBudget(
               month: DateTime(DateTime.now().year, DateTime.now().month, 1),
               amount: d.amount,
               categoryId: d.categoryId,
@@ -458,7 +467,9 @@ class AiCommandExecutor {
         );
 
       case AddLoanDraft d:
-        final id = await _ref.read(expenseRepositoryProvider).createLoan(
+        final id = await _ref
+            .read(expenseRepositoryProvider)
+            .createLoan(
               personId: d.personId ?? 1,
               direction: d.direction,
               principal: d.amount,
@@ -474,16 +485,18 @@ class AiCommandExecutor {
         );
 
       case AddBillDraft d:
-        final bill = await _ref.read(expenseRepositoryProvider).createRecurring(
-          RecurringExpensesCompanion.insert(
-            name: d.title,
-            amount: d.amount,
-            period: Value(d.period),
-            accountId: Value(d.accountId),
-            categoryId: Value(d.categoryId),
-            nextDueDate: d.nextDueDate ?? DateTime.now(),
-          )
-        );
+        final bill = await _ref
+            .read(expenseRepositoryProvider)
+            .createRecurring(
+              RecurringExpensesCompanion.insert(
+                name: d.title,
+                amount: d.amount,
+                period: Value(d.period),
+                accountId: Value(d.accountId),
+                categoryId: Value(d.categoryId),
+                nextDueDate: d.nextDueDate ?? DateTime.now(),
+              ),
+            );
         return SavedItem(
           kind: d.kind,
           id: bill.id,
@@ -492,12 +505,9 @@ class AiCommandExecutor {
         );
 
       case CreateAccountDraft d:
-        final id = await _ref.read(expenseRepositoryProvider).createAccount(
-          d.title,
-          'other',
-          0.0,
-          0,
-        );
+        final id = await _ref
+            .read(expenseRepositoryProvider)
+            .createAccount(d.title, 'other', 0.0, 0);
         return SavedItem(
           kind: d.kind,
           id: id,
@@ -506,12 +516,9 @@ class AiCommandExecutor {
         );
 
       case CreateCategoryDraft d:
-        final id = await _ref.read(expenseRepositoryProvider).createCategory(
-          d.title,
-          'other',
-          0,
-          isIncome: d.isIncome,
-        );
+        final id = await _ref
+            .read(expenseRepositoryProvider)
+            .createCategory(d.title, 'other', 0, isIncome: d.isIncome);
         return SavedItem(
           kind: d.kind,
           id: id,
@@ -520,12 +527,14 @@ class AiCommandExecutor {
         );
 
       case LogSymptomDraft d:
-        final id = await _ref.read(medicineRepositoryProvider).logSymptom(
-          symptom: d.title,
-          severity: d.severity,
-          profileId: d.personId,
-          note: d.note,
-        );
+        final id = await _ref
+            .read(medicineRepositoryProvider)
+            .logSymptom(
+              symptom: d.title,
+              severity: d.severity,
+              profileId: d.personId,
+              note: d.note,
+            );
         return SavedItem(
           kind: d.kind,
           id: id,
@@ -534,10 +543,9 @@ class AiCommandExecutor {
         );
 
       case AddPersonDraft d:
-        final id = await _ref.read(peopleRepositoryProvider).createPerson(
-          name: d.title,
-          relation: d.relation,
-        );
+        final id = await _ref
+            .read(peopleRepositoryProvider)
+            .createPerson(name: d.title, relation: d.relation);
         return SavedItem(
           kind: d.kind,
           id: id,
@@ -546,19 +554,21 @@ class AiCommandExecutor {
         );
 
       case CreateHabitDraft d:
-        final id = await _ref.read(habitRepositoryProvider).createHabit(
-          HabitsCompanion.insert(
-            name: d.title,
-            icon: const Value('star'),
-            color: const Value(0),
-            goalType: const Value(0),
-            targetAmount: const Value(1.0),
-            frequencyType: const Value(0),
-            weekdayMask: const Value(127),
-            timesPerWeek: const Value(7),
-            createdAt: Value(DateTime.now()),
-          )
-        );
+        final id = await _ref
+            .read(habitRepositoryProvider)
+            .createHabit(
+              HabitsCompanion.insert(
+                name: d.title,
+                icon: const Value('star'),
+                color: const Value(0),
+                goalType: const Value(0),
+                targetAmount: const Value(1.0),
+                frequencyType: const Value(0),
+                weekdayMask: const Value(127),
+                timesPerWeek: const Value(7),
+                createdAt: Value(DateTime.now()),
+              ),
+            );
         return SavedItem(
           kind: d.kind,
           id: id,
@@ -567,11 +577,9 @@ class AiCommandExecutor {
         );
 
       case CreateProjectDraft d:
-        final id = await _ref.read(taskRepositoryProvider).createProject(
-          d.title,
-          0,
-          'folder',
-        );
+        final id = await _ref
+            .read(taskRepositoryProvider)
+            .createProject(d.title, 0, 'folder');
         return SavedItem(
           kind: d.kind,
           id: id,
@@ -580,9 +588,9 @@ class AiCommandExecutor {
         );
 
       case CreateFolderDraft d:
-        final id = await _ref.read(noteRepositoryProvider).createFolder(
-          d.title,
-        );
+        final id = await _ref
+            .read(noteRepositoryProvider)
+            .createFolder(d.title);
         return SavedItem(
           kind: d.kind,
           id: id,
