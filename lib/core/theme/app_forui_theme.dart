@@ -102,8 +102,24 @@ FThemeData brandForuiThemeFrom(BrandTokens t) {
     // forui-side lookups can never disagree.
     extensions: [t.brand],
     dialogStyle: _dialogStyle(colors, typography, style),
+    modalSheetStyle: _modalSheetStyle(colors),
   );
 }
+
+/// The bottom-sheet motion.
+///
+/// forui's sheets snap in over 200ms. An iOS sheet takes closer to a third of
+/// a second to settle and a touch less to leave, on a decelerating curve, and
+/// that is what makes it feel like a surface sliding up rather than a panel
+/// appearing. The barrier keeps forui's colour and fade.
+FModalSheetStyle _modalSheetStyle(FColors colors) =>
+    FModalSheetStyleDelta.delta(
+      motion: const FModalSheetMotion(
+        expandDuration: Duration(milliseconds: 320),
+        collapseDuration: Duration(milliseconds: 240),
+        curve: Curves.easeOutCubic,
+      ),
+    )(FModalSheetStyle.inherit(colors: colors));
 
 /// The dialog surface.
 ///
@@ -154,7 +170,8 @@ FTabsStyle _tabsStyle(
   BrandTokens t,
 ) => FTabsStyle(
   decoration: const BoxDecoration(),
-  padding: const EdgeInsets.symmetric(horizontal: 12),
+  // The first pill starts where the page content does.
+  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
   // `.label` would shrink-wrap the text — forui's `_Tab` centres the label with
   // `widthFactor: 1`, so there is no padding hook to widen it. `.tab` fills the
   // tab's equal share of the strip instead, and only one is ever selected so

@@ -44,7 +44,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                8,
+                AppSpacing.gutter,
+                8,
+              ),
               child: Row(
                 children: [
                   CircleIconButton(
@@ -81,7 +86,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               height: 50,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.gutter,
+                ),
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -132,6 +139,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             );
           }
           return ListView.builder(
+            padding: pageInsets(context, top: 4),
             itemCount: hits.length,
             itemBuilder: (_, i) {
               final hit = hits[i];

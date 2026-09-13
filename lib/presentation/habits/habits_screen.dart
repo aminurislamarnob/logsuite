@@ -49,11 +49,11 @@ class HabitsScreen extends ConsumerWidget {
             );
           }
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+            padding: pageInsets(context, top: 16),
             children: [
               if (caffeine > 0 || cost > 0)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.grid),
                   child: Row(
                     children: [
                       if (caffeine > 0)
@@ -68,7 +68,8 @@ class HabitsScreen extends ConsumerWidget {
                                 : null,
                           ),
                         ),
-                      if (caffeine > 0 && cost > 0) const SizedBox(width: 12),
+                      if (caffeine > 0 && cost > 0)
+                        const SizedBox(width: AppSpacing.grid),
                       if (cost > 0)
                         Expanded(
                           child: StatTile(
@@ -83,7 +84,7 @@ class HabitsScreen extends ConsumerWidget {
                 ),
               ...habits.map(
                 (h) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: cardGap),
                   child: _HabitCard(habit: h),
                 ),
               ),

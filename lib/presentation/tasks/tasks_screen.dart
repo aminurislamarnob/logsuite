@@ -159,7 +159,12 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
 
   Widget _buildQuickAdd() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
+        4,
+        AppSpacing.gutter,
+        8,
+      ),
       child: BrandField(
         controller: _quickAdd,
         onSubmit: (_) => _submitQuickAdd(),
@@ -225,7 +230,7 @@ class _TaskListView extends ConsumerWidget {
         }
         if (!groupByDay) {
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+            padding: pageInsets(context, top: 4, end: PageEnd.fab),
             itemCount: tasks.length,
             itemBuilder: (_, i) => TaskTile(task: tasks[i]),
           );
@@ -239,7 +244,7 @@ class _TaskListView extends ConsumerWidget {
         final days = groups.keys.toList()..sort();
 
         return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+          padding: pageInsets(context, top: 4, end: PageEnd.fab),
           itemCount: days.length,
           itemBuilder: (_, i) {
             final day = days[i];
@@ -295,7 +300,7 @@ class _CalendarView extends ConsumerWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
           child: Row(
             children: [
               CircleIconButton(
@@ -327,7 +332,7 @@ class _CalendarView extends ConsumerWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
           child: Row(
             children: ['M', 'T', 'W', 'T', 'F', 'S', 'S']
                 .map(
@@ -345,7 +350,7 @@ class _CalendarView extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -422,7 +427,7 @@ class _CalendarView extends ConsumerWidget {
                   title: 'Nothing on ${Fmt.relativeDay(selected)}',
                 )
               : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                  padding: pageInsets(context, top: 0, end: PageEnd.fab),
                   children: selectedTasks
                       .map((t) => TaskTile(task: t, showDue: false))
                       .toList(),
@@ -456,7 +461,7 @@ class _KanbanView extends ConsumerWidget {
         final tasks = _applyFilter(all, projectId);
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+          padding: pageInsets(context, end: PageEnd.fab),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: _columnsOf(context).map((col) {
@@ -693,7 +698,7 @@ class _MatrixView extends ConsumerWidget {
 
         return GridView.count(
           crossAxisCount: 2,
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+          padding: pageInsets(context, end: PageEnd.fab),
           childAspectRatio: 0.78,
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,

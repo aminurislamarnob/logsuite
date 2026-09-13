@@ -62,7 +62,8 @@ class _Swatch extends StatelessWidget {
           height: 40,
           child: Center(
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
               width: 28,
               height: 28,
               decoration: BoxDecoration(

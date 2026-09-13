@@ -43,7 +43,12 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.gutter,
+              8,
+              AppSpacing.gutter,
+              8,
+            ),
             child: BrandSegmented<bool>(
               options: const {false: 'Expense', true: 'Income'},
               selected: _income,
@@ -52,7 +57,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
           ),
           Expanded(
             child: ReorderableListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+              padding: pageInsets(context, top: 4, end: PageEnd.fab),
               buildDefaultDragHandles: false,
               itemCount: shown.length,
               onReorderItem: (from, to) => _reorder(all, shown, from, to),

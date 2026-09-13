@@ -103,6 +103,15 @@ class _LogSuiteAppState extends ConsumerState<LogSuiteApp> {
           ? Duration.zero
           : const Duration(milliseconds: 200),
       themeMode: settings.themeMode,
+      // Lists overscroll with the iOS rubber-band everywhere, rather than
+      // Android's stretch. One physics for every list is also what lets the
+      // tab-bar body and the pushed pages feel like the same app.
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        overscroll: false,
+      ),
       routerConfig: router,
       locale: Locale(settings.locale),
       supportedLocales: const [Locale('en'), Locale('bn')],

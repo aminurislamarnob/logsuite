@@ -97,7 +97,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                12,
+                AppSpacing.gutter,
+                0,
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -134,7 +139,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.gutter),
               child: BrandButton(
                 label: _index == _lastPage ? 'Get started' : 'Continue',
                 onPressed: _next,
@@ -152,7 +157,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     required Widget child,
   }) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
+        32,
+        AppSpacing.gutter,
+        24,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

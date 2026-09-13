@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
@@ -26,6 +27,34 @@ class AppRadii {
   static const tileShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(tile)),
   );
+}
+
+/// Spacing tokens. Every screen lays itself out on these four numbers so the
+/// edges line up from page to page: the top bar's circles, a list's cards and
+/// a tab strip's first pill all start [gutter] in from the screen edge.
+class AppSpacing {
+  const AppSpacing._();
+
+  /// The inset from the screen edge to page content, and the inset the top
+  /// bar's action circles sit at.
+  static const gutter = 20.0;
+
+  /// The vertical gap between two sections on a page.
+  static const section = 24.0;
+
+  /// The gap between two cards stacked in a list.
+  static const card = 10.0;
+
+  /// The gap between two cards side by side in a grid or a horizontal rail.
+  static const grid = 12.0;
+
+  /// Clearance a scrolling page keeps under its last row for a floating
+  /// action button, above the device's bottom inset.
+  static const fabClearance = 96.0;
+
+  /// The breathing room under a page's last row when nothing floats over it,
+  /// above the device's bottom inset.
+  static const pageEnd = 24.0;
 }
 
 /// Extra brand colours the [ColorScheme] has no slot for, hung off the theme so
@@ -429,6 +458,16 @@ class AppTheme {
       textTheme: textTheme,
       extensions: [brand],
       splashFactory: InkSparkle.splashFactory,
+      // Every push slides in from the trailing edge with the iOS parallax and
+      // the interactive swipe-back, on every platform. Flutter only does this
+      // on iOS and macOS by default; Android gets a zoom that reads as a
+      // different app.
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          for (final platform in TargetPlatform.values)
+            platform: const CupertinoPageTransitionsBuilder(),
+        },
+      ),
       dividerTheme: DividerThemeData(
         color: brand.hairline,
         space: 1,

@@ -205,7 +205,7 @@ class RemindersScreen extends ConsumerWidget {
           final days = groups.keys.toList()..sort();
 
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+            padding: pageInsets(context),
             itemCount: days.length,
             itemBuilder: (_, i) {
               final day = days[i];
@@ -221,7 +221,7 @@ class RemindersScreen extends ConsumerWidget {
                   ),
                   ...groups[day]!.map(
                     (r) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: cardGap),
                       child: TintCard(
                         padding: EdgeInsets.zero,
                         child: BrandTile(

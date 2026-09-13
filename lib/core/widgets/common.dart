@@ -503,7 +503,14 @@ class SheetScaffold extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 18, 16, 10),
+                // The title starts on the page gutter, so a sheet's content
+                // lines up with the page it slid over.
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.gutter,
+                  18,
+                  16,
+                  10,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -521,7 +528,12 @@ class SheetScaffold extends StatelessWidget {
               ),
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.gutter,
+                    0,
+                    AppSpacing.gutter,
+                    28,
+                  ),
                   child: child,
                 ),
               ),
@@ -583,10 +595,18 @@ class BrandScaffold extends StatelessWidget {
     Widget body = child;
 
     if (floatingAction != null) {
+      // FScaffold applies no bottom safe area, so the button has to clear the
+      // home indicator itself. It sits on the page gutter so its right edge
+      // lines up with the cards above it.
+      final inset = MediaQuery.paddingOf(context).bottom;
       body = Stack(
         children: [
           Positioned.fill(child: body),
-          Positioned(right: 16, bottom: 16, child: floatingAction!),
+          Positioned(
+            right: AppSpacing.gutter,
+            bottom: 16 + inset,
+            child: floatingAction!,
+          ),
         ],
       );
     }

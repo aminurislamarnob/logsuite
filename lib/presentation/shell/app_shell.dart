@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -27,12 +27,16 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final reduceMotion = ref.watch(settingsProvider).reduceMotion;
 
-    final body = reduceMotion
-        ? navigationShell
-        : navigationShell
-              .animate(key: ValueKey(navigationShell.currentIndex))
-              .fadeIn(duration: 220.ms)
-              .slideY(begin: 0.03, end: 0, curve: Curves.easeOutQuart);
+    // A tab change is a short crossfade and nothing more. iOS switches tabs
+    // without moving the content, and a slide reads as a push, which it is
+    // not. The fade runs on a controller rather than by re-keying the shell:
+    // a new key re-inflates every branch subtree on each tap, which is the
+    // stutter a tab bar must never have.
+    final body = _TabFade(
+      index: navigationShell.currentIndex,
+      enabled: !reduceMotion,
+      child: navigationShell,
+    );
 
     // The bar is stacked over the body rather than placed in FScaffold's footer
     // slot: it draws its own background, floats the action button above the
@@ -55,7 +59,12 @@ class AppShell extends ConsumerWidget {
               ),
               centerAction: QuickAddButton(
                 onPressed: () => showQuickAdd(context, ref),
-                onLongPress: () => context.push('/assistant'),
+                // A hold has no visible acknowledgement of its own, so the
+                // device gives one before the assistant slides in.
+                onLongPress: () {
+                  HapticFeedback.mediumImpact();
+                  context.push('/assistant');
+                },
               ),
               items: const [
                 CurvedNavItem(
@@ -85,6 +94,54 @@ class AppShell extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Crossfades the shell body when [index] changes, without rebuilding it.
+class _TabFade extends StatefulWidget {
+  final int index;
+  final bool enabled;
+  final Widget child;
+
+  const _TabFade({
+    required this.index,
+    required this.enabled,
+    required this.child,
+  });
+
+  @override
+  State<_TabFade> createState() => _TabFadeState();
+}
+
+class _TabFadeState extends State<_TabFade>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 180),
+    value: 1,
+  );
+  late final Animation<double> _opacity = _controller.drive(
+    // From a dim, not from nothing: the page was already there, it only
+    // changed.
+    Tween(begin: 0.55, end: 1.0).chain(CurveTween(curve: Curves.easeOut)),
+  );
+
+  @override
+  void didUpdateWidget(_TabFade old) {
+    super.didUpdateWidget(old);
+    if (widget.enabled && old.index != widget.index) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      FadeTransition(opacity: _opacity, child: widget.child);
 }
 
 /// The round coral `+` that sits in the notch of the bottom bar.
@@ -256,7 +313,7 @@ Widget _tile({
   required VoidCallback onTap,
 }) {
   return Padding(
-    padding: const EdgeInsets.only(bottom: 10),
+    padding: const EdgeInsets.only(bottom: cardGap),
     child: Builder(
       builder: (context) => TintCard(
         accent: color,
