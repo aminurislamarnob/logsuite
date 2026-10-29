@@ -132,6 +132,9 @@ class CircleIconButton extends StatelessWidget {
     final tone = color ?? theme.colorScheme.onSurface;
 
     final button = FTappable(
+      key: tooltip == null
+          ? null
+          : ValueKey('button-${tooltip!.toLowerCase().replaceAll(' ', '-')}'),
       onPress: onPressed,
       semanticsLabel: tooltip,
       child: DecoratedBox(
@@ -1319,6 +1322,7 @@ class _NavButton extends StatelessWidget {
     final tone = selected ? theme.colorScheme.primary : context.muted;
 
     return FBottomNavigationBarData(
+      key: ValueKey('nav-${item.label.toLowerCase()}'),
       itemStyle: context.theme.bottomNavigationBarStyle.itemStyle,
       selected: selected,
       index: index,

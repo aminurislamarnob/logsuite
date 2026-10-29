@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_palette.dart';
 
+const _nativeE2e = bool.fromEnvironment('E2E_TEST');
+
 /// Shape tokens for the coral rebrand. The reference design groups content into
 /// large, softly rounded cards and uses full pills for anything tappable.
 class AppRadii {
@@ -252,11 +254,12 @@ class BrandTokens {
 
   /// The font family for [locale]. Bangla glyphs are absent from Bricolage
   /// Grotesque, so Bengali falls back to Hind Siliguri.
-  String get fontFamily =>
-      (locale == 'bn'
-              ? GoogleFonts.hindSiliguri()
-              : GoogleFonts.bricolageGrotesque())
-          .fontFamily!;
+  String get fontFamily => _nativeE2e
+      ? 'sans-serif'
+      : (locale == 'bn'
+                ? GoogleFonts.hindSiliguri()
+                : GoogleFonts.bricolageGrotesque())
+            .fontFamily!;
 }
 
 extension BrandTheme on BuildContext {
@@ -281,7 +284,9 @@ class AppTheme {
   /// Bangla glyphs are absent from Bricolage Grotesque, so the Bengali locale
   /// swaps in Hind Siliguri. Both are served through google_fonts.
   static TextTheme _textTheme(TextTheme base, Color body, String locale) {
-    final themed = locale == 'bn'
+    final themed = _nativeE2e
+        ? base
+        : locale == 'bn'
         ? GoogleFonts.hindSiliguriTextTheme(base)
         : GoogleFonts.bricolageGrotesqueTextTheme(base);
     return themed

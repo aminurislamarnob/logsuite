@@ -158,6 +158,26 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   }
 
   Widget _buildQuickAdd() {
+    final actions = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleIconButton(
+          icon: AppIcons.mic,
+          tooltip: 'Dictate',
+          color: _listening ? context.brand.danger : null,
+          size: 40,
+          onPressed: _dictate,
+        ),
+        CircleIconButton(
+          icon: AppIcons.arrowUp,
+          tooltip: 'Add',
+          color: context.brand.task,
+          size: 40,
+          onPressed: _submitQuickAdd,
+        ),
+      ],
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.gutter,
@@ -171,25 +191,9 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         textInputAction: TextInputAction.done,
         hint: 'Buy milk tomorrow 5pm #shopping !high',
         prefix: const AppIcon(AppIcons.add, size: 20),
-        suffix: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleIconButton(
-              icon: AppIcons.mic,
-              tooltip: 'Dictate',
-              color: _listening ? context.brand.danger : null,
-              size: 40,
-              onPressed: _dictate,
-            ),
-            CircleIconButton(
-              icon: AppIcons.arrowUp,
-              tooltip: 'Add',
-              color: context.brand.task,
-              size: 40,
-              onPressed: _submitQuickAdd,
-            ),
-          ],
-        ),
+        suffix: const bool.fromEnvironment('E2E_TEST')
+            ? ExcludeSemantics(child: actions)
+            : actions,
       ),
     );
   }

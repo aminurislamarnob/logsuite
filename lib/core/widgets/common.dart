@@ -1485,6 +1485,7 @@ class BrandFab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return FTooltip(
+      key: ValueKey('fab-${tooltip.toLowerCase().replaceAll(' ', '-')}'),
       tipBuilder: (_, _) => Text(tooltip),
       semanticsLabel: tooltip,
       child: FTappable(

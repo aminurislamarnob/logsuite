@@ -108,6 +108,30 @@ feature change that alters a step should update its line there too.
 flutter test
 ```
 
+### Native end-to-end tests
+
+The native end-to-end suite lives in `integration_test/` and runs the real
+Flutter application with its SQLite database and platform services. It covers
+first-run onboarding, shell/module navigation, task creation, note creation,
+habit creation, and settings access.
+
+Run it on an attached Android or iOS device/emulator:
+
+```bash
+flutter test integration_test/app_test.dart -d <device-id>
+```
+
+For deterministic offline runs, use the bundled-system-font test mode:
+
+```bash
+flutter test integration_test/app_test.dart -d <device-id> \
+  --dart-define=E2E_TEST=true
+```
+
+Native-only capabilities such as camera, microphone, biometrics, notifications,
+file pickers, sharing, and printing should be exercised on the target platform
+with additional device-specific integration tests rather than browser tests.
+
 ## Formatting
 
 The repo is `dart format` clean, and stays that way:

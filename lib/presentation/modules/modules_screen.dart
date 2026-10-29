@@ -136,6 +136,7 @@ class _ModuleCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
+      key: ValueKey('module-${module.name}'),
       // Long-press still switches the module off, as before.
       onLongPress: () =>
           ref.read(settingsProvider.notifier).toggleModule(module, false),

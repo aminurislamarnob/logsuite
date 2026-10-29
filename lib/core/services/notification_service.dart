@@ -65,6 +65,11 @@ class NotificationService {
         requestBadgePermission: false,
         requestSoundPermission: false,
       ),
+      macOS: DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      ),
     );
     try {
       await _plugin.initialize(
