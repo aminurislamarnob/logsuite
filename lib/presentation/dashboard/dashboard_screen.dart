@@ -71,11 +71,13 @@ class DashboardScreen extends ConsumerWidget {
                 CircleIconButton(
                   icon: AppIcons.sparkle,
                   tooltip: 'Speak a command',
+                  size: 36,
                   onPressed: () => context.push('/assistant'),
                 ),
                 CircleIconButton(
                   icon: AppIcons.camera,
                   tooltip: 'Scan a document',
+                  size: 36,
                   onPressed: () async {
                     final fromCamera = await showDocumentSourceSheet(context);
                     if (fromCamera != null && context.mounted) {
@@ -86,11 +88,13 @@ class DashboardScreen extends ConsumerWidget {
                 CircleIconButton(
                   icon: AppIcons.search,
                   tooltip: 'Search everything',
+                  size: 36,
                   onPressed: () => context.push('/search'),
                 ),
                 CircleIconButton(
                   icon: AppIcons.notifications,
                   tooltip: 'Reminders',
+                  size: 36,
                   onPressed: () => context.push('/reminders'),
                 ),
               ],

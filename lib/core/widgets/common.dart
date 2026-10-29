@@ -1415,7 +1415,10 @@ class BrandTabs extends StatelessWidget {
     expands: true,
     children: [
       for (final entry in tabs.entries)
-        FTabEntry(label: Text(entry.key), child: entry.value),
+        FTabEntry(
+          label: Text(entry.key, style: const TextStyle(fontSize: 15)),
+          child: entry.value,
+        ),
     ],
   );
 }
