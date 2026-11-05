@@ -22,8 +22,9 @@ FThemeData brandForuiTheme({
   AppPalette palette = AppPalette.coral,
   bool compact = false,
   String locale = 'en',
+  bool haptics = true,
 }) {
-  // Memoised on the four inputs. `MaterialApp.builder` rebuilds this on every
+  // Memoised on the inputs. `MaterialApp.builder` rebuilds this on every
   // settings change, and forui's styles hold `Tween`s, which have no value
   // equality — so a freshly built theme never compares equal to the last one.
   // Widgets that watch their inherited style for change then treat every
@@ -31,7 +32,7 @@ FThemeData brandForuiTheme({
   // `FAccordionItem.didChangeDependencies` resets the reveal animation to
   // `initiallyExpanded`. Flipping any switch in Settings closed the "Lock
   // individual modules" list under itself.
-  final key = (brightness, palette, compact, locale);
+  final key = (brightness, palette, compact, locale, haptics);
   if (_cacheKey == key) return _cached!;
 
   final theme = brandForuiThemeFrom(
@@ -41,20 +42,23 @@ FThemeData brandForuiTheme({
       compact: compact,
       locale: locale,
     ),
+    haptics: haptics,
   );
   _cacheKey = key;
   _cached = theme;
   return theme;
 }
 
-(Brightness, AppPalette, bool, String)? _cacheKey;
+(Brightness, AppPalette, bool, String, bool)? _cacheKey;
 FThemeData? _cached;
 
 /// Builds the forui theme from already-resolved [BrandTokens].
-FThemeData brandForuiThemeFrom(BrandTokens t) {
+FThemeData brandForuiThemeFrom(BrandTokens t, {bool haptics = true}) {
   final colors = _colors(t);
   var typography = _typography(t);
   var sizes = FSizes.inherit(touch: true);
+  final hapticFeedback =
+      haptics ? const FHapticFeedback() : const FHapticFeedback.none();
 
   // Material expresses density as VisualDensity.compact, which forui has no
   // equivalent for. VisualDensity.compact trims 8px off a 48px target, so the
@@ -96,12 +100,13 @@ FThemeData brandForuiThemeFrom(BrandTokens t) {
     typography: typography,
     style: style,
     icons: _icons,
+    hapticFeedback: hapticFeedback,
     tabsStyle: _tabsStyle(colors, typography, style, t),
     touch: true,
     // The same instance the Material theme registers, so `context.brand` and
     // forui-side lookups can never disagree.
     extensions: [t.brand],
-    dialogStyle: _dialogStyle(colors, typography, style),
+    dialogStyle: _dialogStyle(colors, typography, style, hapticFeedback),
     modalSheetStyle: _modalSheetStyle(colors),
   );
 }
@@ -136,6 +141,7 @@ FDialogStyle _dialogStyle(
   FColors colors,
   FTypography typography,
   FStyle style,
+  FHapticFeedback hapticFeedback,
 ) =>
     FDialogStyleDelta.delta(
       decoration: DecorationDelta.shapeDelta(
@@ -150,7 +156,7 @@ FDialogStyle _dialogStyle(
         style: style,
         colors: colors,
         typography: typography,
-        hapticFeedback: const FHapticFeedback(),
+        hapticFeedback: hapticFeedback,
         touch: true,
       ),
     );

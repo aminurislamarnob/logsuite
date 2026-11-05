@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/theme/app_icons.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import '../../core/theme/app_theme.dart';
@@ -60,6 +61,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               padding: pageInsets(context, top: 4, end: PageEnd.fab),
               buildDefaultDragHandles: false,
               itemCount: shown.length,
+              onReorderStart: (_) => AppHaptics.medium(),
               onReorderItem: (from, to) => _reorder(all, shown, from, to),
               itemBuilder: (context, i) => _CategoryRow(
                 key: ValueKey('cat-${shown[i].id}'),
@@ -82,6 +84,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     int from,
     int to,
   ) async {
+    AppHaptics.selection();
     final moved = [...shown];
     moved.insert(to, moved.removeAt(from));
     final rest = all.where((c) => c.isIncome != _income);
@@ -322,7 +325,10 @@ class _IconGrid extends StatelessWidget {
         children: [
           for (final entry in AppIcons.categoryIcons.entries)
             GestureDetector(
-              onTap: () => onChanged(entry.key),
+              onTap: () {
+                AppHaptics.selection();
+                onChanged(entry.key);
+              },
               child: Container(
                 decoration: BoxDecoration(
                   color: entry.key == selected

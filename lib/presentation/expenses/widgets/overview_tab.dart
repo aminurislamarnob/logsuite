@@ -7,6 +7,7 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/brand.dart';
 import '../../../core/widgets/common.dart';
 import '../providers/expenses_provider.dart';
@@ -299,7 +300,10 @@ class _TxTile extends ConsumerWidget {
             color: context.brand.onAccent(context.brand.danger),
           ),
         ),
-        onDismissed: (_) => _delete(context, ref),
+        onDismissed: (_) {
+          AppHaptics.heavy();
+          _delete(context, ref);
+        },
         child: BrandTile(
           dense: true,
           onTap: isLoanRow ? null : () => ExpenseEntrySheet.edit(context, tx),

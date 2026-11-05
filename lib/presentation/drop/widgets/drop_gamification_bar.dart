@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/haptics.dart';
 import '../providers/drop_gamification_provider.dart';
 
 class DropGamificationBar extends ConsumerWidget {
@@ -23,7 +24,10 @@ class DropGamificationBar extends ConsumerWidget {
       color: Colors.transparent,
       child: InkWell(
         key: const ValueKey('drop_gamification_bar'),
-        onTap: onTap,
+        onTap: () {
+          AppHaptics.tap();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(12),
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),

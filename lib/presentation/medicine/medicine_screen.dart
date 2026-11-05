@@ -6,6 +6,7 @@ import '../../core/services/export_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import '../../core/people/person_avatar.dart';
@@ -477,8 +478,10 @@ class _CalendarTab extends ConsumerWidget {
               );
 
               return GestureDetector(
-                onTap: () =>
-                    ref.read(_selectedDayProvider.notifier).state = day,
+                onTap: () {
+                  AppHaptics.selection();
+                  ref.read(_selectedDayProvider.notifier).state = day;
+                },
                 child: Container(
                   margin: const EdgeInsets.all(2),
                   decoration: BoxDecoration(

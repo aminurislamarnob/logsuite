@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import '../tasks/providers/tasks_provider.dart';
@@ -46,9 +47,11 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
     // Watch for the moment a session finishes so we can ask for a rating.
     ref.listen(focusTimerProvider, (prev, next) {
       if (prev?.phase != TimerPhase.finished &&
-          next.phase == TimerPhase.finished &&
-          next.elapsedSeconds > 30) {
-        _askForReflection();
+          next.phase == TimerPhase.finished) {
+        AppHaptics.success();
+        if (next.elapsedSeconds > 30) {
+          _askForReflection();
+        }
       }
     });
 

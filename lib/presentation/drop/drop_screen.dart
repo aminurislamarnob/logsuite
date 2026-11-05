@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,6 +9,7 @@ import '../../core/services/notification_service.dart';
 import '../../core/services/ocr_service.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import '../notes/repository/note_repository.dart';
@@ -315,7 +315,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                       ? 'View Archive'
                       : 'View Inbox',
                   onPressed: () {
-                    HapticFeedback.lightImpact();
+                    AppHaptics.selection();
                     ref.read(dropTriageStatusProvider.notifier).state =
                         activeTriage == 'inbox' ? 'archived' : 'inbox';
                   },
@@ -327,6 +327,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                   ),
                   tooltip: _isSearchVisible ? 'Close search' : 'Search drops',
                   onPressed: () {
+                    AppHaptics.tap();
                     setState(() {
                       _isSearchVisible = !_isSearchVisible;
                       if (!_isSearchVisible) {
@@ -397,7 +398,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
 
                 return GestureDetector(
                   onTap: () {
-                    HapticFeedback.selectionClick();
+                    AppHaptics.selection();
                     ref.read(dropFilterTypeProvider.notifier).state = key;
                   },
                   child: Container(
@@ -459,7 +460,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
 
                     return GestureDetector(
                       onTap: () {
-                        HapticFeedback.selectionClick();
+                        AppHaptics.selection();
                         ref.read(dropSelectedTagProvider.notifier).state =
                             isSelected ? null : tag;
                       },

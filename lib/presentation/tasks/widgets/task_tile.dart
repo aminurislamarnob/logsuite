@@ -8,6 +8,7 @@ import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/brand.dart';
 import '../../../core/widgets/common.dart';
 import '../providers/tasks_provider.dart';
@@ -30,7 +31,14 @@ Widget _slideAction({
   // dark-mode danger red it is about 2.8:1.
   const foreground = Colors.white;
   return CustomSlidableAction(
-    onPressed: onPressed,
+    onPressed: (ctx) {
+      if (label == 'Delete') {
+        AppHaptics.heavy();
+      } else {
+        AppHaptics.medium();
+      }
+      onPressed(ctx);
+    },
     backgroundColor: background,
     foregroundColor: foreground,
     child: Column(

@@ -2,13 +2,13 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
+import '../utils/haptics.dart';
 
 /// The signature pieces of the coral fitness identity.
 ///
@@ -94,8 +94,18 @@ class TintCard extends StatelessWidget {
       child: onTap == null && onLongPress == null
           ? body
           : FTappable(
-              onPress: onTap,
-              onLongPress: onLongPress,
+              onPress: onTap == null
+                  ? null
+                  : () {
+                      AppHaptics.tap();
+                      onTap!();
+                    },
+              onLongPress: onLongPress == null
+                  ? null
+                  : () {
+                      AppHaptics.medium();
+                      onLongPress!();
+                    },
               // A card is a surface, not a control; only the inner content
               // should announce itself.
               semanticsButton: false,
@@ -137,7 +147,12 @@ class CircleIconButton extends StatelessWidget {
       key: tooltip == null
           ? null
           : ValueKey('button-${tooltip!.toLowerCase().replaceAll(' ', '-')}'),
-      onPress: onPressed,
+      onPress: onPressed == null
+          ? null
+          : () {
+              AppHaptics.tap();
+              onPressed!();
+            },
       semanticsLabel: tooltip,
       child: DecoratedBox(
         decoration: ShapeDecoration(
@@ -297,7 +312,6 @@ class BrandTopBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final pop = onLeading ??
         () async {
-          HapticFeedback.lightImpact();
           final popped = await Navigator.maybePop(context);
           if (!popped && context.mounted) {
             context.go('/dashboard');
@@ -430,7 +444,12 @@ class GreetingHeader extends StatelessWidget {
     return Row(
       children: [
         GestureDetector(
-          onTap: onAvatarTap,
+          onTap: onAvatarTap == null
+              ? null
+              : () {
+                  AppHaptics.tap();
+                  onAvatarTap!();
+                },
           // The photo is drawn edge to edge; without one the gradient stays,
           // carrying the initials or the app's mark.
           child: photo != null
@@ -577,7 +596,12 @@ class Pill extends StatelessWidget {
     final background = selected ? color : context.brand.canvas;
     final foreground = selected ? Colors.white : color;
     return FTappable(
-      onPress: onTap,
+      onPress: onTap == null
+          ? null
+          : () {
+              AppHaptics.selection();
+              onTap!();
+            },
       semanticsLabel: label,
       semanticsChecked: onTap == null ? null : selected,
       child: DecoratedBox(
@@ -1140,7 +1164,10 @@ class _DayCell extends StatelessWidget {
     final theme = Theme.of(context);
     final foreground = selected ? Colors.white : theme.colorScheme.onSurface;
     return FTappable(
-      onPress: onTap,
+      onPress: () {
+        AppHaptics.selection();
+        onTap();
+      },
       selected: selected,
       semanticsLabel: '${day.day} $weekday',
       semanticsChecked: selected,
@@ -1350,7 +1377,10 @@ class _NavButton extends StatelessWidget {
       selected: selected,
       index: index,
       length: length,
-      onChange: onSelected,
+      onChange: (idx) {
+        AppHaptics.selection();
+        onSelected(idx);
+      },
       child: FBottomNavigationBarItem(
         semanticsLabel: item.label,
         style: .delta(spacing: 4, padding: .value(EdgeInsets.zero)),

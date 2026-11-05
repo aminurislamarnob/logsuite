@@ -7,6 +7,7 @@ import '../../core/database/app_database.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import 'providers/tasks_provider.dart';
@@ -53,6 +54,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     );
     if (parsed.tags.isNotEmpty) await repo.setTaskTags(id, parsed.tags);
 
+    AppHaptics.success();
     _quickAdd.clear();
     if (mounted) FocusScope.of(context).unfocus();
   }
@@ -377,8 +379,10 @@ class _CalendarView extends ConsumerWidget {
               final isToday = Fmt.isSameDay(day, DateTime.now());
 
               return GestureDetector(
-                onTap: () =>
-                    ref.read(_calendarSelectedProvider.notifier).state = day,
+                onTap: () {
+                  AppHaptics.selection();
+                  ref.read(_calendarSelectedProvider.notifier).state = day;
+                },
                 child: Container(
                   margin: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
@@ -487,6 +491,7 @@ class _KanbanView extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 child: DragTarget<Task>(
                   onAcceptWithDetails: (details) async {
+                    AppHaptics.medium();
                     final repo = ref.read(taskRepositoryProvider);
                     final task = details.data;
                     if (status == 2) {
@@ -561,6 +566,7 @@ class _KanbanView extends ConsumerWidget {
                               padding: const EdgeInsets.only(bottom: 8),
                               child: LongPressDraggable<Task>(
                                 data: t,
+                                onDragStarted: AppHaptics.medium,
                                 // Stays Material: drag feedback is mounted in
                                 // the Overlay rather than in this subtree, and
                                 // this is the idiomatic ancestor for it.

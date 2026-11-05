@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 
@@ -140,8 +141,10 @@ class _ModuleCard extends ConsumerWidget {
     return GestureDetector(
       key: ValueKey('module-${module.name}'),
       // Long-press still switches the module off, as before.
-      onLongPress: () =>
-          ref.read(settingsProvider.notifier).toggleModule(module, false),
+      onLongPress: () {
+        AppHaptics.medium();
+        ref.read(settingsProvider.notifier).toggleModule(module, false);
+      },
       child: TintCard(
         tintIndex: tintIndex,
         onTap: onTap,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -59,12 +58,9 @@ class AppShell extends ConsumerWidget {
               ),
               centerAction: QuickAddButton(
                 onPressed: () => showQuickAdd(context, ref),
-                // A hold has no visible acknowledgement of its own, so the
-                // device gives one before the assistant slides in.
-                onLongPress: () {
-                  HapticFeedback.mediumImpact();
-                  context.push('/assistant');
-                },
+                // A hold has no visible acknowledgement of its own, so
+                // BrandTappable gives a medium impact before the assistant slides in.
+                onLongPress: () => context.push('/assistant'),
               ),
               items: const [
                 CurvedNavItem(

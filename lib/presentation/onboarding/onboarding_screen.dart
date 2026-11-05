@@ -10,6 +10,7 @@ import '../../core/services/security_service.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import '../habits/repository/habit_repository.dart';
@@ -127,7 +128,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Expanded(
               child: PageView(
                 controller: _pages,
-                onPageChanged: (i) => setState(() => _index = i),
+                onPageChanged: (i) {
+                  AppHaptics.selection();
+                  setState(() => _index = i);
+                },
                 children: [
                   _welcomePage(),
                   _namePage(),

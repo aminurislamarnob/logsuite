@@ -16,6 +16,7 @@ import 'core/settings/app_settings.dart';
 import 'core/theme/app_forui_theme.dart';
 import 'core/theme/app_icons.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/haptics.dart';
 import 'core/widgets/common.dart';
 import 'presentation/drop/services/drop_share_handler.dart';
 import 'presentation/notes/repository/note_repository.dart';
@@ -159,6 +160,7 @@ class _LogSuiteAppState extends ConsumerState<LogSuiteApp> {
               palette: settings.palette,
               compact: settings.compactDensity,
               locale: settings.locale,
+              haptics: settings.hapticsEnabled,
             ),
             // FToaster hosts showFToast; FTooltipGroup coordinates FTooltips so
             // only one is open at a time. Both must sit above every route.
@@ -337,9 +339,11 @@ class _LockGateState extends ConsumerState<_LockGate>
 
   void _submitPin() {
     if (ref.read(securityServiceProvider).verifyPin(_pin.text)) {
+      AppHaptics.success();
       setState(() => _unlocked = true);
       return;
     }
+    AppHaptics.error();
     setState(() {
       _pinError = 'Incorrect PIN';
       _pin.clear();

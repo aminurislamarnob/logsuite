@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../ai/ai_provider.dart';
 import 'voice_language.dart';
 import '../theme/app_palette.dart';
+import '../utils/haptics.dart';
 
 /// The six toggleable feature modules. Disabling one hides it from the modules
 /// grid, the dashboard, and the quick-add sheet.
@@ -48,6 +49,7 @@ class AppSettings {
   final ThemeMode themeMode;
   final AppPalette palette;
   final bool reduceMotion;
+  final bool hapticsEnabled;
   final bool compactDensity;
   final double textScale;
   final bool appLockEnabled;
@@ -85,6 +87,7 @@ class AppSettings {
     this.themeMode = ThemeMode.system,
     this.palette = AppPalette.coral,
     this.reduceMotion = false,
+    this.hapticsEnabled = true,
     this.compactDensity = false,
     this.textScale = 1.0,
     this.appLockEnabled = false,
@@ -121,6 +124,7 @@ class AppSettings {
     ThemeMode? themeMode,
     AppPalette? palette,
     bool? reduceMotion,
+    bool? hapticsEnabled,
     bool? compactDensity,
     double? textScale,
     bool? appLockEnabled,
@@ -143,6 +147,7 @@ class AppSettings {
       themeMode: themeMode ?? this.themeMode,
       palette: palette ?? this.palette,
       reduceMotion: reduceMotion ?? this.reduceMotion,
+      hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       compactDensity: compactDensity ?? this.compactDensity,
       textScale: textScale ?? this.textScale,
       appLockEnabled: appLockEnabled ?? this.appLockEnabled,
@@ -185,6 +190,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static const _kTheme = 'theme_mode';
   static const _kPalette = 'palette';
   static const _kMotion = 'reduce_motion';
+  static const _kHaptics = 'haptics_enabled';
   static const _kDensity = 'compact_density';
   static const _kScale = 'text_scale';
   static const _kLock = 'app_lock';
@@ -212,6 +218,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           .toSet();
     }
 
+    final haptics = _prefs.getBool(_kHaptics) ?? true;
+    AppHaptics.enabled = haptics;
+
     return AppSettings(
       enabledModules: parseModules(_kModules, AppModule.values.toSet()),
       themeMode:
@@ -220,6 +229,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       // By name, not index: inserting a palette must not reassign a saved one.
       palette: AppPaletteX.byName(_prefs.getString(_kPalette)),
       reduceMotion: _prefs.getBool(_kMotion) ?? false,
+      hapticsEnabled: haptics,
       compactDensity: _prefs.getBool(_kDensity) ?? false,
       textScale: _prefs.getDouble(_kScale) ?? 1.0,
       appLockEnabled: _prefs.getBool(_kLock) ?? false,
@@ -273,6 +283,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setReduceMotion(bool v) {
     _prefs.setBool(_kMotion, v);
     state = state.copyWith(reduceMotion: v);
+  }
+
+  void setHapticsEnabled(bool v) {
+    _prefs.setBool(_kHaptics, v);
+    AppHaptics.enabled = v;
+    state = state.copyWith(hapticsEnabled: v);
+    if (v) AppHaptics.selection();
   }
 
   void setCompactDensity(bool v) {

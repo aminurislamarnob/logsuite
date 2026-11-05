@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../settings/app_settings.dart';
 import '../theme/app_palette.dart';
 import '../theme/app_theme.dart';
+import '../utils/haptics.dart';
 
 /// The row of colour swatches that picks the app's palette.
 ///
@@ -53,7 +54,10 @@ class _Swatch extends StatelessWidget {
       selected: selected,
       label: palette.label,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () {
+          AppHaptics.selection();
+          onTap();
+        },
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
           // A 28px dot inside a 40px target: the dot stays a dot at any text

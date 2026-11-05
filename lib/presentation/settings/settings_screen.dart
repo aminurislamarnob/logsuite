@@ -120,6 +120,13 @@ class SettingsScreen extends ConsumerWidget {
                   value: settings.reduceMotion,
                   onChanged: notifier.setReduceMotion,
                 ),
+                BrandSwitchTile(
+                  leading: const AppIcon(AppIcons.quick),
+                  title: 'Haptic feedback',
+                  subtitle: 'Tactile vibrations on taps and actions',
+                  value: settings.hapticsEnabled,
+                  onChanged: notifier.setHapticsEnabled,
+                ),
                 BrandTile(
                   leading: const AppIcon(AppIcons.textSize),
                   title: const Text('Text size'),

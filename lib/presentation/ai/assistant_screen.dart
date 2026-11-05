@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +12,7 @@ import '../../core/services/security_service.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import 'assistant_controller.dart';
@@ -78,7 +78,6 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   }
 
   void _record(AssistantController controller) {
-    HapticFeedback.lightImpact();
     controller.startListening();
   }
 
@@ -104,10 +103,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
         AssistantIdle() => _Idle(onListen: () => _record(controller)),
         AssistantListening s => _Listening(
           state: s,
-          onStop: () {
-            HapticFeedback.lightImpact();
-            controller.stopListening();
-          },
+          onStop: controller.stopListening,
           onCancel: controller.cancelListening,
         ),
         AssistantTranscript s => _Transcript(
@@ -671,6 +667,7 @@ class _SavedState extends State<_Saved> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      AppHaptics.success();
       final n = widget.state.items.length;
       brandToast(context, 'Added $n ${n == 1 ? 'entry' : 'entries'}.');
     });

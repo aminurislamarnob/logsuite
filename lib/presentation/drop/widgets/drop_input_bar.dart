@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/haptics.dart';
 import '../../notes/providers/notes_provider.dart';
 import '../providers/drop_gamification_provider.dart';
 import '../providers/drop_provider.dart';
@@ -153,6 +154,7 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
   }
 
   void _selectTag(String tag) {
+    AppHaptics.selection();
     final text = _controller.text;
     final cursor = _controller.selection.baseOffset;
     if (_hashIndex == null || _hashIndex! < 0 || _hashIndex! > text.length) {

@@ -8,6 +8,7 @@ import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import 'providers/habits_provider.dart';
@@ -188,11 +189,17 @@ class _HabitCard extends ConsumerWidget {
                     if (!context.mounted) return;
                     final next = stats.todayAmount + 1;
                     if (isReduce && next > habit.targetAmount) {
+                      AppHaptics.warning();
                       brandToast(
                         context,
                         'That is ${next.toStringAsFixed(0)} today — '
                         'your limit is ${habit.targetAmount.toStringAsFixed(0)}.',
                       );
+                    } else if (!isReduce &&
+                        habit.targetAmount > 0 &&
+                        stats.todayAmount < habit.targetAmount &&
+                        next >= habit.targetAmount) {
+                      AppHaptics.success();
                     }
                   },
                 ),

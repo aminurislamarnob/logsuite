@@ -5,6 +5,7 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/brand.dart';
 import '../../../core/widgets/common.dart';
 import '../providers/expenses_provider.dart';
@@ -444,7 +445,10 @@ class _BudgetRow extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: onEdit,
+            onTap: () {
+              AppHaptics.tap();
+              onEdit();
+            },
             child: LabeledProgress(
               label: p.label,
               trailing:

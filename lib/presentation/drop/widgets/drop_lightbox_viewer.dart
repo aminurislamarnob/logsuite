@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/services/ocr_service.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/common.dart';
 import '../models/drop_with_tags.dart';
 import '../repository/drop_repository.dart';
@@ -50,7 +51,7 @@ class _DropLightboxViewerState extends ConsumerState<DropLightboxViewer> {
     if (_ocrText != null && _ocrText!.isNotEmpty) {
       await Clipboard.setData(ClipboardData(text: _ocrText!));
       if (mounted) {
-        HapticFeedback.lightImpact();
+        AppHaptics.tap();
         brandToast(context, 'Extracted text copied to clipboard!');
       }
       return;
@@ -65,7 +66,7 @@ class _DropLightboxViewerState extends ConsumerState<DropLightboxViewer> {
         await ref.read(dropRepositoryProvider).updateOcrText(widget.item.id, text);
         await Clipboard.setData(ClipboardData(text: text));
         if (mounted) {
-          HapticFeedback.lightImpact();
+          AppHaptics.success();
           brandToast(context, 'Text extracted & copied to clipboard!');
         }
       } else {

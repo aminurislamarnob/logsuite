@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/common.dart';
 import '../models/drop_with_tags.dart';
 import '../providers/drop_gamification_provider.dart';
@@ -63,7 +64,7 @@ class DropCard extends ConsumerWidget {
     // Default for clips: copy to clipboard with feedback
     await Clipboard.setData(ClipboardData(text: item.content));
     if (context.mounted) {
-      HapticFeedback.lightImpact();
+      AppHaptics.tap();
       brandToast(context, 'Copied to clipboard');
     }
   }
@@ -239,9 +240,12 @@ class DropCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _handlePrimaryTap(context),
+          onTap: () {
+            AppHaptics.tap();
+            _handlePrimaryTap(context);
+          },
           onLongPress: () {
-            HapticFeedback.selectionClick();
+            AppHaptics.medium();
             if (onToggleSelect != null) {
               onToggleSelect?.call();
             } else {
@@ -330,7 +334,10 @@ class DropCard extends ConsumerWidget {
                       visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      onPressed: () => _showMoreActions(context, ref),
+                      onPressed: () {
+                        AppHaptics.tap();
+                        _showMoreActions(context, ref);
+                      },
                     ),
                   ],
                 ),
@@ -466,7 +473,7 @@ class DropCard extends ConsumerWidget {
                       onPressed: () async {
                         await Clipboard.setData(ClipboardData(text: item.content));
                         if (context.mounted) {
-                          HapticFeedback.lightImpact();
+                          AppHaptics.tap();
                           brandToast(context, 'Copied to clipboard');
                         }
                       },
@@ -482,6 +489,7 @@ class DropCard extends ConsumerWidget {
                       tooltip: item.isPinned ? 'Unstar' : 'Star / Favorite',
                       visualDensity: VisualDensity.compact,
                       onPressed: () async {
+                        AppHaptics.selection();
                         await repo.togglePinned(item.id);
                         if (!item.isPinned) {
                           final reward = await ref
@@ -508,7 +516,7 @@ class DropCard extends ConsumerWidget {
                           : 'Mark Done / Archive',
                       visualDensity: VisualDensity.compact,
                       onPressed: () async {
-                        HapticFeedback.lightImpact();
+                        AppHaptics.success();
                         await repo.setTriageStatus(
                           item.id,
                           item.isArchived ? 'inbox' : 'archived',

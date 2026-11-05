@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
+import '../utils/haptics.dart';
 import 'brand.dart';
 
 /// Shared presentational widgets. Everything here reads its colours from the
@@ -52,7 +53,16 @@ class BrandButton extends StatelessWidget {
     };
 
     return FButton(
-      onPress: onPressed,
+      onPress: onPressed == null
+          ? null
+          : () {
+              if (kind == BrandButtonKind.danger) {
+                AppHaptics.heavy();
+              } else {
+                AppHaptics.tap();
+              }
+              onPressed!();
+            },
       variant: switch (kind) {
         BrandButtonKind.primary => .primary,
         BrandButtonKind.outline => .outline,
@@ -116,7 +126,12 @@ class SectionHeader extends StatelessWidget {
           ),
           if (actionLabel != null)
             FButton(
-              onPress: onAction,
+              onPress: onAction == null
+                  ? null
+                  : () {
+                      AppHaptics.tap();
+                      onAction!();
+                    },
               variant: .ghost,
               size: .sm,
               mainAxisSize: .min,
@@ -386,7 +401,12 @@ class ContributionHeatmap extends StatelessWidget {
                           Text('${day.year}-${day.month}-${day.day}'),
                       semanticsLabel: '${day.year}-${day.month}-${day.day}',
                       child: GestureDetector(
-                        onTap: onTapDay == null ? null : () => onTapDay!(day),
+                        onTap: onTapDay == null
+                            ? null
+                            : () {
+                                AppHaptics.selection();
+                                onTapDay!(day);
+                              },
                         child: Container(
                           width: cell,
                           height: cell,
@@ -678,8 +698,18 @@ class BrandTile extends StatelessWidget {
       subtitle: subtitle,
       prefix: leading,
       suffix: trailing,
-      onPress: onTap,
-      onLongPress: onLongPress,
+      onPress: onTap == null
+          ? null
+          : () {
+              AppHaptics.tap();
+              onTap!();
+            },
+      onLongPress: onLongPress == null
+          ? null
+          : () {
+              AppHaptics.medium();
+              onLongPress!();
+            },
       selected: selected,
       enabled: enabled,
       semanticsLabel: semanticsLabel,
@@ -1122,7 +1152,12 @@ class BrandCheckbox extends StatelessWidget {
   Widget build(BuildContext context) {
     return FCheckbox(
       value: value,
-      onChange: onChanged,
+      onChange: onChanged == null
+          ? null
+          : (v) {
+              v ? AppHaptics.success() : AppHaptics.selection();
+              onChanged!(v);
+            },
       semanticsLabel: semanticsLabel,
       style: color == null
           ? const .context()
@@ -1184,8 +1219,18 @@ class BrandTappable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => FTappable(
-    onPress: onPressed,
-    onLongPress: onLongPress,
+    onPress: onPressed == null
+        ? null
+        : () {
+            AppHaptics.tap();
+            onPressed!();
+          },
+    onLongPress: onLongPress == null
+        ? null
+        : () {
+            AppHaptics.medium();
+            onLongPress!();
+          },
     semanticsLabel: semanticsLabel,
     child: child,
   );
@@ -1280,7 +1325,12 @@ class BrandSwitchTile extends StatelessWidget {
       semanticsLabel: title,
       trailing: FSwitch(
         value: value,
-        onChange: onChanged,
+        onChange: onChanged == null
+            ? null
+            : (v) {
+                AppHaptics.selection();
+                onChanged!(v);
+              },
         semanticsLabel: title,
         // forui's off-track is `colors.border`, which is the brand hairline —
         // invisible against the peach card these rows sit on. Material's switch
@@ -1372,7 +1422,10 @@ class _BrandAccordionState extends State<BrandAccordion> {
     // With lifted state the item follows this flag instead of resetting.
     control: .lifted(
       expanded: (_) => _expanded,
-      onChange: (_, expanded) => setState(() => _expanded = expanded),
+      onChange: (_, expanded) {
+        AppHaptics.selection();
+        setState(() => _expanded = expanded);
+      },
     ),
     style: .delta(
       titlePadding: EdgeInsetsGeometryDelta.value(
@@ -1411,6 +1464,7 @@ class BrandTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => FTabs(
+    control: .managed(onChange: (_) => AppHaptics.selection()),
     scrollable: true,
     expands: true,
     children: [
@@ -1453,6 +1507,7 @@ class BrandMenuButton<T extends Object> extends StatelessWidget {
               title: Text(entry.value),
               // The menu does not dismiss itself on selection.
               onPress: () {
+                AppHaptics.selection();
                 controller.hide();
                 onSelected(entry.key);
               },
@@ -1492,7 +1547,12 @@ class BrandFab extends StatelessWidget {
       tipBuilder: (_, _) => Text(tooltip),
       semanticsLabel: tooltip,
       child: FTappable(
-        onPress: onPressed,
+        onPress: onPressed == null
+            ? null
+            : () {
+                AppHaptics.medium();
+                onPressed!();
+              },
         semanticsLabel: tooltip,
         child: DecoratedBox(
           decoration: ShapeDecoration(
@@ -1616,7 +1676,10 @@ Future<DateTime?> brandDatePicker(
           end: last ?? DateTime(now.year + 5),
           initial: initial ?? now,
         ),
-        onDayPress: (day) => Navigator.of(sheetContext).pop(day),
+        onDayPress: (day) {
+          AppHaptics.selection();
+          Navigator.of(sheetContext).pop(day);
+        },
       ),
     ),
   );
@@ -1651,7 +1714,10 @@ Future<(DateTime, DateTime)?> brandDateRangePicker(
         child: FCalendar.grid(
           selectionControl: FDateSelectionControl.managedRange(
             initial: initial,
-            onChange: (v) => setState(() => range = v),
+            onChange: (v) {
+              AppHaptics.selection();
+              setState(() => range = v);
+            },
           ),
           control: FGridCalendarControl(
             start: first,
@@ -1686,9 +1752,12 @@ Future<int?> brandTimePicker(
           variant: .ghost,
           size: .sm,
           mainAxisSize: .min,
-          onPress: () => Navigator.of(
-            sheetContext,
-          ).pop(controller.value.hour * 60 + controller.value.minute),
+          onPress: () {
+            AppHaptics.tap();
+            Navigator.of(
+              sheetContext,
+            ).pop(controller.value.hour * 60 + controller.value.minute);
+          },
           child: Text(
             'Done',
             style: TextStyle(
@@ -1780,6 +1849,7 @@ void brandToast(
             size: .sm,
             mainAxisSize: .min,
             onPress: () {
+              AppHaptics.tap();
               entry.dismiss();
               onAction();
             },
@@ -1869,8 +1939,10 @@ Future<bool> promptForPin(
             label: 'Unlock',
             onPressed: () {
               if (verify(controller.text)) {
+                AppHaptics.success();
                 Navigator.pop(dialogContext, true);
               } else {
+                AppHaptics.error();
                 setState(() => error = 'Incorrect PIN');
               }
             },
@@ -1976,7 +2048,10 @@ class ColorPickerRow extends StatelessWidget {
       children: palette.map((c) {
         final isSel = c == selected;
         return GestureDetector(
-          onTap: () => onChanged(c),
+          onTap: () {
+            AppHaptics.selection();
+            onChanged(c);
+          },
           child: Container(
             width: 34,
             height: 34,
@@ -2023,7 +2098,10 @@ class IconPickerRow extends StatelessWidget {
       children: options.entries.map((e) {
         final isSel = e.key == selected;
         return GestureDetector(
-          onTap: () => onChanged(e.key),
+          onTap: () {
+            AppHaptics.selection();
+            onChanged(e.key);
+          },
           child: Container(
             width: 40,
             height: 40,
