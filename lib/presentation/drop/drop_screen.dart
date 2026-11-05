@@ -15,12 +15,16 @@ import '../../core/widgets/common.dart';
 import '../notes/repository/note_repository.dart';
 import '../tasks/widgets/task_editor_sheet.dart';
 import 'models/drop_with_tags.dart';
+import 'providers/drop_gamification_provider.dart';
 import 'providers/drop_provider.dart';
 import 'repository/drop_repository.dart';
 import 'services/drop_media_storage.dart';
+import 'utils/drop_gamification_feedback.dart';
 import 'widgets/drop_card.dart';
+import 'widgets/drop_gamification_bar.dart';
 import 'widgets/drop_input_bar.dart';
 import 'widgets/drop_lightbox_viewer.dart';
+import 'widgets/drop_mastery_sheet.dart';
 
 class DropScreen extends ConsumerStatefulWidget {
   const DropScreen({super.key});
@@ -200,7 +204,10 @@ class _DropScreenState extends ConsumerState<DropScreen> {
       ),
     );
     if (taskId != null && mounted) {
-      brandToast(context, 'Task created from Drop');
+      final reward = await ref
+          .read(dropGamificationProvider.notifier)
+          .recordConvertedToTask();
+      if (mounted) DropGamificationFeedback.show(context, reward);
     }
   }
 
@@ -217,8 +224,11 @@ class _DropScreenState extends ConsumerState<DropScreen> {
       title: title,
       contentJson: NoteRepository.deltaFromPlainText(body),
     );
+    final reward = await ref
+        .read(dropGamificationProvider.notifier)
+        .recordConvertedToNote();
     if (mounted) {
-      brandToast(context, 'Note created from Drop');
+      DropGamificationFeedback.show(context, reward);
       context.push('/note_editor', extra: noteId);
     }
   }
@@ -256,10 +266,17 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                   icon: const AppIcon(AppIcons.archive),
                   tooltip: 'Bulk Archive',
                   onPressed: () async {
+                    final count = selectedIds.length;
                     await ref
                         .read(dropRepositoryProvider)
                         .bulkSetTriageStatus(selectedIds.toList(), 'archived');
                     ref.read(dropSelectedIdsProvider.notifier).state = {};
+                    final reward = await ref
+                        .read(dropGamificationProvider.notifier)
+                        .recordBulkTriaged(count);
+                    if (context.mounted) {
+                      DropGamificationFeedback.show(context, reward);
+                    }
                   },
                 ),
                 IconButton(
@@ -357,6 +374,12 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                   ref.read(dropSearchQueryProvider.notifier).state = val;
                 },
               ),
+            ),
+
+          // Gamification Status Bar (Streak, Level, XP)
+          if (!isSelectionMode && !_isSearchVisible)
+            DropGamificationBar(
+              onTap: () => DropMasterySheet.show(context),
             ),
 
           // Top Filter Pills (All, Articles, Videos, Clips, Images, Favorites)
@@ -477,6 +500,25 @@ class _DropScreenState extends ConsumerState<DropScreen> {
             child: dropsAsync.when(
               data: (drops) {
                 if (drops.isEmpty) {
+                  final stats = ref.watch(dropGamificationProvider);
+                  final isInboxZero = activeTriage == 'inbox' &&
+                      activeFilter == 'all' &&
+                      _searchController.text.isEmpty &&
+                      activeTag == null &&
+                      stats.totalDropsCaptured > 0;
+
+                  if (isInboxZero) {
+                    return Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                          horizontal: 20,
+                        ),
+                        child: _buildInboxZeroCelebration(context, brand),
+                      ),
+                    );
+                  }
+
                   return Center(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(vertical: 24),
@@ -544,6 +586,84 @@ class _DropScreenState extends ConsumerState<DropScreen> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInboxZeroCelebration(BuildContext context, BrandColors brand) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 88,
+          height: 88,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                brand.task.withValues(alpha: 0.2),
+                brand.drop.withValues(alpha: 0.15),
+              ],
+            ),
+            border: Border.all(
+              color: brand.task.withValues(alpha: 0.35),
+              width: 2,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: const Text('🎉', style: TextStyle(fontSize: 40)),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          'Inbox Zero!',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            'All items triaged! Your workspace is clear and calm.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: context.muted,
+              height: 1.4,
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF59E0B).withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
+            ),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppIcon(AppIcons.star, size: 14, color: Color(0xFFF59E0B)),
+              SizedBox(width: 6),
+              Text(
+                'Inbox Zero Master • +50 XP Hero Bonus',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFF59E0B),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -5,8 +5,10 @@ import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../notes/providers/notes_provider.dart';
+import '../providers/drop_gamification_provider.dart';
 import '../providers/drop_provider.dart';
 import '../repository/drop_repository.dart';
+import '../utils/drop_gamification_feedback.dart';
 
 class DropInputBar extends ConsumerStatefulWidget {
   final VoidCallback? onAttachPressed;
@@ -243,6 +245,10 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
             tags: tags,
           );
 
+      final reward = await ref
+          .read(dropGamificationProvider.notifier)
+          .recordDropCaptured(hasTags: tags.isNotEmpty);
+
       _controller.clear();
       _focusNode.unfocus();
       if (mounted) {
@@ -251,6 +257,7 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
           _searchQueryOverride = null;
           _hashIndex = null;
         });
+        DropGamificationFeedback.show(context, reward);
       }
     } finally {
       if (mounted) {

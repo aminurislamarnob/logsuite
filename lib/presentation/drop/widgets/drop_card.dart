@@ -9,8 +9,10 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/common.dart';
 import '../models/drop_with_tags.dart';
+import '../providers/drop_gamification_provider.dart';
 import '../repository/drop_repository.dart';
 import '../services/drop_summarizer.dart';
+import '../utils/drop_gamification_feedback.dart';
 
 class DropCard extends ConsumerWidget {
   final DropWithTags item;
@@ -80,20 +82,32 @@ class DropCard extends ConsumerWidget {
             BrandTile(
               leading: AppIcon(item.isPinned ? AppIcons.pin : AppIcons.pin),
               title: Text(item.isPinned ? 'Unpin' : 'Pin to top'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(sheetContext);
-                repo.togglePinned(item.id);
+                await repo.togglePinned(item.id);
+                if (!item.isPinned) {
+                  final reward = await ref
+                      .read(dropGamificationProvider.notifier)
+                      .recordDropFavorited();
+                  if (context.mounted) DropGamificationFeedback.show(context, reward);
+                }
               },
             ),
             BrandTile(
               leading: AppIcon(isArchived ? AppIcons.unarchive : AppIcons.archive),
               title: Text(isArchived ? 'Move to Inbox' : 'Archive'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(sheetContext);
-                repo.setTriageStatus(
+                await repo.setTriageStatus(
                   item.id,
                   isArchived ? 'inbox' : 'archived',
                 );
+                if (!isArchived) {
+                  final reward = await ref
+                      .read(dropGamificationProvider.notifier)
+                      .recordDropTriaged();
+                  if (context.mounted) DropGamificationFeedback.show(context, reward);
+                }
               },
             ),
             BrandTile(
@@ -467,7 +481,17 @@ class DropCard extends ConsumerWidget {
                       ),
                       tooltip: item.isPinned ? 'Unstar' : 'Star / Favorite',
                       visualDensity: VisualDensity.compact,
-                      onPressed: () => repo.togglePinned(item.id),
+                      onPressed: () async {
+                        await repo.togglePinned(item.id);
+                        if (!item.isPinned) {
+                          final reward = await ref
+                              .read(dropGamificationProvider.notifier)
+                              .recordDropFavorited();
+                          if (context.mounted) {
+                            DropGamificationFeedback.show(context, reward);
+                          }
+                        }
+                      },
                     ),
                     IconButton(
                       icon: AppIcon(
@@ -483,12 +507,20 @@ class DropCard extends ConsumerWidget {
                           ? 'Move to Inbox'
                           : 'Mark Done / Archive',
                       visualDensity: VisualDensity.compact,
-                      onPressed: () {
+                      onPressed: () async {
                         HapticFeedback.lightImpact();
-                        repo.setTriageStatus(
+                        await repo.setTriageStatus(
                           item.id,
                           item.isArchived ? 'inbox' : 'archived',
                         );
+                        if (!item.isArchived) {
+                          final reward = await ref
+                              .read(dropGamificationProvider.notifier)
+                              .recordDropTriaged();
+                          if (context.mounted) {
+                            DropGamificationFeedback.show(context, reward);
+                          }
+                        }
                       },
                     ),
                   ],
