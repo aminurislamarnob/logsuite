@@ -2,7 +2,9 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_icons.dart';
@@ -263,6 +265,7 @@ class BrandTopBar extends StatelessWidget implements PreferredSizeWidget {
   final HugeIconData? leadingIcon;
 
   final VoidCallback? onLeading;
+  final String? leadingTooltip;
   final HugeIconData? trailingIcon;
   final VoidCallback? onTrailing;
   final String? trailingTooltip;
@@ -271,15 +274,20 @@ class BrandTopBar extends StatelessWidget implements PreferredSizeWidget {
   /// Rendered after [trailingIcon].
   final List<Widget> actions;
 
+  /// Extra leading widgets, rendered after [leadingIcon] (e.g. drawer or filter shortcuts).
+  final List<Widget> leadingActions;
+
   const BrandTopBar({
     super.key,
     required this.title,
     this.leadingIcon = AppIcons.close,
     this.onLeading,
+    this.leadingTooltip,
     this.trailingIcon,
     this.onTrailing,
     this.trailingTooltip,
     this.actions = const [],
+    this.leadingActions = const [],
   });
 
   @override
@@ -287,7 +295,14 @@ class BrandTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pop = onLeading ?? () => Navigator.maybePop(context);
+    final pop = onLeading ??
+        () async {
+          HapticFeedback.lightImpact();
+          final popped = await Navigator.maybePop(context);
+          if (!popped && context.mounted) {
+            context.go('/dashboard');
+          }
+        };
     final titleStyle = Theme.of(
       context,
     ).textTheme.titleMedium?.copyWith(fontSize: 17);
@@ -311,9 +326,10 @@ class BrandTopBar extends StatelessWidget implements PreferredSizeWidget {
           CircleIconButton(
             icon: leadingIcon!,
             onPressed: pop,
-            tooltip: 'Back',
+            tooltip: leadingTooltip ?? 'Back',
             size: 40,
           ),
+        ...leadingActions,
       ],
       suffixes: [
         if (trailingIcon != null)
@@ -324,11 +340,18 @@ class BrandTopBar extends StatelessWidget implements PreferredSizeWidget {
             size: 40,
           ),
         ...actions,
-        if (trailingIcon == null && actions.isEmpty && leadingIcon != null)
+        if (trailingIcon == null &&
+            actions.isEmpty &&
+            leadingIcon != null &&
+            leadingActions.isEmpty)
           // Balances the leading circle so the title stays optically centred.
           const SizedBox(width: 40),
       ],
-      title: Text(title),
+      title: Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 }

@@ -25,13 +25,18 @@ class NotesScreen extends ConsumerWidget {
     return BrandScaffold(
       header: BrandTopBar(
         title: filter.title,
-        // The folder list was a Scaffold drawer opened by the AppBar hamburger;
-        // FScaffold has neither, so it is now an explicit left-hand sheet.
-        leadingIcon: AppIcons.folder,
-        onLeading: () => brandSideSheet(
-          context: context,
-          builder: (_) => const _NotesDrawer(),
-        ),
+        leadingIcon: AppIcons.back,
+        leadingActions: [
+          CircleIconButton(
+            icon: AppIcons.folder,
+            tooltip: 'Folders',
+            size: 40,
+            onPressed: () => brandSideSheet(
+              context: context,
+              builder: (_) => const _NotesDrawer(),
+            ),
+          ),
+        ],
         actions: [
           CircleIconButton(
             icon: AppIcons.search,

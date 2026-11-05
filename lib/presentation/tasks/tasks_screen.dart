@@ -90,14 +90,18 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     return BrandScaffold(
       header: BrandTopBar(
         title: projectName,
-        // The project list used to be a Scaffold drawer, opened by the AppBar's
-        // implicit hamburger. FScaffold has no drawer slot and no app bar to
-        // host one, so it is now an explicit button onto a left-hand sheet.
-        leadingIcon: AppIcons.folder,
-        onLeading: () => brandSideSheet(
-          context: context,
-          builder: (_) => const _ProjectDrawer(),
-        ),
+        leadingIcon: AppIcons.back,
+        leadingActions: [
+          CircleIconButton(
+            icon: AppIcons.folder,
+            tooltip: 'Projects',
+            size: 40,
+            onPressed: () => brandSideSheet(
+              context: context,
+              builder: (_) => const _ProjectDrawer(),
+            ),
+          ),
+        ],
         actions: [
           CircleIconButton(
             icon: AppIcons.search,
@@ -191,9 +195,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         textInputAction: TextInputAction.done,
         hint: 'Buy milk tomorrow 5pm #shopping !high',
         prefix: const AppIcon(AppIcons.add, size: 20),
-        suffix: const bool.fromEnvironment('E2E_TEST')
-            ? ExcludeSemantics(child: actions)
-            : actions,
+        suffix: ExcludeSemantics(child: actions),
       ),
     );
   }

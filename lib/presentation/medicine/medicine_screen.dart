@@ -37,13 +37,18 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     return BrandScaffold(
       header: BrandTopBar(
         title: 'Medicine',
-        // The profile switcher was a Scaffold drawer opened by the AppBar
-        // hamburger; FScaffold has neither, so it is a left-hand sheet now.
-        leadingIcon: AppIcons.person,
-        onLeading: () => brandSideSheet(
-          context: context,
-          builder: (_) => const _ProfileDrawer(),
-        ),
+        leadingIcon: AppIcons.back,
+        leadingActions: [
+          CircleIconButton(
+            icon: AppIcons.person,
+            tooltip: 'Profiles',
+            size: 40,
+            onPressed: () => brandSideSheet(
+              context: context,
+              builder: (_) => const _ProfileDrawer(),
+            ),
+          ),
+        ],
         actions: [
           CircleIconButton(
             icon: AppIcons.symptom,
