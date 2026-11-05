@@ -183,18 +183,18 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump();
 
-    final inputFinder = find.byType(TextField);
+    final inputFinder = find.byKey(const ValueKey('drop_message_input_field'));
     expect(inputFinder, findsOneWidget);
 
     // Initially no suggestion card
-    expect(find.text('SUGGESTED TAGS'), findsNothing);
+    expect(find.text('SEARCH TAGS'), findsNothing);
 
     // Type '#'
     await tester.enterText(inputFinder, '#');
     await tester.pump(const Duration(milliseconds: 50));
 
     // Suggestions card should appear showing 3 tags
-    expect(find.text('SUGGESTED TAGS'), findsOneWidget);
+    expect(find.text('SEARCH TAGS'), findsOneWidget);
     expect(find.text('3 tags'), findsOneWidget);
     expect(find.byKey(const ValueKey('tag_suggestion_flutter')), findsOneWidget);
     expect(find.byKey(const ValueKey('tag_suggestion_design')), findsOneWidget);
@@ -213,7 +213,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     // Suggestions card closes after selection
-    expect(find.text('SUGGESTED TAGS'), findsNothing);
+    expect(find.text('SEARCH TAGS'), findsNothing);
 
     // Text field now has '#flutter '
     final textField = tester.widget<TextField>(inputFinder);
@@ -229,6 +229,60 @@ void main() {
     expect(find.text('#flutter Great new framework update'), findsOneWidget);
   });
 
+  testWidgets('searches tags via dedicated search box and allows creating new tags', (tester) async {
+    await repo.createDrop(
+      content: 'Item with tags',
+      tags: ['productivity', 'coding', 'health'],
+    );
+
+    await pumpScreen(tester);
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump();
+
+    final inputFinder = find.byKey(const ValueKey('drop_message_input_field'));
+
+    // Type '#' to open mention
+    await tester.enterText(inputFinder, '#');
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('SEARCH TAGS'), findsOneWidget);
+    expect(find.byKey(const ValueKey('mention_tag_search_field')), findsOneWidget);
+
+    // Search via the dedicated search input inside the mention card
+    final searchInputFinder = find.byKey(const ValueKey('mention_tag_search_field'));
+    await tester.enterText(searchInputFinder, 'cod');
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byKey(const ValueKey('tag_suggestion_coding')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tag_suggestion_productivity')), findsNothing);
+
+    // Clear search with clear button
+    final clearBtnFinder = find.byKey(const ValueKey('clear_tag_search'));
+    expect(clearBtnFinder, findsOneWidget);
+    await tester.tap(clearBtnFinder);
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // All tags show again
+    expect(find.byKey(const ValueKey('tag_suggestion_coding')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tag_suggestion_productivity')), findsOneWidget);
+
+    // Search for a non-existent tag
+    await tester.enterText(searchInputFinder, 'travel');
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // 'Create tag #travel' option appears
+    expect(find.byKey(const ValueKey('create_tag_travel')), findsOneWidget);
+
+    // Tap create tag
+    await tester.tap(find.byKey(const ValueKey('create_tag_travel')));
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // Card closes and main field has '#travel '
+    expect(find.text('SEARCH TAGS'), findsNothing);
+    final mainTextField = tester.widget<TextField>(inputFinder);
+    expect(mainTextField.controller?.text, '#travel ');
+  });
+
   testWidgets('ignores # inside URLs or non-whitespace words', (tester) async {
     await repo.createDrop(
       content: 'Old drop',
@@ -238,19 +292,19 @@ void main() {
     await pumpScreen(tester);
     await tester.pump(const Duration(milliseconds: 100));
 
-    final inputFinder = find.byType(TextField);
+    final inputFinder = find.byKey(const ValueKey('drop_message_input_field'));
 
     // Type URL containing anchor
     await tester.enterText(inputFinder, 'https://example.com/page#anchor');
     await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.text('SUGGESTED TAGS'), findsNothing);
+    expect(find.text('SEARCH TAGS'), findsNothing);
 
     // Now type space followed by #
     await tester.enterText(inputFinder, 'https://example.com/page#anchor #');
     await tester.pump(const Duration(milliseconds: 50));
 
     // Now it should trigger suggestions
-    expect(find.text('SUGGESTED TAGS'), findsOneWidget);
+    expect(find.text('SEARCH TAGS'), findsOneWidget);
   });
 }
