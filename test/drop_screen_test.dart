@@ -171,4 +171,86 @@ void main() {
     expect(find.text('Note Editor'), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));
   });
+
+  testWidgets('suggests old tags when typing # and auto-completes on tap', (tester) async {
+    // Seed drops with existing tags
+    await repo.createDrop(
+      content: 'Prior item with tags',
+      tags: ['flutter', 'design', 'finance'],
+    );
+
+    await pumpScreen(tester);
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump();
+
+    final inputFinder = find.byType(TextField);
+    expect(inputFinder, findsOneWidget);
+
+    // Initially no suggestion card
+    expect(find.text('SUGGESTED TAGS'), findsNothing);
+
+    // Type '#'
+    await tester.enterText(inputFinder, '#');
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // Suggestions card should appear showing 3 tags
+    expect(find.text('SUGGESTED TAGS'), findsOneWidget);
+    expect(find.text('3 tags'), findsOneWidget);
+    expect(find.byKey(const ValueKey('tag_suggestion_flutter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tag_suggestion_design')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tag_suggestion_finance')), findsOneWidget);
+
+    // Filter to 'fl'
+    await tester.enterText(inputFinder, '#fl');
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('1 tag'), findsOneWidget);
+    expect(find.byKey(const ValueKey('tag_suggestion_flutter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tag_suggestion_design')), findsNothing);
+
+    // Tap suggestion tile
+    await tester.tap(find.byKey(const ValueKey('tag_suggestion_flutter')));
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // Suggestions card closes after selection
+    expect(find.text('SUGGESTED TAGS'), findsNothing);
+
+    // Text field now has '#flutter '
+    final textField = tester.widget<TextField>(inputFinder);
+    expect(textField.controller?.text, '#flutter ');
+
+    // Type the rest of the drop content and send
+    await tester.enterText(inputFinder, '#flutter Great new framework update');
+    await tester.testTextInput.receiveAction(TextInputAction.send);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump();
+
+    // Verify drop is in list with tag
+    expect(find.text('#flutter Great new framework update'), findsOneWidget);
+  });
+
+  testWidgets('ignores # inside URLs or non-whitespace words', (tester) async {
+    await repo.createDrop(
+      content: 'Old drop',
+      tags: ['flutter', 'code'],
+    );
+
+    await pumpScreen(tester);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final inputFinder = find.byType(TextField);
+
+    // Type URL containing anchor
+    await tester.enterText(inputFinder, 'https://example.com/page#anchor');
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('SUGGESTED TAGS'), findsNothing);
+
+    // Now type space followed by #
+    await tester.enterText(inputFinder, 'https://example.com/page#anchor #');
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // Now it should trigger suggestions
+    expect(find.text('SUGGESTED TAGS'), findsOneWidget);
+  });
 }
