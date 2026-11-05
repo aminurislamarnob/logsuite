@@ -62,13 +62,7 @@ class DropCard extends ConsumerWidget {
     await Clipboard.setData(ClipboardData(text: item.content));
     if (context.mounted) {
       HapticFeedback.lightImpact();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Copied to clipboard'),
-          duration: Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      brandToast(context, 'Copied to clipboard');
     }
   }
 
@@ -107,20 +101,14 @@ class DropCard extends ConsumerWidget {
               title: const Text('AI Summarize'),
               onTap: () async {
                 Navigator.pop(sheetContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Summarizing drop...'),
-                    duration: Duration(seconds: 1),
-                  ),
-                );
+                brandToast(context, 'Summarizing drop...');
                 final summary = await ref
                     .read(dropSummarizerProvider)
                     .summarizeDrop(item);
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Summary updated: ${summary.split('\n').first}'),
-                    ),
+                  brandToast(
+                    context,
+                    'Summary updated: ${summary.split('\n').first}',
                   );
                 }
               },
@@ -162,9 +150,7 @@ class DropCard extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(sheetContext);
                 Clipboard.setData(ClipboardData(text: item.content));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Content copied for sharing')),
-                );
+                brandToast(context, 'Content copied for sharing');
               },
             ),
             BrandTile(
@@ -326,6 +312,7 @@ class DropCard extends ConsumerWidget {
                     ],
                     IconButton(
                       icon: const AppIcon(AppIcons.moreHorizontal, size: 18),
+                      tooltip: 'More actions',
                       visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -466,13 +453,7 @@ class DropCard extends ConsumerWidget {
                         await Clipboard.setData(ClipboardData(text: item.content));
                         if (context.mounted) {
                           HapticFeedback.lightImpact();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Copied to clipboard'),
-                              duration: Duration(seconds: 1),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
+                          brandToast(context, 'Copied to clipboard');
                         }
                       },
                     ),

@@ -102,9 +102,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
           );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save media: $e')),
-        );
+        brandToast(context, 'Failed to save media: $e');
       }
     }
   }
@@ -133,9 +131,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                       notifier: ref.read(notificationServiceProvider),
                     );
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reminder set for tonight at 8:00 PM')),
-                  );
+                  brandToast(context, 'Reminder set for tonight at 8:00 PM');
                 }
               },
             ),
@@ -150,9 +146,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                       notifier: ref.read(notificationServiceProvider),
                     );
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reminder set for tomorrow at 9:00 AM')),
-                  );
+                  brandToast(context, 'Reminder set for tomorrow at 9:00 AM');
                 }
               },
             ),
@@ -167,9 +161,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                       notifier: ref.read(notificationServiceProvider),
                     );
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reminder set for the weekend')),
-                  );
+                  brandToast(context, 'Reminder set for the weekend');
                 }
               },
             ),
@@ -208,9 +200,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
       ),
     );
     if (taskId != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Task created from Drop')),
-      );
+      brandToast(context, 'Task created from Drop');
     }
   }
 
@@ -228,10 +218,8 @@ class _DropScreenState extends ConsumerState<DropScreen> {
       contentJson: NoteRepository.deltaFromPlainText(body),
     );
     if (mounted) {
-      context.push('/notes/edit', extra: noteId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Note created from Drop')),
-      );
+      brandToast(context, 'Note created from Drop');
+      context.push('/note_editor', extra: noteId);
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logsuite/core/database/app_database.dart';
 import 'package:logsuite/core/providers/database_provider.dart';
 import 'package:logsuite/core/settings/app_settings.dart';
@@ -10,11 +11,13 @@ import 'package:logsuite/core/theme/app_forui_theme.dart';
 import 'package:logsuite/core/theme/app_theme.dart';
 import 'package:logsuite/presentation/drop/drop_screen.dart';
 import 'package:logsuite/presentation/drop/repository/drop_repository.dart';
+import 'package:logsuite/presentation/notes/repository/note_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   late AppDatabase db;
   late DropRepository repo;
+  late NoteRepository noteRepo;
   late SharedPreferences prefs;
 
   setUp(() async {
@@ -22,6 +25,7 @@ void main() {
     prefs = await SharedPreferences.getInstance();
     db = AppDatabase.forTesting(NativeDatabase.memory());
     repo = DropRepository(db);
+    noteRepo = NoteRepository(db);
   });
 
   tearDown(() async {
@@ -34,20 +38,36 @@ void main() {
         sharedPrefsProvider.overrideWithValue(prefs),
         databaseProvider.overrideWithValue(db),
         dropRepositoryProvider.overrideWithValue(repo),
+        noteRepositoryProvider.overrideWithValue(noteRepo),
       ],
     );
     addTearDown(container.dispose);
 
+    final router = GoRouter(
+      initialLocation: '/drop',
+      routes: [
+        GoRoute(
+          path: '/drop',
+          builder: (_, _) => const DropScreen(),
+        ),
+        GoRoute(
+          path: '/note_editor',
+          builder: (_, state) => const Scaffold(body: Text('Note Editor')),
+        ),
+      ],
+    );
+
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
+        child: MaterialApp.router(
           theme: AppTheme.light(),
-          home: FTheme(
+          routerConfig: router,
+          builder: (context, child) => FTheme(
             data: brandForuiTheme(brightness: Brightness.light),
-            child: const FToaster(
+            child: FToaster(
               child: FTooltipGroup(
-                child: DropScreen(),
+                child: child!,
               ),
             ),
           ),
@@ -118,5 +138,37 @@ void main() {
     // Now in Archive view
     expect(find.text('Archived item'), findsOneWidget);
     expect(find.text('Inbox item'), findsNothing);
+  });
+
+  testWidgets('converts drop to note via more actions sheet', (tester) async {
+    await repo.createDrop(
+      content: 'Important idea worth noting',
+      title: 'Idea Title',
+      description: 'Idea description details',
+    );
+
+    await pumpScreen(tester);
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump();
+
+    expect(find.text('Idea Title'), findsOneWidget);
+
+    // Open more actions sheet
+    final moreActionsFinder = find.byTooltip('More actions');
+    expect(moreActionsFinder, findsOneWidget);
+    await tester.tap(moreActionsFinder);
+    await tester.pumpAndSettle();
+
+    // Tap Convert to Note
+    expect(find.text('Convert to Note'), findsOneWidget);
+    await tester.tap(find.text('Convert to Note'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final notes = await db.select(db.notes).get();
+    expect(notes.length, 1);
+    expect(notes.first.title, 'Idea Title');
+    expect(find.text('Note Editor'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
   });
 }
