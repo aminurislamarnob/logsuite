@@ -73,6 +73,7 @@ class DropCard extends ConsumerWidget {
   }
 
   void _showMoreActions(BuildContext context, WidgetRef ref) {
+    final brand = context.brand;
     final repo = ref.read(dropRepositoryProvider);
     final isArchived = item.isArchived;
 
@@ -167,8 +168,8 @@ class DropCard extends ConsumerWidget {
               },
             ),
             BrandTile(
-              leading: const AppIcon(AppIcons.delete, color: Colors.red),
-              title: const Text('Delete Drop', style: TextStyle(color: Colors.red)),
+              leading: AppIcon(AppIcons.delete, color: brand.danger),
+              title: Text('Delete Drop', style: TextStyle(color: brand.danger)),
               onTap: () async {
                 Navigator.pop(sheetContext);
                 final confirm = await brandConfirm(
@@ -223,13 +224,15 @@ class DropCard extends ConsumerWidget {
           color: isSelected ? brand.drop : brand.hairline,
           width: isSelected ? 1.5 : 1.0,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: theme.brightness == Brightness.light
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: Material(
         color: Colors.transparent,

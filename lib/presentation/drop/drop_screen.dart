@@ -110,6 +110,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
   }
 
   void _showReminderDialog(DropWithTags item) {
+    final brand = context.brand;
     final now = DateTime.now();
     final tonight = DateTime(now.year, now.month, now.day, 20, 0);
     final tomorrowMorning = DateTime(now.year, now.month, now.day + 1, 9, 0);
@@ -174,8 +175,8 @@ class _DropScreenState extends ConsumerState<DropScreen> {
             ),
             if (item.reminderAt != null)
               BrandTile(
-                leading: const AppIcon(AppIcons.close, color: Colors.red),
-                title: const Text('Clear reminder', style: TextStyle(color: Colors.red)),
+                leading: AppIcon(AppIcons.close, color: brand.danger),
+                title: Text('Clear reminder', style: TextStyle(color: brand.danger)),
                 onTap: () async {
                   Navigator.pop(sheetContext);
                   await ref.read(dropRepositoryProvider).setReminder(
@@ -274,7 +275,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                   },
                 ),
                 IconButton(
-                  icon: const AppIcon(AppIcons.delete, color: Colors.red),
+                  icon: AppIcon(AppIcons.delete, color: brand.danger),
                   tooltip: 'Bulk Delete',
                   onPressed: () async {
                     final confirm = await brandConfirm(
@@ -294,8 +295,8 @@ class _DropScreenState extends ConsumerState<DropScreen> {
               ],
             )
           : BrandTopBar(
-              title: 'Drop',
-              leadingIcon: null,
+              title: activeTriage == 'archived' ? 'Archive' : 'Drop',
+              leadingIcon: AppIcons.back,
               actions: [
                 // Triage toggle (Inbox <-> Archive)
                 IconButton(
