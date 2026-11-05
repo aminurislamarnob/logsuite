@@ -287,6 +287,17 @@ Future<void> showQuickAdd(BuildContext context, WidgetRef ref) {
                 context.push('/focus');
               },
             ),
+          if (settings.isEnabled(AppModule.drop))
+            _tile(
+              icon: AppIcons.inbox,
+              color: context.brand.drop,
+              title: 'Drop something',
+              subtitle: 'Save links, text or media',
+              onTap: () {
+                Navigator.pop(sheetContext);
+                context.push('/drop');
+              },
+            ),
           if (settings.isEnabled(AppModule.expenses))
             _tile(
               icon: AppIcons.transfer,

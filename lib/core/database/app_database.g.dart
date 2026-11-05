@@ -10409,6 +10409,1137 @@ class FocusSessionsCompanion extends UpdateCompanion<FocusSession> {
   }
 }
 
+class $DropsTable extends Drops with TableInfo<$DropsTable, Drop> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DropsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _previewImageUrlMeta = const VerificationMeta(
+    'previewImageUrl',
+  );
+  @override
+  late final GeneratedColumn<String> previewImageUrl = GeneratedColumn<String>(
+    'preview_image_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _faviconUrlMeta = const VerificationMeta(
+    'faviconUrl',
+  );
+  @override
+  late final GeneratedColumn<String> faviconUrl = GeneratedColumn<String>(
+    'favicon_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceDomainMeta = const VerificationMeta(
+    'sourceDomain',
+  );
+  @override
+  late final GeneratedColumn<String> sourceDomain = GeneratedColumn<String>(
+    'source_domain',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _assetTypeMeta = const VerificationMeta(
+    'assetType',
+  );
+  @override
+  late final GeneratedColumn<String> assetType = GeneratedColumn<String>(
+    'asset_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('clip'),
+  );
+  static const VerificationMeta _triageStatusMeta = const VerificationMeta(
+    'triageStatus',
+  );
+  @override
+  late final GeneratedColumn<String> triageStatus = GeneratedColumn<String>(
+    'triage_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('inbox'),
+  );
+  static const VerificationMeta _isPinnedMeta = const VerificationMeta(
+    'isPinned',
+  );
+  @override
+  late final GeneratedColumn<bool> isPinned = GeneratedColumn<bool>(
+    'is_pinned',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_pinned" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _mediaPathMeta = const VerificationMeta(
+    'mediaPath',
+  );
+  @override
+  late final GeneratedColumn<String> mediaPath = GeneratedColumn<String>(
+    'media_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mediaThumbnailPathMeta =
+      const VerificationMeta('mediaThumbnailPath');
+  @override
+  late final GeneratedColumn<String> mediaThumbnailPath =
+      GeneratedColumn<String>(
+        'media_thumbnail_path',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _ocrTextMeta = const VerificationMeta(
+    'ocrText',
+  );
+  @override
+  late final GeneratedColumn<String> ocrText = GeneratedColumn<String>(
+    'ocr_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _reminderAtMeta = const VerificationMeta(
+    'reminderAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> reminderAt = GeneratedColumn<DateTime>(
+    'reminder_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    content,
+    title,
+    description,
+    previewImageUrl,
+    faviconUrl,
+    sourceDomain,
+    assetType,
+    triageStatus,
+    isPinned,
+    mediaPath,
+    mediaThumbnailPath,
+    ocrText,
+    reminderAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'drops';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Drop> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('preview_image_url')) {
+      context.handle(
+        _previewImageUrlMeta,
+        previewImageUrl.isAcceptableOrUnknown(
+          data['preview_image_url']!,
+          _previewImageUrlMeta,
+        ),
+      );
+    }
+    if (data.containsKey('favicon_url')) {
+      context.handle(
+        _faviconUrlMeta,
+        faviconUrl.isAcceptableOrUnknown(data['favicon_url']!, _faviconUrlMeta),
+      );
+    }
+    if (data.containsKey('source_domain')) {
+      context.handle(
+        _sourceDomainMeta,
+        sourceDomain.isAcceptableOrUnknown(
+          data['source_domain']!,
+          _sourceDomainMeta,
+        ),
+      );
+    }
+    if (data.containsKey('asset_type')) {
+      context.handle(
+        _assetTypeMeta,
+        assetType.isAcceptableOrUnknown(data['asset_type']!, _assetTypeMeta),
+      );
+    }
+    if (data.containsKey('triage_status')) {
+      context.handle(
+        _triageStatusMeta,
+        triageStatus.isAcceptableOrUnknown(
+          data['triage_status']!,
+          _triageStatusMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_pinned')) {
+      context.handle(
+        _isPinnedMeta,
+        isPinned.isAcceptableOrUnknown(data['is_pinned']!, _isPinnedMeta),
+      );
+    }
+    if (data.containsKey('media_path')) {
+      context.handle(
+        _mediaPathMeta,
+        mediaPath.isAcceptableOrUnknown(data['media_path']!, _mediaPathMeta),
+      );
+    }
+    if (data.containsKey('media_thumbnail_path')) {
+      context.handle(
+        _mediaThumbnailPathMeta,
+        mediaThumbnailPath.isAcceptableOrUnknown(
+          data['media_thumbnail_path']!,
+          _mediaThumbnailPathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('ocr_text')) {
+      context.handle(
+        _ocrTextMeta,
+        ocrText.isAcceptableOrUnknown(data['ocr_text']!, _ocrTextMeta),
+      );
+    }
+    if (data.containsKey('reminder_at')) {
+      context.handle(
+        _reminderAtMeta,
+        reminderAt.isAcceptableOrUnknown(data['reminder_at']!, _reminderAtMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Drop map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Drop(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      previewImageUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}preview_image_url'],
+      ),
+      faviconUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}favicon_url'],
+      ),
+      sourceDomain: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_domain'],
+      ),
+      assetType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}asset_type'],
+      )!,
+      triageStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}triage_status'],
+      )!,
+      isPinned: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_pinned'],
+      )!,
+      mediaPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_path'],
+      ),
+      mediaThumbnailPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_thumbnail_path'],
+      ),
+      ocrText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ocr_text'],
+      ),
+      reminderAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}reminder_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DropsTable createAlias(String alias) {
+    return $DropsTable(attachedDatabase, alias);
+  }
+}
+
+class Drop extends DataClass implements Insertable<Drop> {
+  final int id;
+  final String content;
+  final String? title;
+  final String? description;
+  final String? previewImageUrl;
+  final String? faviconUrl;
+  final String? sourceDomain;
+  final String assetType;
+  final String triageStatus;
+  final bool isPinned;
+  final String? mediaPath;
+  final String? mediaThumbnailPath;
+  final String? ocrText;
+  final DateTime? reminderAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Drop({
+    required this.id,
+    required this.content,
+    this.title,
+    this.description,
+    this.previewImageUrl,
+    this.faviconUrl,
+    this.sourceDomain,
+    required this.assetType,
+    required this.triageStatus,
+    required this.isPinned,
+    this.mediaPath,
+    this.mediaThumbnailPath,
+    this.ocrText,
+    this.reminderAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['content'] = Variable<String>(content);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || previewImageUrl != null) {
+      map['preview_image_url'] = Variable<String>(previewImageUrl);
+    }
+    if (!nullToAbsent || faviconUrl != null) {
+      map['favicon_url'] = Variable<String>(faviconUrl);
+    }
+    if (!nullToAbsent || sourceDomain != null) {
+      map['source_domain'] = Variable<String>(sourceDomain);
+    }
+    map['asset_type'] = Variable<String>(assetType);
+    map['triage_status'] = Variable<String>(triageStatus);
+    map['is_pinned'] = Variable<bool>(isPinned);
+    if (!nullToAbsent || mediaPath != null) {
+      map['media_path'] = Variable<String>(mediaPath);
+    }
+    if (!nullToAbsent || mediaThumbnailPath != null) {
+      map['media_thumbnail_path'] = Variable<String>(mediaThumbnailPath);
+    }
+    if (!nullToAbsent || ocrText != null) {
+      map['ocr_text'] = Variable<String>(ocrText);
+    }
+    if (!nullToAbsent || reminderAt != null) {
+      map['reminder_at'] = Variable<DateTime>(reminderAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  DropsCompanion toCompanion(bool nullToAbsent) {
+    return DropsCompanion(
+      id: Value(id),
+      content: Value(content),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      previewImageUrl: previewImageUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(previewImageUrl),
+      faviconUrl: faviconUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(faviconUrl),
+      sourceDomain: sourceDomain == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceDomain),
+      assetType: Value(assetType),
+      triageStatus: Value(triageStatus),
+      isPinned: Value(isPinned),
+      mediaPath: mediaPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaPath),
+      mediaThumbnailPath: mediaThumbnailPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaThumbnailPath),
+      ocrText: ocrText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ocrText),
+      reminderAt: reminderAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reminderAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Drop.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Drop(
+      id: serializer.fromJson<int>(json['id']),
+      content: serializer.fromJson<String>(json['content']),
+      title: serializer.fromJson<String?>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
+      previewImageUrl: serializer.fromJson<String?>(json['previewImageUrl']),
+      faviconUrl: serializer.fromJson<String?>(json['faviconUrl']),
+      sourceDomain: serializer.fromJson<String?>(json['sourceDomain']),
+      assetType: serializer.fromJson<String>(json['assetType']),
+      triageStatus: serializer.fromJson<String>(json['triageStatus']),
+      isPinned: serializer.fromJson<bool>(json['isPinned']),
+      mediaPath: serializer.fromJson<String?>(json['mediaPath']),
+      mediaThumbnailPath: serializer.fromJson<String?>(
+        json['mediaThumbnailPath'],
+      ),
+      ocrText: serializer.fromJson<String?>(json['ocrText']),
+      reminderAt: serializer.fromJson<DateTime?>(json['reminderAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'content': serializer.toJson<String>(content),
+      'title': serializer.toJson<String?>(title),
+      'description': serializer.toJson<String?>(description),
+      'previewImageUrl': serializer.toJson<String?>(previewImageUrl),
+      'faviconUrl': serializer.toJson<String?>(faviconUrl),
+      'sourceDomain': serializer.toJson<String?>(sourceDomain),
+      'assetType': serializer.toJson<String>(assetType),
+      'triageStatus': serializer.toJson<String>(triageStatus),
+      'isPinned': serializer.toJson<bool>(isPinned),
+      'mediaPath': serializer.toJson<String?>(mediaPath),
+      'mediaThumbnailPath': serializer.toJson<String?>(mediaThumbnailPath),
+      'ocrText': serializer.toJson<String?>(ocrText),
+      'reminderAt': serializer.toJson<DateTime?>(reminderAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Drop copyWith({
+    int? id,
+    String? content,
+    Value<String?> title = const Value.absent(),
+    Value<String?> description = const Value.absent(),
+    Value<String?> previewImageUrl = const Value.absent(),
+    Value<String?> faviconUrl = const Value.absent(),
+    Value<String?> sourceDomain = const Value.absent(),
+    String? assetType,
+    String? triageStatus,
+    bool? isPinned,
+    Value<String?> mediaPath = const Value.absent(),
+    Value<String?> mediaThumbnailPath = const Value.absent(),
+    Value<String?> ocrText = const Value.absent(),
+    Value<DateTime?> reminderAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Drop(
+    id: id ?? this.id,
+    content: content ?? this.content,
+    title: title.present ? title.value : this.title,
+    description: description.present ? description.value : this.description,
+    previewImageUrl: previewImageUrl.present
+        ? previewImageUrl.value
+        : this.previewImageUrl,
+    faviconUrl: faviconUrl.present ? faviconUrl.value : this.faviconUrl,
+    sourceDomain: sourceDomain.present ? sourceDomain.value : this.sourceDomain,
+    assetType: assetType ?? this.assetType,
+    triageStatus: triageStatus ?? this.triageStatus,
+    isPinned: isPinned ?? this.isPinned,
+    mediaPath: mediaPath.present ? mediaPath.value : this.mediaPath,
+    mediaThumbnailPath: mediaThumbnailPath.present
+        ? mediaThumbnailPath.value
+        : this.mediaThumbnailPath,
+    ocrText: ocrText.present ? ocrText.value : this.ocrText,
+    reminderAt: reminderAt.present ? reminderAt.value : this.reminderAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Drop copyWithCompanion(DropsCompanion data) {
+    return Drop(
+      id: data.id.present ? data.id.value : this.id,
+      content: data.content.present ? data.content.value : this.content,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      previewImageUrl: data.previewImageUrl.present
+          ? data.previewImageUrl.value
+          : this.previewImageUrl,
+      faviconUrl: data.faviconUrl.present
+          ? data.faviconUrl.value
+          : this.faviconUrl,
+      sourceDomain: data.sourceDomain.present
+          ? data.sourceDomain.value
+          : this.sourceDomain,
+      assetType: data.assetType.present ? data.assetType.value : this.assetType,
+      triageStatus: data.triageStatus.present
+          ? data.triageStatus.value
+          : this.triageStatus,
+      isPinned: data.isPinned.present ? data.isPinned.value : this.isPinned,
+      mediaPath: data.mediaPath.present ? data.mediaPath.value : this.mediaPath,
+      mediaThumbnailPath: data.mediaThumbnailPath.present
+          ? data.mediaThumbnailPath.value
+          : this.mediaThumbnailPath,
+      ocrText: data.ocrText.present ? data.ocrText.value : this.ocrText,
+      reminderAt: data.reminderAt.present
+          ? data.reminderAt.value
+          : this.reminderAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Drop(')
+          ..write('id: $id, ')
+          ..write('content: $content, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('previewImageUrl: $previewImageUrl, ')
+          ..write('faviconUrl: $faviconUrl, ')
+          ..write('sourceDomain: $sourceDomain, ')
+          ..write('assetType: $assetType, ')
+          ..write('triageStatus: $triageStatus, ')
+          ..write('isPinned: $isPinned, ')
+          ..write('mediaPath: $mediaPath, ')
+          ..write('mediaThumbnailPath: $mediaThumbnailPath, ')
+          ..write('ocrText: $ocrText, ')
+          ..write('reminderAt: $reminderAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    content,
+    title,
+    description,
+    previewImageUrl,
+    faviconUrl,
+    sourceDomain,
+    assetType,
+    triageStatus,
+    isPinned,
+    mediaPath,
+    mediaThumbnailPath,
+    ocrText,
+    reminderAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Drop &&
+          other.id == this.id &&
+          other.content == this.content &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.previewImageUrl == this.previewImageUrl &&
+          other.faviconUrl == this.faviconUrl &&
+          other.sourceDomain == this.sourceDomain &&
+          other.assetType == this.assetType &&
+          other.triageStatus == this.triageStatus &&
+          other.isPinned == this.isPinned &&
+          other.mediaPath == this.mediaPath &&
+          other.mediaThumbnailPath == this.mediaThumbnailPath &&
+          other.ocrText == this.ocrText &&
+          other.reminderAt == this.reminderAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DropsCompanion extends UpdateCompanion<Drop> {
+  final Value<int> id;
+  final Value<String> content;
+  final Value<String?> title;
+  final Value<String?> description;
+  final Value<String?> previewImageUrl;
+  final Value<String?> faviconUrl;
+  final Value<String?> sourceDomain;
+  final Value<String> assetType;
+  final Value<String> triageStatus;
+  final Value<bool> isPinned;
+  final Value<String?> mediaPath;
+  final Value<String?> mediaThumbnailPath;
+  final Value<String?> ocrText;
+  final Value<DateTime?> reminderAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const DropsCompanion({
+    this.id = const Value.absent(),
+    this.content = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.previewImageUrl = const Value.absent(),
+    this.faviconUrl = const Value.absent(),
+    this.sourceDomain = const Value.absent(),
+    this.assetType = const Value.absent(),
+    this.triageStatus = const Value.absent(),
+    this.isPinned = const Value.absent(),
+    this.mediaPath = const Value.absent(),
+    this.mediaThumbnailPath = const Value.absent(),
+    this.ocrText = const Value.absent(),
+    this.reminderAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  DropsCompanion.insert({
+    this.id = const Value.absent(),
+    required String content,
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.previewImageUrl = const Value.absent(),
+    this.faviconUrl = const Value.absent(),
+    this.sourceDomain = const Value.absent(),
+    this.assetType = const Value.absent(),
+    this.triageStatus = const Value.absent(),
+    this.isPinned = const Value.absent(),
+    this.mediaPath = const Value.absent(),
+    this.mediaThumbnailPath = const Value.absent(),
+    this.ocrText = const Value.absent(),
+    this.reminderAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : content = Value(content);
+  static Insertable<Drop> custom({
+    Expression<int>? id,
+    Expression<String>? content,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<String>? previewImageUrl,
+    Expression<String>? faviconUrl,
+    Expression<String>? sourceDomain,
+    Expression<String>? assetType,
+    Expression<String>? triageStatus,
+    Expression<bool>? isPinned,
+    Expression<String>? mediaPath,
+    Expression<String>? mediaThumbnailPath,
+    Expression<String>? ocrText,
+    Expression<DateTime>? reminderAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (content != null) 'content': content,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (previewImageUrl != null) 'preview_image_url': previewImageUrl,
+      if (faviconUrl != null) 'favicon_url': faviconUrl,
+      if (sourceDomain != null) 'source_domain': sourceDomain,
+      if (assetType != null) 'asset_type': assetType,
+      if (triageStatus != null) 'triage_status': triageStatus,
+      if (isPinned != null) 'is_pinned': isPinned,
+      if (mediaPath != null) 'media_path': mediaPath,
+      if (mediaThumbnailPath != null)
+        'media_thumbnail_path': mediaThumbnailPath,
+      if (ocrText != null) 'ocr_text': ocrText,
+      if (reminderAt != null) 'reminder_at': reminderAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  DropsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? content,
+    Value<String?>? title,
+    Value<String?>? description,
+    Value<String?>? previewImageUrl,
+    Value<String?>? faviconUrl,
+    Value<String?>? sourceDomain,
+    Value<String>? assetType,
+    Value<String>? triageStatus,
+    Value<bool>? isPinned,
+    Value<String?>? mediaPath,
+    Value<String?>? mediaThumbnailPath,
+    Value<String?>? ocrText,
+    Value<DateTime?>? reminderAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return DropsCompanion(
+      id: id ?? this.id,
+      content: content ?? this.content,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      previewImageUrl: previewImageUrl ?? this.previewImageUrl,
+      faviconUrl: faviconUrl ?? this.faviconUrl,
+      sourceDomain: sourceDomain ?? this.sourceDomain,
+      assetType: assetType ?? this.assetType,
+      triageStatus: triageStatus ?? this.triageStatus,
+      isPinned: isPinned ?? this.isPinned,
+      mediaPath: mediaPath ?? this.mediaPath,
+      mediaThumbnailPath: mediaThumbnailPath ?? this.mediaThumbnailPath,
+      ocrText: ocrText ?? this.ocrText,
+      reminderAt: reminderAt ?? this.reminderAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (previewImageUrl.present) {
+      map['preview_image_url'] = Variable<String>(previewImageUrl.value);
+    }
+    if (faviconUrl.present) {
+      map['favicon_url'] = Variable<String>(faviconUrl.value);
+    }
+    if (sourceDomain.present) {
+      map['source_domain'] = Variable<String>(sourceDomain.value);
+    }
+    if (assetType.present) {
+      map['asset_type'] = Variable<String>(assetType.value);
+    }
+    if (triageStatus.present) {
+      map['triage_status'] = Variable<String>(triageStatus.value);
+    }
+    if (isPinned.present) {
+      map['is_pinned'] = Variable<bool>(isPinned.value);
+    }
+    if (mediaPath.present) {
+      map['media_path'] = Variable<String>(mediaPath.value);
+    }
+    if (mediaThumbnailPath.present) {
+      map['media_thumbnail_path'] = Variable<String>(mediaThumbnailPath.value);
+    }
+    if (ocrText.present) {
+      map['ocr_text'] = Variable<String>(ocrText.value);
+    }
+    if (reminderAt.present) {
+      map['reminder_at'] = Variable<DateTime>(reminderAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DropsCompanion(')
+          ..write('id: $id, ')
+          ..write('content: $content, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('previewImageUrl: $previewImageUrl, ')
+          ..write('faviconUrl: $faviconUrl, ')
+          ..write('sourceDomain: $sourceDomain, ')
+          ..write('assetType: $assetType, ')
+          ..write('triageStatus: $triageStatus, ')
+          ..write('isPinned: $isPinned, ')
+          ..write('mediaPath: $mediaPath, ')
+          ..write('mediaThumbnailPath: $mediaThumbnailPath, ')
+          ..write('ocrText: $ocrText, ')
+          ..write('reminderAt: $reminderAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DropTagsTable extends DropTags with TableInfo<$DropTagsTable, DropTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DropTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dropIdMeta = const VerificationMeta('dropId');
+  @override
+  late final GeneratedColumn<int> dropId = GeneratedColumn<int>(
+    'drop_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES drops (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _tagMeta = const VerificationMeta('tag');
+  @override
+  late final GeneratedColumn<String> tag = GeneratedColumn<String>(
+    'tag',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [dropId, tag];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'drop_tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DropTag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('drop_id')) {
+      context.handle(
+        _dropIdMeta,
+        dropId.isAcceptableOrUnknown(data['drop_id']!, _dropIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dropIdMeta);
+    }
+    if (data.containsKey('tag')) {
+      context.handle(
+        _tagMeta,
+        tag.isAcceptableOrUnknown(data['tag']!, _tagMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tagMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {dropId, tag};
+  @override
+  DropTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DropTag(
+      dropId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}drop_id'],
+      )!,
+      tag: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tag'],
+      )!,
+    );
+  }
+
+  @override
+  $DropTagsTable createAlias(String alias) {
+    return $DropTagsTable(attachedDatabase, alias);
+  }
+}
+
+class DropTag extends DataClass implements Insertable<DropTag> {
+  final int dropId;
+  final String tag;
+  const DropTag({required this.dropId, required this.tag});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['drop_id'] = Variable<int>(dropId);
+    map['tag'] = Variable<String>(tag);
+    return map;
+  }
+
+  DropTagsCompanion toCompanion(bool nullToAbsent) {
+    return DropTagsCompanion(dropId: Value(dropId), tag: Value(tag));
+  }
+
+  factory DropTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DropTag(
+      dropId: serializer.fromJson<int>(json['dropId']),
+      tag: serializer.fromJson<String>(json['tag']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'dropId': serializer.toJson<int>(dropId),
+      'tag': serializer.toJson<String>(tag),
+    };
+  }
+
+  DropTag copyWith({int? dropId, String? tag}) =>
+      DropTag(dropId: dropId ?? this.dropId, tag: tag ?? this.tag);
+  DropTag copyWithCompanion(DropTagsCompanion data) {
+    return DropTag(
+      dropId: data.dropId.present ? data.dropId.value : this.dropId,
+      tag: data.tag.present ? data.tag.value : this.tag,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DropTag(')
+          ..write('dropId: $dropId, ')
+          ..write('tag: $tag')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(dropId, tag);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DropTag &&
+          other.dropId == this.dropId &&
+          other.tag == this.tag);
+}
+
+class DropTagsCompanion extends UpdateCompanion<DropTag> {
+  final Value<int> dropId;
+  final Value<String> tag;
+  final Value<int> rowid;
+  const DropTagsCompanion({
+    this.dropId = const Value.absent(),
+    this.tag = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DropTagsCompanion.insert({
+    required int dropId,
+    required String tag,
+    this.rowid = const Value.absent(),
+  }) : dropId = Value(dropId),
+       tag = Value(tag);
+  static Insertable<DropTag> custom({
+    Expression<int>? dropId,
+    Expression<String>? tag,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (dropId != null) 'drop_id': dropId,
+      if (tag != null) 'tag': tag,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DropTagsCompanion copyWith({
+    Value<int>? dropId,
+    Value<String>? tag,
+    Value<int>? rowid,
+  }) {
+    return DropTagsCompanion(
+      dropId: dropId ?? this.dropId,
+      tag: tag ?? this.tag,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (dropId.present) {
+      map['drop_id'] = Variable<int>(dropId.value);
+    }
+    if (tag.present) {
+      map['tag'] = Variable<String>(tag.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DropTagsCompanion(')
+          ..write('dropId: $dropId, ')
+          ..write('tag: $tag, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -10434,6 +11565,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MedicineDosesTable medicineDoses = $MedicineDosesTable(this);
   late final $SymptomLogsTable symptomLogs = $SymptomLogsTable(this);
   late final $FocusSessionsTable focusSessions = $FocusSessionsTable(this);
+  late final $DropsTable drops = $DropsTable(this);
+  late final $DropTagsTable dropTags = $DropTagsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10459,6 +11592,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     medicineDoses,
     symptomLogs,
     focusSessions,
+    drops,
+    dropTags,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -10552,6 +11687,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('focus_sessions', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'drops',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('drop_tags', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -19125,6 +20267,770 @@ typedef $$FocusSessionsTableProcessedTableManager =
       FocusSession,
       PrefetchHooks Function({bool taskId})
     >;
+typedef $$DropsTableCreateCompanionBuilder =
+    DropsCompanion Function({
+      Value<int> id,
+      required String content,
+      Value<String?> title,
+      Value<String?> description,
+      Value<String?> previewImageUrl,
+      Value<String?> faviconUrl,
+      Value<String?> sourceDomain,
+      Value<String> assetType,
+      Value<String> triageStatus,
+      Value<bool> isPinned,
+      Value<String?> mediaPath,
+      Value<String?> mediaThumbnailPath,
+      Value<String?> ocrText,
+      Value<DateTime?> reminderAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$DropsTableUpdateCompanionBuilder =
+    DropsCompanion Function({
+      Value<int> id,
+      Value<String> content,
+      Value<String?> title,
+      Value<String?> description,
+      Value<String?> previewImageUrl,
+      Value<String?> faviconUrl,
+      Value<String?> sourceDomain,
+      Value<String> assetType,
+      Value<String> triageStatus,
+      Value<bool> isPinned,
+      Value<String?> mediaPath,
+      Value<String?> mediaThumbnailPath,
+      Value<String?> ocrText,
+      Value<DateTime?> reminderAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$DropsTableReferences
+    extends BaseReferences<_$AppDatabase, $DropsTable, Drop> {
+  $$DropsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$DropTagsTable, List<DropTag>> _dropTagsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.dropTags,
+    aliasName: 'drops__id__drop_tags__drop_id',
+  );
+
+  $$DropTagsTableProcessedTableManager get dropTagsRefs {
+    final manager = $$DropTagsTableTableManager(
+      $_db,
+      $_db.dropTags,
+    ).filter((f) => f.dropId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_dropTagsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$DropsTableFilterComposer extends Composer<_$AppDatabase, $DropsTable> {
+  $$DropsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get previewImageUrl => $composableBuilder(
+    column: $table.previewImageUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get faviconUrl => $composableBuilder(
+    column: $table.faviconUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceDomain => $composableBuilder(
+    column: $table.sourceDomain,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get assetType => $composableBuilder(
+    column: $table.assetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get triageStatus => $composableBuilder(
+    column: $table.triageStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPinned => $composableBuilder(
+    column: $table.isPinned,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaPath => $composableBuilder(
+    column: $table.mediaPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaThumbnailPath => $composableBuilder(
+    column: $table.mediaThumbnailPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ocrText => $composableBuilder(
+    column: $table.ocrText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get reminderAt => $composableBuilder(
+    column: $table.reminderAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> dropTagsRefs(
+    Expression<bool> Function($$DropTagsTableFilterComposer f) f,
+  ) {
+    final $$DropTagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dropTags,
+      getReferencedColumn: (t) => t.dropId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DropTagsTableFilterComposer(
+            $db: $db,
+            $table: $db.dropTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$DropsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DropsTable> {
+  $$DropsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get previewImageUrl => $composableBuilder(
+    column: $table.previewImageUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get faviconUrl => $composableBuilder(
+    column: $table.faviconUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceDomain => $composableBuilder(
+    column: $table.sourceDomain,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get assetType => $composableBuilder(
+    column: $table.assetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get triageStatus => $composableBuilder(
+    column: $table.triageStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPinned => $composableBuilder(
+    column: $table.isPinned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaPath => $composableBuilder(
+    column: $table.mediaPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaThumbnailPath => $composableBuilder(
+    column: $table.mediaThumbnailPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ocrText => $composableBuilder(
+    column: $table.ocrText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get reminderAt => $composableBuilder(
+    column: $table.reminderAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DropsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DropsTable> {
+  $$DropsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get previewImageUrl => $composableBuilder(
+    column: $table.previewImageUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get faviconUrl => $composableBuilder(
+    column: $table.faviconUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceDomain => $composableBuilder(
+    column: $table.sourceDomain,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get assetType =>
+      $composableBuilder(column: $table.assetType, builder: (column) => column);
+
+  GeneratedColumn<String> get triageStatus => $composableBuilder(
+    column: $table.triageStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isPinned =>
+      $composableBuilder(column: $table.isPinned, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaPath =>
+      $composableBuilder(column: $table.mediaPath, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaThumbnailPath => $composableBuilder(
+    column: $table.mediaThumbnailPath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ocrText =>
+      $composableBuilder(column: $table.ocrText, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get reminderAt => $composableBuilder(
+    column: $table.reminderAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> dropTagsRefs<T extends Object>(
+    Expression<T> Function($$DropTagsTableAnnotationComposer a) f,
+  ) {
+    final $$DropTagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dropTags,
+      getReferencedColumn: (t) => t.dropId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DropTagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dropTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$DropsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DropsTable,
+          Drop,
+          $$DropsTableFilterComposer,
+          $$DropsTableOrderingComposer,
+          $$DropsTableAnnotationComposer,
+          $$DropsTableCreateCompanionBuilder,
+          $$DropsTableUpdateCompanionBuilder,
+          (Drop, $$DropsTableReferences),
+          Drop,
+          PrefetchHooks Function({bool dropTagsRefs})
+        > {
+  $$DropsTableTableManager(_$AppDatabase db, $DropsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DropsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DropsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DropsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> previewImageUrl = const Value.absent(),
+                Value<String?> faviconUrl = const Value.absent(),
+                Value<String?> sourceDomain = const Value.absent(),
+                Value<String> assetType = const Value.absent(),
+                Value<String> triageStatus = const Value.absent(),
+                Value<bool> isPinned = const Value.absent(),
+                Value<String?> mediaPath = const Value.absent(),
+                Value<String?> mediaThumbnailPath = const Value.absent(),
+                Value<String?> ocrText = const Value.absent(),
+                Value<DateTime?> reminderAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => DropsCompanion(
+                id: id,
+                content: content,
+                title: title,
+                description: description,
+                previewImageUrl: previewImageUrl,
+                faviconUrl: faviconUrl,
+                sourceDomain: sourceDomain,
+                assetType: assetType,
+                triageStatus: triageStatus,
+                isPinned: isPinned,
+                mediaPath: mediaPath,
+                mediaThumbnailPath: mediaThumbnailPath,
+                ocrText: ocrText,
+                reminderAt: reminderAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String content,
+                Value<String?> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> previewImageUrl = const Value.absent(),
+                Value<String?> faviconUrl = const Value.absent(),
+                Value<String?> sourceDomain = const Value.absent(),
+                Value<String> assetType = const Value.absent(),
+                Value<String> triageStatus = const Value.absent(),
+                Value<bool> isPinned = const Value.absent(),
+                Value<String?> mediaPath = const Value.absent(),
+                Value<String?> mediaThumbnailPath = const Value.absent(),
+                Value<String?> ocrText = const Value.absent(),
+                Value<DateTime?> reminderAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => DropsCompanion.insert(
+                id: id,
+                content: content,
+                title: title,
+                description: description,
+                previewImageUrl: previewImageUrl,
+                faviconUrl: faviconUrl,
+                sourceDomain: sourceDomain,
+                assetType: assetType,
+                triageStatus: triageStatus,
+                isPinned: isPinned,
+                mediaPath: mediaPath,
+                mediaThumbnailPath: mediaThumbnailPath,
+                ocrText: ocrText,
+                reminderAt: reminderAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$DropsTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({dropTagsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (dropTagsRefs) db.dropTags],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (dropTagsRefs)
+                    await $_getPrefetchedData<Drop, $DropsTable, DropTag>(
+                      currentTable: table,
+                      referencedTable: $$DropsTableReferences
+                          ._dropTagsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$DropsTableReferences(db, table, p0).dropTagsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.dropId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$DropsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DropsTable,
+      Drop,
+      $$DropsTableFilterComposer,
+      $$DropsTableOrderingComposer,
+      $$DropsTableAnnotationComposer,
+      $$DropsTableCreateCompanionBuilder,
+      $$DropsTableUpdateCompanionBuilder,
+      (Drop, $$DropsTableReferences),
+      Drop,
+      PrefetchHooks Function({bool dropTagsRefs})
+    >;
+typedef $$DropTagsTableCreateCompanionBuilder =
+    DropTagsCompanion Function({
+      required int dropId,
+      required String tag,
+      Value<int> rowid,
+    });
+typedef $$DropTagsTableUpdateCompanionBuilder =
+    DropTagsCompanion Function({
+      Value<int> dropId,
+      Value<String> tag,
+      Value<int> rowid,
+    });
+
+final class $$DropTagsTableReferences
+    extends BaseReferences<_$AppDatabase, $DropTagsTable, DropTag> {
+  $$DropTagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DropsTable _dropIdTable(_$AppDatabase db) =>
+      db.drops.createAlias('drop_tags__drop_id__drops__id');
+
+  $$DropsTableProcessedTableManager get dropId {
+    final $_column = $_itemColumn<int>('drop_id')!;
+
+    final manager = $$DropsTableTableManager(
+      $_db,
+      $_db.drops,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_dropIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$DropTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $DropTagsTable> {
+  $$DropTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get tag => $composableBuilder(
+    column: $table.tag,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DropsTableFilterComposer get dropId {
+    final $$DropsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dropId,
+      referencedTable: $db.drops,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DropsTableFilterComposer(
+            $db: $db,
+            $table: $db.drops,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DropTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DropTagsTable> {
+  $$DropTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get tag => $composableBuilder(
+    column: $table.tag,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DropsTableOrderingComposer get dropId {
+    final $$DropsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dropId,
+      referencedTable: $db.drops,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DropsTableOrderingComposer(
+            $db: $db,
+            $table: $db.drops,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DropTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DropTagsTable> {
+  $$DropTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get tag =>
+      $composableBuilder(column: $table.tag, builder: (column) => column);
+
+  $$DropsTableAnnotationComposer get dropId {
+    final $$DropsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dropId,
+      referencedTable: $db.drops,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DropsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.drops,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DropTagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DropTagsTable,
+          DropTag,
+          $$DropTagsTableFilterComposer,
+          $$DropTagsTableOrderingComposer,
+          $$DropTagsTableAnnotationComposer,
+          $$DropTagsTableCreateCompanionBuilder,
+          $$DropTagsTableUpdateCompanionBuilder,
+          (DropTag, $$DropTagsTableReferences),
+          DropTag,
+          PrefetchHooks Function({bool dropId})
+        > {
+  $$DropTagsTableTableManager(_$AppDatabase db, $DropTagsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DropTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DropTagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DropTagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> dropId = const Value.absent(),
+                Value<String> tag = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DropTagsCompanion(dropId: dropId, tag: tag, rowid: rowid),
+          createCompanionCallback:
+              ({
+                required int dropId,
+                required String tag,
+                Value<int> rowid = const Value.absent(),
+              }) => DropTagsCompanion.insert(
+                dropId: dropId,
+                tag: tag,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$DropTagsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({dropId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (dropId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.dropId,
+                                referencedTable: $$DropTagsTableReferences
+                                    ._dropIdTable(db),
+                                referencedColumn: $$DropTagsTableReferences
+                                    ._dropIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$DropTagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DropTagsTable,
+      DropTag,
+      $$DropTagsTableFilterComposer,
+      $$DropTagsTableOrderingComposer,
+      $$DropTagsTableAnnotationComposer,
+      $$DropTagsTableCreateCompanionBuilder,
+      $$DropTagsTableUpdateCompanionBuilder,
+      (DropTag, $$DropTagsTableReferences),
+      DropTag,
+      PrefetchHooks Function({bool dropId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -19168,4 +21074,8 @@ class $AppDatabaseManager {
       $$SymptomLogsTableTableManager(_db, _db.symptomLogs);
   $$FocusSessionsTableTableManager get focusSessions =>
       $$FocusSessionsTableTableManager(_db, _db.focusSessions);
+  $$DropsTableTableManager get drops =>
+      $$DropsTableTableManager(_db, _db.drops);
+  $$DropTagsTableTableManager get dropTags =>
+      $$DropTagsTableTableManager(_db, _db.dropTags);
 }

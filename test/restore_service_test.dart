@@ -203,6 +203,17 @@ void main() {
             rating: const Value(4),
           ),
         );
+    final drop = await db
+        .into(db.drops)
+        .insert(
+          DropsCompanion.insert(
+            content: 'https://flutter.dev',
+            title: const Value('Flutter Dev'),
+          ),
+        );
+    await db
+        .into(db.dropTags)
+        .insert(DropTagsCompanion.insert(dropId: drop, tag: 'dev'));
   }
 
   test('sections cover every table the database declares', () {

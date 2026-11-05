@@ -8,6 +8,7 @@ import '../widgets/common.dart';
 
 import '../../presentation/ai/assistant_screen.dart';
 import '../../presentation/dashboard/dashboard_screen.dart';
+import '../../presentation/drop/drop_screen.dart';
 import '../../presentation/expenses/expenses_screen.dart';
 import '../../presentation/focus/focus_screen.dart';
 import '../../presentation/habits/habits_screen.dart';
@@ -130,6 +131,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => ModuleLockGate(
           module: AppModule.focus,
           child: FocusScreen(taskId: state.extra as int?),
+        ),
+      ),
+      GoRoute(
+        path: '/drop',
+        builder: (_, _) => const ModuleLockGate(
+          module: AppModule.drop,
+          child: DropScreen(),
         ),
       ),
       GoRoute(path: '/search', builder: (_, _) => const SearchScreen()),

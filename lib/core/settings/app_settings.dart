@@ -8,7 +8,7 @@ import '../theme/app_palette.dart';
 
 /// The six toggleable feature modules. Disabling one hides it from the modules
 /// grid, the dashboard, and the quick-add sheet.
-enum AppModule { notes, medicine, habits, tasks, expenses, focus }
+enum AppModule { notes, medicine, habits, tasks, expenses, focus, drop }
 
 extension AppModuleX on AppModule {
   String get label => switch (this) {
@@ -18,6 +18,7 @@ extension AppModuleX on AppModule {
     AppModule.tasks => 'Tasks',
     AppModule.expenses => 'Expenses',
     AppModule.focus => 'Focus',
+    AppModule.drop => 'Drop',
   };
 
   String get route => switch (this) {
@@ -27,6 +28,7 @@ extension AppModuleX on AppModule {
     AppModule.tasks => '/tasks',
     AppModule.expenses => '/expenses',
     AppModule.focus => '/focus',
+    AppModule.drop => '/drop',
   };
 
   String get blurb => switch (this) {
@@ -36,6 +38,7 @@ extension AppModuleX on AppModule {
     AppModule.tasks => 'Due dates, projects and views',
     AppModule.expenses => 'Budgets, accounts and reports',
     AppModule.focus => 'Pomodoro and focus stats',
+    AppModule.drop => 'Quick captures, links, media and triage',
   };
 }
 
@@ -77,6 +80,7 @@ class AppSettings {
       AppModule.tasks,
       AppModule.expenses,
       AppModule.focus,
+      AppModule.drop,
     },
     this.themeMode = ThemeMode.system,
     this.palette = AppPalette.coral,
@@ -95,6 +99,7 @@ class AppSettings {
     this.dashboardOrder = const [
       'medicine',
       'tasks',
+      'drop',
       'habits',
       'expenses',
       'focus',
@@ -228,7 +233,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       dndEndMinutes: _prefs.getInt(_kDndEnd) ?? 7 * 60,
       dashboardOrder:
           _prefs.getStringList(_kDashOrder) ??
-          const ['medicine', 'tasks', 'habits', 'expenses', 'focus', 'notes'],
+          const ['medicine', 'tasks', 'drop', 'habits', 'expenses', 'focus', 'notes'],
       aiProvider: AiProviderX.byName(_prefs.getString(_kAiProvider)),
       aiModel: _prefs.getString(_kAiModel) ?? '',
       aiAutoSave: _prefs.getBool(_kAiAutoSave) ?? false,

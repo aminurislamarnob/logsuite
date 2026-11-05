@@ -353,6 +353,41 @@ const howToGuides = <HowToGuide>[
     ],
   ),
   HowToGuide(
+    id: 'drop',
+    label: 'Drop',
+    title: 'Drop',
+    icon: AppIcons.inbox,
+    tagline: 'Quick capture, links, media and triage',
+    module: AppModule.drop,
+    steps: [
+      HowToStep(
+        'Drop anything quickly',
+        'Type a quick thought, paste an article link or video URL into the bottom bar and tap Drop.',
+      ),
+      HowToStep(
+        'Attach screenshots or media',
+        'Tap the camera icon to capture or upload images into private sandboxed storage.',
+      ),
+      HowToStep(
+        'Filter by asset type',
+        'Use the top filter pills to isolate Articles, Videos, Clips, Images or Favorites.',
+      ),
+      HowToStep(
+        'Triage your queue',
+        'Tap the checkmark to archive finished items and keep your active inbox clean.',
+      ),
+      HowToStep(
+        'Organize with tags',
+        'Type #hashtags in the input bar or card to easily group and filter related drops.',
+      ),
+    ],
+    tips: [
+      'Articles and videos automatically scrape OpenGraph titles and thumbnails.',
+      'Tap any text clip to copy it directly to your clipboard.',
+      'Use the top right inbox/archive toggle to switch between active drops and your archive.',
+    ],
+  ),
+  HowToGuide(
     id: 'assistant',
     label: 'Assistant',
     title: 'Voice assistant',

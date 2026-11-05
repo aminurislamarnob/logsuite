@@ -87,6 +87,7 @@ class BrandColors extends ThemeExtension<BrandColors> {
   final Color task;
   final Color expense;
   final Color focus;
+  final Color drop;
 
   const BrandColors({
     required this.tints,
@@ -101,6 +102,7 @@ class BrandColors extends ThemeExtension<BrandColors> {
     required this.task,
     required this.expense,
     required this.focus,
+    required this.drop,
   });
 
   /// The pastel fill for the card at [index] in a row or grid.
@@ -145,6 +147,7 @@ class BrandColors extends ThemeExtension<BrandColors> {
       task: p.task,
       expense: p.expense,
       focus: p.focus,
+      drop: p.drop,
     );
   }
 
@@ -162,6 +165,7 @@ class BrandColors extends ThemeExtension<BrandColors> {
     Color? task,
     Color? expense,
     Color? focus,
+    Color? drop,
   }) {
     return BrandColors(
       tints: tints ?? this.tints,
@@ -176,6 +180,7 @@ class BrandColors extends ThemeExtension<BrandColors> {
       task: task ?? this.task,
       expense: expense ?? this.expense,
       focus: focus ?? this.focus,
+      drop: drop ?? this.drop,
     );
   }
 
@@ -198,6 +203,7 @@ class BrandColors extends ThemeExtension<BrandColors> {
       task: Color.lerp(task, other.task, t)!,
       expense: Color.lerp(expense, other.expense, t)!,
       focus: Color.lerp(focus, other.focus, t)!,
+      drop: Color.lerp(drop, other.drop, t)!,
     );
   }
 }
@@ -372,6 +378,7 @@ class AppTheme {
         task: p.task,
         expense: p.expense,
         focus: p.focus,
+        drop: p.drop,
       ),
     );
   }

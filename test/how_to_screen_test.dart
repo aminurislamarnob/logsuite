@@ -160,6 +160,7 @@ void main() {
             'habits',
             'tasks',
             'expenses',
+            'drop',
           ],
         },
       );

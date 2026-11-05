@@ -66,6 +66,7 @@ class PaletteSpec {
   final Color task;
   final Color expense;
   final Color focus;
+  final Color drop;
 
   /// Set only where a palette pins its own card fills. Coral does, to keep the
   /// hand-picked peach/apricot/cream rotation the design shipped with; every
@@ -89,6 +90,7 @@ class PaletteSpec {
     required this.task,
     required this.expense,
     required this.focus,
+    required this.drop,
     this.tintOverride,
   });
 
@@ -111,7 +113,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
   AppPalette.coral: (
     light: PaletteSpec(
       primary: AppColors.primaryLight,
-      onPrimary: const Color(0xFFFFFFFF),
+      onPrimary: Color(0xFFFFFFFF),
       secondary: AppColors.coralDeep,
       background: AppColors.backgroundLight,
       surface: AppColors.surfaceLight,
@@ -126,6 +128,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       task: AppColors.taskAccent,
       expense: AppColors.expenseAccent,
       focus: AppColors.focusAccent,
+      drop: AppColors.dropAccent,
       tintOverride: AppColors.tints,
     ),
     dark: PaletteSpec(
@@ -145,6 +148,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       task: AppColors.taskAccentDark,
       expense: AppColors.expenseAccentDark,
       focus: AppColors.focusAccentDark,
+      drop: AppColors.dropAccentDark,
       tintOverride: AppColors.tintsDark,
     ),
   ),
@@ -166,6 +170,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       task: Color(0xFF3A67C9),
       expense: Color(0xFF5B45D6),
       focus: Color(0xFF0D8390),
+      drop: Color(0xFF0284C7),
     ),
     dark: PaletteSpec(
       primary: Color(0xFFFF6BAB),
@@ -184,6 +189,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       task: Color(0xFF7FA3F5),
       expense: Color(0xFFA48CF5),
       focus: Color(0xFF47C3CF),
+      drop: Color(0xFF38BDF8),
     ),
   ),
   AppPalette.cobalt: (
@@ -204,6 +210,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       task: Color(0xFF0E8577),
       expense: Color(0xFF8A4FD1),
       focus: Color(0xFF5B6B7C),
+      drop: Color(0xFF0284C7),
     ),
     dark: PaletteSpec(
       primary: Color(0xFF6BA5FF),
@@ -222,6 +229,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       task: Color(0xFF3FBFAE),
       expense: Color(0xFFB58DEC),
       focus: Color(0xFF8CA0B4),
+      drop: Color(0xFF38BDF8),
     ),
   ),
   AppPalette.aubergine: (
@@ -242,6 +250,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       task: Color(0xFF3A67C9),
       expense: Color(0xFFA85A3C),
       focus: Color(0xFF0D8390),
+      drop: Color(0xFF0284C7),
     ),
     dark: PaletteSpec(
       primary: Color(0xFFC88BCC),
@@ -260,6 +269,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       task: Color(0xFF7FA3F5),
       expense: Color(0xFFD8896B),
       focus: Color(0xFF47C3CF),
+      drop: Color(0xFF38BDF8),
     ),
   ),
 };

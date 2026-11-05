@@ -25,6 +25,7 @@ class ModulesScreen extends ConsumerWidget {
     AppModule.tasks: AppIcons.tasks,
     AppModule.expenses: AppIcons.expenses,
     AppModule.focus: AppIcons.focus,
+    AppModule.drop: AppIcons.inbox,
   };
 
   /// The accent the active palette gives [m].
@@ -35,6 +36,7 @@ class ModulesScreen extends ConsumerWidget {
     AppModule.tasks => brand.task,
     AppModule.expenses => brand.expense,
     AppModule.focus => brand.focus,
+    AppModule.drop => brand.drop,
   };
 
   @override

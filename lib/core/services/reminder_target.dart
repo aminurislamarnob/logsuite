@@ -26,6 +26,7 @@ class ReminderTarget {
       'habit' => const ReminderTarget('/habits'),
       'note' => ReminderTarget('/note_editor', extra: id),
       'bill' || 'loan' => const ReminderTarget('/expenses'),
+      'drop' => const ReminderTarget('/drop'),
       _ => null,
     };
   }

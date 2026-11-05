@@ -91,6 +91,8 @@ class RestoreService {
     'medicineDoses',
     'symptomLogs',
     'focusSessions',
+    'drops',
+    'dropTags',
   ];
 
   Future<RestoreSummary> restoreFromFile(File file) async {
@@ -154,6 +156,8 @@ class RestoreService {
     plan('medicineDoses', _db.medicineDoses, MedicineDose.fromJson);
     plan('symptomLogs', _db.symptomLogs, SymptomLog.fromJson);
     plan('focusSessions', _db.focusSessions, FocusSession.fromJson);
+    plan('drops', _db.drops, Drop.fromJson);
+    plan('dropTags', _db.dropTags, DropTag.fromJson);
 
     await _db.transaction(() async {
       // Folders reference their own parent, so no insert order satisfies

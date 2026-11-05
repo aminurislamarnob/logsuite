@@ -94,6 +94,7 @@ class AppIcons {
   static const archive = HugeIcons.strokeRoundedArchive02;
   static const unarchive = HugeIcons.strokeRoundedArchiveArrowUp;
   static const share = HugeIcons.strokeRoundedShare01;
+  static const copy = HugeIcons.strokeRoundedCopy01;
   static const link = HugeIcons.strokeRoundedLink02;
   static const repeat = HugeIcons.strokeRoundedRepeat;
   static const replay = HugeIcons.strokeRoundedRefresh;

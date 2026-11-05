@@ -96,6 +96,7 @@ class AppColors {
   static const taskAccent = Color(0xFF5B7CE0); // muted indigo
   static const expenseAccent = Color(0xFF9A6DD7); // warm violet
   static const focusAccent = Color(0xFF349CA5); // teal
+  static const dropAccent = Color(0xFF0284C7); // sky / sapphire blue
 
   /// The dark-mode twins. Note and habit share a hue with warning and success,
   /// so they reuse those already-tuned darks; the rest apply the same lift the
@@ -107,6 +108,7 @@ class AppColors {
   static const taskAccentDark = Color(0xFF7E9CF6);
   static const expenseAccentDark = Color(0xFFB58DEC);
   static const focusAccentDark = Color(0xFF59C2CC);
+  static const dropAccentDark = Color(0xFF38BDF8);
 
   /// A soft page-card fill derived from any accent, matching the density of the
   /// hand-picked [tints] so a module card sits happily next to a brand card.

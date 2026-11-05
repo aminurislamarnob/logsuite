@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../presentation/drop/repository/drop_repository.dart';
 import '../../presentation/expenses/utils/expense_reminders.dart';
 import '../../presentation/habits/repository/habit_repository.dart';
 import '../../presentation/medicine/providers/medicine_provider.dart';
@@ -20,6 +21,7 @@ final reminderSyncProvider = Provider<ReminderSync>((ref) {
     habits: ref.watch(habitRepositoryProvider),
     medicine: ref.watch(medicineRepositoryProvider),
     expenses: ref.watch(expenseRemindersProvider),
+    drops: ref.watch(dropRepositoryProvider),
     enabled: ref.watch(settingsProvider.select((s) => s.enabledModules)),
   );
 });
@@ -42,6 +44,7 @@ class ReminderSync {
     required this.habits,
     required this.medicine,
     required this.expenses,
+    required this.drops,
     required this.enabled,
   });
 
@@ -51,6 +54,7 @@ class ReminderSync {
   final HabitRepository habits;
   final MedicineRepository medicine;
   final ExpenseReminders expenses;
+  final DropRepository drops;
   final Set<AppModule> enabled;
 
   Future<void> syncAll() async {
@@ -62,6 +66,23 @@ class ReminderSync {
     }
     if (enabled.contains(AppModule.expenses)) {
       await _guard('expenses', expenses.syncAll);
+    }
+    if (enabled.contains(AppModule.drop)) {
+      await _guard('drop', syncDrops);
+    }
+  }
+
+  Future<void> syncDrops() async {
+    for (final d in await drops.dropsWithReminders()) {
+      final title = d.title ??
+          (d.content.length > 50
+              ? '${d.content.substring(0, 50)}...'
+              : d.content);
+      await notifier.scheduleDropReminder(
+        id: d.id,
+        title: title,
+        when: d.reminderAt!,
+      );
     }
   }
 

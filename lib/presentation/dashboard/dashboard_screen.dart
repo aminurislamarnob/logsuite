@@ -24,6 +24,7 @@ import '../tasks/widgets/task_tile.dart';
 import '../../core/people/person_avatar.dart';
 import '../../core/database/app_database.dart';
 import '../ai/widgets/document_source_sheet.dart';
+import '../drop/providers/drop_provider.dart';
 
 /// The home screen, laid out to the fitness reference: greeting header, a hero
 /// card for the next thing due, a pastel "My Plans" row of module stats, an
@@ -44,6 +45,7 @@ class DashboardScreen extends ConsumerWidget {
       'expenses': () => const _ExpensesWidget(),
       'focus': () => const _FocusWidget(),
       'notes': () => const _NotesWidget(),
+      'drop': () => const _DropWidget(),
     };
 
     final ordered = settings.dashboardOrder
@@ -287,6 +289,19 @@ class _TodaySummary extends ConsumerWidget {
           value: habits.isEmpty ? 'None yet' : '$done / ${habits.length}',
           tintIndex: tint,
           onTap: () => context.push('/habits'),
+        ),
+      );
+    }
+    if (settings.isEnabled(AppModule.drop)) {
+      final unread = ref.watch(unreadDropsCountProvider).valueOrNull ?? 0;
+      add(
+        (tint) => PlanCard(
+          icon: AppIcons.inbox,
+          accent: context.brand.drop,
+          label: 'Drop',
+          value: unread == 0 ? 'Inbox zero' : '$unread in inbox',
+          tintIndex: tint,
+          onTap: () => context.push('/drop'),
         ),
       );
     }
@@ -767,6 +782,82 @@ class _NoteMeta extends StatelessWidget {
             ),
           ),
         ],
+      ],
+    );
+  }
+}
+
+class _DropWidget extends ConsumerWidget {
+  const _DropWidget();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final drops = ref.watch(recentDropsProvider).valueOrNull ?? const [];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(
+          'Quick Drop',
+          actionLabel: 'Open',
+          onAction: () => context.push('/drop'),
+        ),
+        if (drops.isEmpty)
+          _quiet(context, 'No drops in inbox yet. Save links, notes, or photos.')
+        else
+          TintCard(
+            tintIndex: 3,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+            child: TileGroup(
+              children: [
+                for (final item in drops)
+                  BrandTile(
+                    leading: AppIcon(
+                      item.isArticle
+                          ? AppIcons.link
+                          : item.isVideo
+                              ? AppIcons.play
+                              : item.isImage
+                                  ? AppIcons.camera
+                                  : AppIcons.document,
+                      color: context.brand.drop,
+                      size: 20,
+                    ),
+                    title: Text(
+                      item.title ?? item.content,
+                      style: const TextStyle(fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Row(
+                      children: [
+                        AppIcon(AppIcons.clock, size: 12, color: context.muted),
+                        const SizedBox(width: 4),
+                        Text(
+                          Fmt.relativeDay(item.drop.createdAt),
+                          style: TextStyle(fontSize: 11, color: context.muted),
+                        ),
+                        if (item.drop.sourceDomain != null) ...[
+                          Text(' · ', style: TextStyle(fontSize: 11, color: context.muted)),
+                          Expanded(
+                            child: Text(
+                              item.drop.sourceDomain!,
+                              style: TextStyle(fontSize: 11, color: context.muted),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    trailing: item.isPinned
+                        ? AppIcon(AppIcons.pin, size: 14, color: context.brand.drop)
+                        : null,
+                    onTap: () => context.push('/drop'),
+                  ),
+              ],
+            ),
+          ),
       ],
     );
   }

@@ -343,6 +343,7 @@ void main() {
       expect(dark.task, AppColors.taskAccentDark);
       expect(dark.expense, AppColors.expenseAccentDark);
       expect(dark.focus, AppColors.focusAccentDark);
+      expect(dark.drop, AppColors.dropAccentDark);
 
       // And that they are genuinely different from the light ones — a dark
       // variant aliased back to its light twin would pass the checks above.
@@ -356,6 +357,7 @@ void main() {
         (light.task, dark.task),
         (light.expense, dark.expense),
         (light.focus, dark.focus),
+        (light.drop, dark.drop),
       ]) {
         expect(pair.$2, isNot(pair.$1));
       }
@@ -776,4 +778,5 @@ BrandColors _brandOf(Color c, {List<Color>? tints}) => BrandColors(
   task: c,
   expense: c,
   focus: c,
+  drop: c,
 );

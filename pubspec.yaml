@@ -78,6 +78,10 @@ dependencies:
   file_picker: ^11.0.3
   # Pinned exactly: forui is pre-1.0 and breaks between minor versions.
   forui: 0.24.3
+  url_launcher: ^6.3.3
+  receive_sharing_intent: ^1.9.0
+  image: ^4.3.0
+  html: ^0.15.4
 
 dev_dependencies:
   flutter_test:

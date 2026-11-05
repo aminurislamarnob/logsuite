@@ -194,6 +194,8 @@ class ExportService {
       'focusSessions': (await _db.select(_db.focusSessions).get())
           .map(_json)
           .toList(),
+      'drops': (await _db.select(_db.drops).get()).map(_json).toList(),
+      'dropTags': (await _db.select(_db.dropTags).get()).map(_json).toList(),
     };
   }
 

@@ -410,6 +410,38 @@ class FocusSessions extends Table {
 }
 
 // ---------------------------------------------------------------------------
+// Drop (Quick Capture / Stash / Asset Manager)
+// ---------------------------------------------------------------------------
+
+class Drops extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get content => text()(); // Text, URL, or image caption
+  TextColumn get title => text().nullable()();
+  TextColumn get description => text().nullable()();
+  TextColumn get previewImageUrl => text().nullable()();
+  TextColumn get faviconUrl => text().nullable()();
+  TextColumn get sourceDomain => text().nullable()();
+  TextColumn get assetType => text().withDefault(const Constant('clip'))(); // 'article', 'video', 'image', 'clip'
+  TextColumn get triageStatus => text().withDefault(const Constant('inbox'))(); // 'inbox', 'archived'
+  BoolColumn get isPinned => boolean().withDefault(const Constant(false))();
+  TextColumn get mediaPath => text().nullable()();
+  TextColumn get mediaThumbnailPath => text().nullable()();
+  TextColumn get ocrText => text().nullable()();
+  DateTimeColumn get reminderAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+class DropTags extends Table {
+  IntColumn get dropId =>
+      integer().references(Drops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tag => text()();
+
+  @override
+  Set<Column> get primaryKey => {dropId, tag};
+}
+
+// ---------------------------------------------------------------------------
 
 @DriftDatabase(
   tables: [
@@ -433,6 +465,8 @@ class FocusSessions extends Table {
     MedicineDoses,
     SymptomLogs,
     FocusSessions,
+    Drops,
+    DropTags,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -441,7 +475,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -458,6 +492,10 @@ class AppDatabase extends _$AppDatabase {
         // anyone who genuinely calls themselves that.
         await (update(people)..where((t) => t.isSelf & t.name.equals('Self')))
             .write(const PeopleCompanion(name: Value('')));
+      }
+      if (from < 3) {
+        await m.createTable(drops);
+        await m.createTable(dropTags);
       }
     },
     beforeOpen: (details) async {

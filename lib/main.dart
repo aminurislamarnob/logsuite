@@ -17,6 +17,7 @@ import 'core/theme/app_forui_theme.dart';
 import 'core/theme/app_icons.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/common.dart';
+import 'presentation/drop/services/drop_share_handler.dart';
 import 'presentation/notes/repository/note_repository.dart';
 
 Future<void> main() async {
@@ -68,6 +69,8 @@ class _LogSuiteAppState extends ConsumerState<LogSuiteApp> {
     // Whatever the database says is due gets its notification, so reminders
     // survive rows that arrived without one and schedules that were cleared.
     await ref.read(reminderSyncProvider).syncAll();
+    // Native OS Share Sheet receiver for Drop module.
+    ref.read(dropShareHandlerProvider).initialize();
     // A tap that cold-started the app is reported here rather than to onTap.
     final launch = await notifier.launchPayload();
     if (launch != null) _openReminder(launch);

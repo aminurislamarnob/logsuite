@@ -20,6 +20,7 @@ class _IdRange {
   static const note = 400000;
   static const bill = 500000;
   static const loan = 600000;
+  static const drop = 700000;
 }
 
 class NotificationService {
@@ -46,7 +47,7 @@ class NotificationService {
   static const _defaultChannel = AndroidNotificationDetails(
     'general',
     'Reminders',
-    channelDescription: 'Tasks, habits and notes',
+    channelDescription: 'Tasks, habits, notes and drops',
     importance: Importance.defaultImportance,
     priority: Priority.defaultPriority,
   );
@@ -322,6 +323,23 @@ class NotificationService {
 
   Future<void> cancelLoanReminder(int loanId) =>
       _plugin.cancel(id: _IdRange.loan + loanId);
+
+  Future<void> scheduleDropReminder({
+    required int id,
+    required String title,
+    required DateTime when,
+  }) {
+    return _schedule(
+      id: _IdRange.drop + id,
+      title: 'Drop reminder',
+      body: title,
+      when: when,
+      payload: 'drop:$id',
+    );
+  }
+
+  Future<void> cancelDropReminder(int id) =>
+      _plugin.cancel(id: _IdRange.drop + id);
 
   /// Fires immediately; used for low-stock and budget-threshold alerts.
   Future<void> notifyNow({
