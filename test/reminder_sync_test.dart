@@ -12,6 +12,7 @@ import 'package:logsuite/core/services/notification_service.dart';
 import 'package:logsuite/core/services/reminder_sync.dart';
 import 'package:logsuite/core/settings/app_settings.dart';
 import 'package:logsuite/presentation/expenses/repository/expense_repository.dart';
+import 'package:logsuite/presentation/drop/repository/drop_repository.dart';
 import 'package:logsuite/presentation/habits/repository/habit_repository.dart';
 import 'package:logsuite/presentation/medicine/repository/medicine_repository.dart';
 import 'package:logsuite/presentation/medicine/utils/schedule_generator.dart';
@@ -29,6 +30,7 @@ class _RecordingNotifications extends NotificationService {
   final doses = <int>[];
   final bills = <int>[];
   final loans = <int>[];
+  final drops = <int>[];
   final dosageLabels = <String>{};
 
   @override
@@ -88,6 +90,16 @@ class _RecordingNotifications extends NotificationService {
 
   @override
   Future<void> cancelLoanReminder(int loanId) async {}
+
+  @override
+  Future<void> scheduleDropReminder({
+    required int id,
+    required String title,
+    required DateTime when,
+  }) async => drops.add(id);
+
+  @override
+  Future<void> cancelDropReminder(int id) async {}
 }
 
 void main() {
@@ -192,11 +204,18 @@ void main() {
       dueDate: tomorrow,
     );
 
+    final dropRepo = container.read(dropRepositoryProvider);
+    final dropId = await dropRepo.createDrop(
+      content: 'Important article',
+      reminderAt: tomorrow,
+    );
+
     await container.read(reminderSyncProvider).syncAll();
 
     expect(notifications.tasks, [due]);
     expect(notifications.notes, [noted]);
     expect(notifications.habits, [habit]);
+    expect(notifications.drops, [dropId]);
     expect(notifications.doses, hasLength(1));
     expect(notifications.dosageLabels, {'1.5 tablet'});
     expect(notifications.bills, [bill.id]);

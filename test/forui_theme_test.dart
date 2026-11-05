@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:logsuite/core/theme/app_colors.dart';
 import 'package:logsuite/core/theme/app_forui_theme.dart';
+import 'package:logsuite/core/theme/app_palette.dart';
 import 'package:logsuite/core/theme/app_theme.dart';
 
 void main() {
@@ -285,9 +286,8 @@ void main() {
       // making the selected tab's text invisible.
       expect(selected, isNot(indicator.color));
       expect(unselected, isNot(indicator.color));
-      // Whatever the palette puts on its primary — near-black for coral, since
-      // white on coral is 2.91:1.
-      expect(selected, AppColors.onCoral);
+      // Whatever the palette puts on its primary (customized to white for coral light).
+      expect(selected, AppPalette.coral.spec(Brightness.light).onPrimary);
     });
 
     test('the strip has no track of its own', () {

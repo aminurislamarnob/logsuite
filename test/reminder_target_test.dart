@@ -8,6 +8,7 @@ void main() {
     expect(ReminderTarget.parse('habit:7')!.route, '/habits');
     expect(ReminderTarget.parse('bill:7')!.route, '/expenses');
     expect(ReminderTarget.parse('loan:7')!.route, '/expenses');
+    expect(ReminderTarget.parse('drop:7')!.route, '/drop');
   });
 
   test('a note opens in its editor', () {

@@ -132,18 +132,20 @@ class AiResponseParser {
         );
 
       case AiActionKind.logSymptom:
-        if (title == null) return null;
+        final symptomName = title ?? _string(m['symptom']);
+        if (symptomName == null) return null;
         return LogSymptomAction(
-          symptom: title,
+          symptom: symptomName,
           severity: _number(m['severity'])?.round() ?? 3,
           person: _string(m['person']),
           note: _string(m['note_body']),
         );
 
       case AiActionKind.addPerson:
-        if (title == null) return null;
+        final personName = title ?? _string(m['person']) ?? _string(m['name']);
+        if (personName == null) return null;
         return AddPersonAction(
-          name: title,
+          name: personName,
           relation: _string(m['relation']) ?? 'Family',
         );
 
