@@ -76,5 +76,17 @@
 	<string>Turn what you say into tasks, expenses, notes, medicines, habits and focus sessions. Recognition runs on-device; if you add an AI provider key in Settings, the transcript is sent to that provider.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Unlock logSuite and your locked notes with Face ID.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

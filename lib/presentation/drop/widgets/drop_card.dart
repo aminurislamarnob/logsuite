@@ -2,13 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/common.dart';
+import '../../../core/widgets/in_app_browser.dart';
 import '../models/drop_with_tags.dart';
 import '../providers/drop_gamification_provider.dart';
 import '../repository/drop_repository.dart';
@@ -37,6 +37,16 @@ class DropCard extends ConsumerWidget {
     this.onConvertToNote,
   });
 
+  String? _extractUrl() {
+    final raw = item.content.trim();
+    final urlMatch = RegExp(r'https?://[^\s<>"]+').firstMatch(raw);
+    if (urlMatch != null) return urlMatch.group(0);
+    if (item.isArticle || item.isVideo) {
+      return InAppBrowserScreen.normalizeUrl(raw);
+    }
+    return null;
+  }
+
   Future<void> _handlePrimaryTap(BuildContext context) async {
     if (isSelectionMode) {
       onToggleSelect?.call();
@@ -48,17 +58,18 @@ class DropCard extends ConsumerWidget {
       return;
     }
 
-    if (item.isArticle || item.isVideo) {
-      final raw = item.content.trim();
-      final urlMatch = RegExp(r'https?://[^\s]+').firstMatch(raw);
-      final urlString = urlMatch != null ? urlMatch.group(0) : raw;
-      if (urlString != null) {
-        final uri = Uri.tryParse(urlString);
-        if (uri != null) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-          return;
-        }
-      }
+    final urlString = _extractUrl();
+    if (urlString != null &&
+        (item.isArticle ||
+            item.isVideo ||
+            item.content.trim().startsWith('http://') ||
+            item.content.trim().startsWith('https://'))) {
+      await InAppBrowserScreen.open(
+        context,
+        urlString,
+        initialTitle: item.title,
+      );
+      return;
     }
 
     // Default for clips: copy to clipboard with feedback
@@ -73,6 +84,7 @@ class DropCard extends ConsumerWidget {
     final brand = context.brand;
     final repo = ref.read(dropRepositoryProvider);
     final isArchived = item.isArchived;
+    final extractedUrl = _extractUrl();
 
     brandSheet(
       context: context,
@@ -80,6 +92,31 @@ class DropCard extends ConsumerWidget {
         title: item.title ?? (item.isClip ? 'Text Drop' : 'Drop Actions'),
         child: Column(
           children: [
+            if (extractedUrl != null) ...[
+              BrandTile(
+                leading: const AppIcon(AppIcons.globe),
+                title: const Text('Open in In-App Browser'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  InAppBrowserScreen.open(
+                    context,
+                    extractedUrl,
+                    initialTitle: item.title,
+                  );
+                },
+              ),
+              BrandTile(
+                leading: const AppIcon(AppIcons.externalLink),
+                title: const Text('Open in External Browser'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  InAppBrowserScreen.openInExternalBrowser(
+                    context,
+                    extractedUrl,
+                  );
+                },
+              ),
+            ],
             BrandTile(
               leading: AppIcon(item.isPinned ? AppIcons.pin : AppIcons.pin),
               title: Text(item.isPinned ? 'Unpin' : 'Pin to top'),

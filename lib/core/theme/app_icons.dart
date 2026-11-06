@@ -96,6 +96,8 @@ class AppIcons {
   static const share = HugeIcons.strokeRoundedShare01;
   static const copy = HugeIcons.strokeRoundedCopy01;
   static const link = HugeIcons.strokeRoundedLink02;
+  static const externalLink = HugeIcons.strokeRoundedLinkSquare02;
+  static const globe = HugeIcons.strokeRoundedGlobe02;
   static const repeat = HugeIcons.strokeRoundedRepeat;
   static const replay = HugeIcons.strokeRoundedRefresh;
   static const transfer = HugeIcons.strokeRoundedExchange01;

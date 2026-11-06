@@ -14,6 +14,7 @@ import '../../core/theme/app_icons.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
+import '../../core/widgets/in_app_browser.dart';
 import '../tasks/repository/task_repository.dart';
 import 'repository/note_repository.dart';
 
@@ -374,10 +375,11 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
               child: quill.QuillEditor.basic(
                 controller: _controller!,
                 focusNode: _editorFocus,
-                config: const quill.QuillEditorConfig(
+                config: quill.QuillEditorConfig(
                   placeholder: 'Start writing…',
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 80),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                   expands: true,
+                  onLaunchUrl: (url) => InAppBrowserScreen.open(context, url),
                 ),
               ),
             ),
