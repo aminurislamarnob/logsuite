@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LogSuite</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&amp;family=Figtree:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+:root{color-scheme:light}
+/* Layout: a dated engineering log. A left rail says when each piece of work happened; the story runs beside it. */
+:root {
+  --paper:#EDF1F2;
+  --surface:#FAFCFC;
+  --ink:#10212A;
+  --muted:#4C5D65;
+  --rule:#C4D0D4;
+  --accent:#F15F43;
+  --me:#E24E32;
+  --team:#C47F00;
+  --before:#9AA8AE;
+  --note:#E0EBED;
+  --band:#13232B;
+  --band-ink:#F1F5F4;
+  --band-muted:#AFC4CA;
+  --band-rule:#2A4955;
+  --highlight:#FFAA99;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper:#0B171D;
+  --surface:#13232B;
+  --ink:#E5EDEF;
+  --muted:#A0B2B8;
+  --rule:#2C3F47;
+  --accent:#FFAA99;
+  --me:#F15F43;
+  --team:#C08A1E;
+  --before:#66767C;
+  --note:#183039;
+  --band:#13232B;
+  --band-ink:#F1F5F4;
+  --band-muted:#AFC4CA;
+  --band-rule:#2A4955;
+  --highlight:#FFAA99;
+  color-scheme:dark;
+} }
+:root[data-theme="dark"] {
+  --paper:#0B171D;
+  --surface:#13232B;
+  --ink:#E5EDEF;
+  --muted:#A0B2B8;
+  --rule:#2C3F47;
+  --accent:#FFAA99;
+  --me:#F15F43;
+  --team:#C08A1E;
+  --before:#66767C;
+  --note:#183039;
+  --band:#13232B;
+  --band-ink:#F1F5F4;
+  --band-muted:#AFC4CA;
+  --band-rule:#2A4955;
+  --highlight:#FFAA99;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--paper);color:var(--ink);font:400 17px/1.65 var(--body);margin:0}
+img{max-width:100%}
+a{color:var(--accent);text-underline-offset:3px}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+.gutter{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin-inline:auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.015em}
+h2{font-size:clamp(1.65rem,1.3rem + 1.4vw,2.35rem);line-height:1.12;font-weight:700}
+h3{font-size:1.15rem;line-height:1.3;font-weight:650;letter-spacing:-.005em}
+p{margin:0}
+code{font:400 .84em var(--mono);background:var(--note);padding:.08em .32em;border-radius:3px;overflow-wrap:anywhere}
+.hero{background:var(--band);color:var(--band-ink);padding-block:clamp(36px,6vw,72px) 0}
+.hero.noshots{padding-block-end:clamp(28px,4vw,48px)}
+.hero a{color:var(--highlight)}
+.eyebrow{font:500 .76rem/1.4 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--highlight)}
+.hero h1{font-size:clamp(2.45rem,1.5rem + 4.6vw,5rem);line-height:1;font-weight:750;letter-spacing:-.03em;margin-top:18px;max-width:17ch}
+.lede{font-size:clamp(1.08rem,1rem + .4vw,1.3rem);line-height:1.55;max-width:62ch;margin-top:24px;color:var(--band-ink)}
+.hero code{background:var(--band-rule);color:var(--band-ink)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px 28px;margin:34px 0 0;padding:20px 0;border-top:1px solid var(--band-rule)}
+.facts dt{font:500 .72rem/1.4 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--band-muted)}
+.facts dd{margin:4px 0 0;font-size:.98rem;line-height:1.4}
+.shots{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.262fr);gap:clamp(10px,2vw,22px);align-items:end;margin-top:26px;margin-bottom:-60px;position:relative}
+.shots.single{grid-template-columns:minmax(0,1fr)}
+.shots img{display:block;width:100%;height:auto;border-radius:10px 10px 0 0;box-shadow:0 14px 44px rgba(0,0,0,.4)}
+.shots img.phone{border-radius:14px 14px 0 0}
+.shot-note{padding-top:72px;font:400 .78rem/1.5 var(--mono);color:var(--muted)}
+.noshots + main .shot-note{padding-top:24px}
+section.entry{display:grid;grid-template-columns:150px minmax(0,1fr);gap:0 36px;padding-block:clamp(38px,5vw,62px);border-top:1px solid var(--rule)}
+section.entry.first{border-top:0}
+.rail{font:500 .78rem/1.45 var(--mono);color:var(--accent);padding-top:.5rem}
+.rail span{display:block;color:var(--muted);font-weight:400}
+.col{min-width:0;display:grid;gap:18px}
+.col>p,.col>ul,.col>h2,.col>h3{max-width:68ch}
+.col>h3{margin-top:12px}
+ul.tight{margin:0;padding-left:1.15em;display:grid;gap:8px}
+ul.tight li::marker{color:var(--accent)}
+strong{font-weight:600}
+figure{margin:8px 0;min-width:0}
+figcaption{font-size:.9rem;line-height:1.5;color:var(--muted);margin-top:10px;max-width:68ch}
+.scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:8px}
+.scroll svg{display:block;width:100%;height:auto;min-width:680px}
+.shot{display:block;width:100%;height:auto;border-radius:8px;border:1px solid var(--rule)}
+.d-box{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.d-zone{fill:var(--note);stroke:var(--rule);stroke-width:1}
+.d-t{font:600 13px var(--body);fill:var(--ink)}
+.d-s{font:400 11.5px var(--mono);fill:var(--muted)}
+.d-z{font:500 11.5px var(--mono);fill:var(--muted)}
+.d-l{stroke:var(--ink);stroke-width:1.3;fill:none}
+.d-dash{stroke-dasharray:5 4}
+.d-life{stroke:var(--rule);stroke-width:1.2}
+.d-a{stroke:var(--accent);stroke-width:2.2;fill:none}
+.d-at{font:600 12px var(--body);fill:var(--accent)}
+.d-m{fill:var(--ink)} .d-ma{fill:var(--accent)}
+.d-check{fill:var(--note);stroke:var(--accent);stroke-width:1.6}
+.chart{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:18px clamp(12px,2.2vw,24px) 12px}
+.chart .in{overflow-x:auto}
+.chart svg{display:block;width:100%;height:auto;min-width:600px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:.9rem;margin-bottom:10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:7px;vertical-align:-1px}
+.c-me{fill:var(--me)} .c-team{fill:var(--team)}
+.g-grid{stroke:var(--rule);stroke-width:1;stroke-dasharray:2 4}
+.g-base{stroke:var(--ink);stroke-width:1.2}
+.g-tick{stroke:var(--muted);stroke-width:1}
+.g-ax{font:400 11px var(--mono);fill:var(--muted)}
+.g-m{font:500 12px var(--mono);fill:var(--ink)}
+.g-v{font:500 10.5px var(--mono);fill:var(--muted)}
+.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 24px;margin-top:6px}
+.totals div{border-top:1px solid var(--rule);padding-top:8px}
+.totals b{display:block;font:650 1.5rem/1.1 var(--display);font-variant-numeric:tabular-nums}
+.totals small{display:block;font:400 .78rem/1.45 var(--mono);color:var(--muted)}
+.ranges{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:18px clamp(12px,2.2vw,24px);display:grid;gap:16px}
+.row-h{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 14px;font-size:.94rem;margin-bottom:6px}
+.row-h span{font:400 .78rem/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.track{position:relative;height:30px;background-image:linear-gradient(to right,var(--rule) 1px,transparent 1px);background-size:25% 100%;border-right:1px solid var(--rule)}
+.bar{position:absolute;height:12px;border-radius:0 3px 3px 0;min-width:4px}
+.bar.b{top:2px;background:var(--before)} .bar.a{top:16px;background:var(--me)}
+.axis{display:flex;justify-content:space-between;font:400 .74rem var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+pre{margin:0;overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;font:400 .8rem/1.75 var(--mono)}
+pre .t{color:var(--accent);font-weight:500;margin-right:1.2ch}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.94rem;min-width:520px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:500 .72rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.split>div{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;min-width:0}
+.split h3{margin-bottom:10px;display:flex;align-items:center;gap:9px}
+.split h3 i{width:11px;height:11px;border-radius:2px;display:inline-block}
+.split ul{font-size:.95rem}
+.defs{display:grid;gap:0;margin:0;border-top:1px solid var(--rule)}
+.defs>div{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:4px 22px;padding:14px 0;border-bottom:1px solid var(--rule)}
+.defs dt{font-family:var(--display);font-weight:650;line-height:1.35}
+.defs dd{margin:0;font-size:.97rem;max-width:62ch}
+.muted{font-size:.9rem;color:var(--muted)}
+footer{border-top:1px solid var(--rule);padding-block:32px 56px;color:var(--muted);font-size:.9rem;line-height:1.6}
+footer h3{color:var(--ink);margin-bottom:6px}
+footer p{max-width:76ch}
+.stack{font:400 .8rem/1.8 var(--mono);color:var(--muted)}
+@media (max-width:780px){
+  section.entry{grid-template-columns:minmax(0,1fr);gap:10px}
+  .rail{padding-top:0}.rail span{display:inline;margin-left:.6ch}
+  .defs>div{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+</head>
+<body>
+<header class="hero gutter"><div class="wrap">
+<p class="eyebrow">Case study · Cross-platform mobile app</p>
+<h1>Seven offline-first productivity modules on one SQLite database</h1>
+<p class="lede">Between June and November 2026, I built <a href="https://github.com/aminurislamarnob/logsuite">LogSuite</a>, an offline-first Flutter app that combines tasks, notes, habits, medicine schedules, expenses, a focus timer, and a quick-capture inbox called Drop. Every module reads and writes a local SQLite database through Drift and can be turned off in Settings when a user wants a smaller app. I made <strong>all 102 non-merge commits</strong> on <code>main</code>, pairing with Claude Code across 76 of them, and backed the codebase with 392 automated tests.</p>
+<dl class="facts"><div><dt>My role</dt><dd>Developer and architect, with Claude Code as pair</dd></div><div><dt>Team</dt><dd>1 developer, 1 repository</dd></div><div><dt>Window</dt><dd>24 Jun to 6 Nov 2026</dd></div><div><dt>Milestone</dt><dd>v0.0.2+2, 392 automated tests passing</dd></div><div><dt>Stack</dt><dd>Flutter, Dart, Drift SQLite, Riverpod, go_router, forui, Hugeicons</dd></div></dl>
+<div class="shots"><img src="img/home-desktop.jpg" width="1440" height="900" alt="Three LogSuite screens showing the Expense entry sheet with BDT and bKash options, the home dashboard, and the Drop inbox with summarized articles"><img class="phone" src="img/home-phone.jpg" width="390" height="875" alt="LogSuite Quick Add sheet showing voice command, document scan, and module shortcuts"></div>
+</div></header>
+<main class="gutter"><div class="wrap">
+<p class="shot-note">LogSuite on mobile viewports: the Expense entry sheet, Dashboard, Drop inbox, and Quick Add sheet. Captured in November 2026.</p>
+<section class="entry first"><div class="rail">The months <span>24 Jun to 6 Nov</span></div><div class="col"><h2>What the five months looked like</h2><p>Most of the work landed in three stretches. Over 29 and 30 July (19 commits), I built the initial six-module app and migrated every screen from Material 3 widgets onto <code>forui</code> primitives. Between 2 and 13 September (69 commits), I rebuilt the expense module around people, loans, and monthly budgets, added the four-provider AI voice and document-scanning assistant, synthesised the six WAV ambient loops, and shipped full JSON backup and restore. On 5 and 6 November (11 commits), I built the Drop capture and triage module with tag suggestions, gamification, haptics, and an in-app browser. The repository was quiet from 25 June to 28 July, from 31 July to 1 September, and from 14 September to 28 October.</p><figure><div class="chart"><div class="legend"><span><i style="background:var(--me)"></i>My commits (102)</span><span><i style="background:var(--team)"></i>Team commits (0)</span></div><div class="in"><svg viewBox="0 0 820 276" role="img" aria-label="Commits per week from 2026-06-24 to 2026-11-06: 102 mine and 0 by the team. Busiest week: 2026-08-31."><line class="g-grid" x1="46" y1="236.0" x2="806" y2="236.0"/><text class="g-ax" x="40" y="240.0" text-anchor="end">0</text><line class="g-grid" x1="46" y1="172.0" x2="806" y2="172.0"/><text class="g-ax" x="40" y="176.0" text-anchor="end">20</text><line class="g-grid" x1="46" y1="108.0" x2="806" y2="108.0"/><text class="g-ax" x="40" y="112.0" text-anchor="end">40</text><line class="g-grid" x1="46" y1="44.0" x2="806" y2="44.0"/><text class="g-ax" x="40" y="48.0" text-anchor="end">60</text><g><title>Week of 22 Jun: 1 mine, 0 team</title><rect class="c-me" x="55.4" y="232.8" width="30.9" height="3.2"/><text class="g-v" x="70.8" y="226.8" text-anchor="middle">1</text></g><line class="g-tick" x1="55.4" y1="236" x2="55.4" y2="246"/><text class="g-m" x="55.4" y="262">Jun</text><g><title>Week of 29 Jun: 0 mine, 0 team</title></g><g><title>Week of 6 Jul: 0 mine, 0 team</title></g><line class="g-tick" x1="130.8" y1="236" x2="130.8" y2="246"/><text class="g-m" x="130.8" y="262">Jul</text><g><title>Week of 13 Jul: 0 mine, 0 team</title></g><g><title>Week of 20 Jul: 0 mine, 0 team</title></g><g><title>Week of 27 Jul: 19 mine, 0 team</title><rect class="c-me" x="243.9" y="175.2" width="30.9" height="60.8"/><text class="g-v" x="259.4" y="169.2" text-anchor="middle">19</text></g><g><title>Week of 3 Aug: 0 mine, 0 team</title></g><line class="g-tick" x1="281.6" y1="236" x2="281.6" y2="246"/><text class="g-m" x="281.6" y="262">Aug</text><g><title>Week of 10 Aug: 0 mine, 0 team</title></g><g><title>Week of 17 Aug: 0 mine, 0 team</title></g><g><title>Week of 24 Aug: 0 mine, 0 team</title></g><g><title>Week of 31 Aug: 53 mine, 0 team</title><rect class="c-me" x="432.4" y="66.4" width="30.9" height="169.6"/><text class="g-v" x="447.9" y="60.4" text-anchor="middle">53</text></g><g><title>Week of 7 Sep: 16 mine, 0 team</title><rect class="c-me" x="470.1" y="184.8" width="30.9" height="51.2"/><text class="g-v" x="485.6" y="178.8" text-anchor="middle">16</text></g><line class="g-tick" x1="470.1" y1="236" x2="470.1" y2="246"/><text class="g-m" x="470.1" y="262">Sep</text><g><title>Week of 14 Sep: 0 mine, 0 team</title></g><g><title>Week of 21 Sep: 0 mine, 0 team</title></g><g><title>Week of 28 Sep: 0 mine, 0 team</title></g><g><title>Week of 5 Oct: 0 mine, 0 team</title></g><line class="g-tick" x1="620.9" y1="236" x2="620.9" y2="246"/><text class="g-m" x="620.9" y="262">Oct</text><g><title>Week of 12 Oct: 0 mine, 0 team</title></g><g><title>Week of 19 Oct: 0 mine, 0 team</title></g><g><title>Week of 26 Oct: 2 mine, 0 team</title><rect class="c-me" x="734.0" y="229.6" width="30.9" height="6.4"/><text class="g-v" x="749.5" y="223.6" text-anchor="middle">2</text></g><g><title>Week of 2 Nov: 11 mine, 0 team</title><rect class="c-me" x="771.7" y="200.8" width="30.9" height="35.2"/><text class="g-v" x="787.2" y="194.8" text-anchor="middle">11</text></g><line class="g-tick" x1="771.7" y1="236" x2="771.7" y2="246"/><text class="g-m" x="771.7" y="262">Nov</text><line class="g-base" x1="46" y1="236" x2="806" y2="236"/></svg></div></div><figcaption>Each column is one week of non-merge commits on <code>main</code> in <code>aminurislamarnob/logsuite</code>.</figcaption></figure><div class="totals"><div><b>102 of 102</b><small>commits on main</small></div><div><b>76 of 102</b><small>co-authored with Claude Code</small></div><div><b>9 of 10</b><small>GitHub issues closed</small></div><div><b>392</b><small>automated tests passing</small></div></div></div></section>
+<section class="entry"><div class="rail">The brief <span>before 29 Jul</span></div><div class="col"><h2>What had to be true from the start</h2><p>From the README and taste rules, five constraints shaped the project:</p><ul class="tight"><li><strong>Offline-first persistence:</strong> Every module reads and writes a local SQLite database through Drift (<code>lib/core/database/app_database.dart</code>), with no mandatory account or server.</li><li><strong>Optional modules:</strong> Each module can be switched on or off in Settings so the navigation shell and dashboard only show what the user uses.</li><li><strong>First-class Bangladesh locale:</strong> ৳ (BDT) currency, Bangla numerals (<code>০</code> to <code>৯</code>), seeded Cash, bKash, Nagad, and Bank accounts, and English/Bangla/Banglish voice parsing.</li><li><strong>User-owned AI keys:</strong> Spoken and scanned commands work with Claude, OpenAI, Gemini, or DeepSeek using an API key kept in the platform keychain, and fall back to an offline parser when no key is set.</li><li><strong>No dead buttons or half-shipped features:</strong> Every toggle, backup action, reminder, and sound option in the UI is wired end to end and covered by tests.</li></ul></div></section>
+<section class="entry"><div class="rail">Architecture <span>29 Jul to 5 Nov</span></div><div class="col"><h2>One SQLite database beneath seven modules</h2><p>The UI sits on <code>go_router</code> nested shells and a shared widget kit in <code>lib/core/widgets/</code> built over <code>forui</code> primitives. <code>AppColors</code> defines the coral brand accent (<code>#F15F43</code>), a three-way pastel card rotation, and warm per-module tints that pass contrast checks.</p><p>Below the screens, Riverpod providers watch 22 Drift SQLite tables (<code>Folders</code>, <code>Notes</code>, <code>Tags</code>, <code>NoteTags</code>, <code>Projects</code>, <code>Tasks</code>, <code>TaskTags</code>, <code>Habits</code>, <code>HabitLogs</code>, <code>People</code>, <code>Medicines</code>, <code>MedicineDoses</code>, <code>SymptomLogs</code>, <code>Accounts</code>, <code>ExpenseCategories</code>, <code>Expenses</code>, <code>Budgets</code>, <code>RecurringExpenses</code>, <code>Loans</code>, <code>FocusSessions</code>, <code>Drops</code>, and <code>DropTags</code>). The AI command executor and the editor sheets write through the same repository methods, so a spoken or scanned entry produces the exact same rows and OS notifications as a typed one.</p><figure><div class="scroll"><svg viewBox="0 0 1000 320" role="img" aria-label="LogSuite system architecture: UI layer on ForUI and Brand widgets connects via Riverpod to the AI command parser and SQLite drift engine, backed by platform secure keychains." xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-m" d="M0 0L8 4L0 8z"/></marker>
+    <marker id="aa" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-ma" d="M0 0L8 4L0 8z"/></marker>
+  </defs>
+
+  <!-- Zone 1: UI Layer -->
+  <rect class="d-zone" x="20" y="24" width="290" height="270" rx="8"/>
+  <text class="d-z" x="36" y="46">UI Layer · ForUI &amp; Brand Tokens</text>
+
+  <rect class="d-box" x="40" y="66" width="250" height="54" rx="6"/>
+  <text class="d-t" x="165" y="90" text-anchor="middle">Curved Shell &amp; Navigation</text>
+  <text class="d-s" x="165" y="107" text-anchor="middle">go_router nested shells · Hugeicons</text>
+
+  <rect class="d-box" x="40" y="134" width="250" height="64" rx="6"/>
+  <text class="d-t" x="165" y="157" text-anchor="middle">7 Modular Features</text>
+  <text class="d-s" x="165" y="174" text-anchor="middle">Tasks · Notes · Habits · Meds</text>
+  <text class="d-s" x="165" y="189" text-anchor="middle">Expenses · Focus · Drop Triage</text>
+
+  <rect class="d-box" x="40" y="212" width="250" height="54" rx="6"/>
+  <text class="d-t" x="165" y="235" text-anchor="middle">Brand Primitives Layer</text>
+  <text class="d-s" x="165" y="252" text-anchor="middle">BrandScaffold · TintCard · FCard</text>
+
+  <!-- Arrow from UI to State -->
+  <line class="d-a" x1="310" y1="166" x2="359" y2="166" marker-end="url(#aa)"/>
+  <text class="d-at" x="335" y="156" text-anchor="middle">watch</text>
+
+  <!-- Zone 2: State & Logic -->
+  <rect class="d-zone" x="360" y="24" width="300" height="270" rx="8"/>
+  <text class="d-z" x="376" y="46">Logic &amp; AI Engine</text>
+
+  <rect class="d-box" x="380" y="66" width="260" height="58" rx="6"/>
+  <text class="d-t" x="510" y="90" text-anchor="middle">Riverpod State Layer</text>
+  <text class="d-s" x="510" y="108" text-anchor="middle">AsyncNotifiers · StreamProviders</text>
+
+  <rect class="d-box" x="380" y="138" width="260" height="66" rx="6"/>
+  <text class="d-t" x="510" y="161" text-anchor="middle">Multi-Brain AI Parser</text>
+  <text class="d-s" x="510" y="178" text-anchor="middle">Claude · OpenAI · Gemini · DeepSeek</text>
+  <text class="d-s" x="510" y="193" text-anchor="middle">Injected entity grounding · Offline fallback</text>
+
+  <rect class="d-box" x="380" y="218" width="260" height="52" rx="6"/>
+  <text class="d-t" x="510" y="241" text-anchor="middle">Audio &amp; Voice Synthesis</text>
+  <text class="d-s" x="510" y="258" text-anchor="middle">speech_to_text · Frequency-domain WAV</text>
+
+  <!-- Arrow from State to Persistence -->
+  <line class="d-l" x1="660" y1="96" x2="709" y2="96" marker-end="url(#ah)"/>
+  <line class="d-a" x1="660" y1="172" x2="709" y2="172" marker-end="url(#aa)"/>
+  <text class="d-at" x="685" y="162" text-anchor="middle">write</text>
+
+  <!-- Zone 3: Storage & Security -->
+  <rect class="d-zone" x="710" y="24" width="270" height="270" rx="8"/>
+  <text class="d-z" x="726" y="46">Storage &amp; Platform Keychain</text>
+
+  <rect class="d-box" x="725" y="66" width="240" height="64" rx="6"/>
+  <text class="d-t" x="845" y="90" text-anchor="middle">Drift SQLite Engine</text>
+  <text class="d-s" x="845" y="108" text-anchor="middle">Reactive tables · Deferred FKs</text>
+  <text class="d-s" x="845" y="122" text-anchor="middle">Atomic multi-table transactions</text>
+
+  <rect class="d-box" x="725" y="144" width="240" height="58" rx="6"/>
+  <text class="d-t" x="845" y="167" text-anchor="middle">Platform Secure Keychain</text>
+  <text class="d-s" x="845" y="185" text-anchor="middle">iOS Keychain / Android KeyStore</text>
+  <text class="d-s" x="845" y="197" text-anchor="middle">macOS Keychain / Linux SecretService</text>
+
+  <rect class="d-box" x="725" y="216" width="240" height="54" rx="6"/>
+  <text class="d-t" x="845" y="239" text-anchor="middle">Atomic JSON Backup</text>
+  <text class="d-s" x="845" y="256" text-anchor="middle">Full roundtrip toJson/fromJson</text>
+</svg>
+</div><figcaption>ForUI screens watch Riverpod providers backed by 22 Drift SQLite tables, while the AI assistant reads API keys from the platform keychain.</figcaption></figure></div></section>
+<section class="entry"><div class="rail">Design system <span>29 to 30 Jul</span></div><div class="col"><h2>Moving every screen off Material onto forui in six phases</h2><p>Commit <code>bb15faf</code> on 29 July stood up the six initial modules on Drift, Riverpod, and <code>go_router</code> with the coral palette, Hugeicons stroke-rounded glyphs (<code>6559e93</code>), and Bricolage Grotesque typography (<code>883b25c</code>). Material 3 components still controlled buttons, inputs, tabs, and dialogs across screens. On 30 July I ran a six-phase migration onto <code>forui: 0.24.3</code> and recorded the audit in <code>forui-migration-verification.md</code>.</p><pre><span class="t">30 Jul 09:54</span>Pin forui 0.24.3 and drive FThemeData from BrandTokens (af29c78)
+<span class="t">30 Jul 10:14</span>Rebuild BrandScaffold, TintCard, BrandTile, BrandField, and CurvedNavBar on forui (3026454)
+<span class="t">30 Jul 10:24</span>Migrate Settings, Onboarding, and the app shell (01bd709, a0c61f0)
+<span class="t">30 Jul 11:38</span>Phase 4: move Tasks, Habits, and Medicine off Material widgets (0b2e277)
+<span class="t">30 Jul 11:48</span>Phase 5: move Expenses, Notes, and Focus off Material widgets (a510316)
+<span class="t">30 Jul 15:37</span>Phase 6: move Dashboard, chrome, and the lock gate; verify and close follow-ups (e327d8b, e64a617)</pre><dl class="defs"><div><dt>Radius ramp</dt><dd>Pinned across FThemeData: 16px fields, 20px tiles, 24px cards, and 28px bottom sheets.</dd></div><div><dt>Hugeicons bridge</dt><dd>All 22 FIcons slots bridged to Hugeicons stroke-rounded via AppIcon with semanticsLabel pass-through.</dd></div><div><dt>CurvedNavBar</dt><dd>Preserved the custom-painted center notch under FBottomNavigationBar for the floating Quick Add button.</dd></div><div><dt>PIN and biometric gate</dt><dd>Added module-level and app-level lock protection in commit 7510835, mounted above the shell.</dd></div></dl></div></section>
+<section class="entry"><div class="rail">Expenses &amp; loans <span>2 to 4 Sep</span></div><div class="col"><h2>Expenses: people, loans, and month-scoped budgets</h2><p>Household spending rarely belongs to one person or stays inside simple income and expense rows. On 3 September I wrote <code>expense-module-plan.md</code> and shipped a 14-commit sequence (<code>0465f94</code> to <code>46cafbf</code>) that split <code>expenses_screen.dart</code> into five tab files (Overview, Reports, Budgets, Bills, and Loans) and added a core <code>People</code> table, month-scoped budgets, and a loan ledger.</p><p>Editing a transaction reverses its old account delta and applies the new one inside a single Drift transaction (<code>ead7675</code>). Swiping to delete raises an undo toast that re-inserts the row with its original primary key so <code>loanId</code> and receipt links stay intact. Deleting a category or person with history prompts to reassign those transactions rather than orphaning them.</p><div class="tbl"><table><thead><tr><th>TxKind</th><th>What it records</th><th>Effect on balances and reports</th></tr></thead><tbody><tr><td>0 · Expense</td><td>Spending attributed to a person (defaults to Self)</td><td>Subtracts from account; counted in monthly spend and person reports</td></tr><tr><td>1 · Income</td><td>Salary, freelance, or refund</td><td>Adds to account; counted in monthly income</td></tr><tr><td>2 · Transfer</td><td>Move money between Cash, bKash, Nagad, or Bank</td><td>Updates both accounts; excluded from income/spend totals</td></tr><tr><td>3 · Lend</td><td>Principal lent to a person in Loans</td><td>Subtracts from account; excluded from spend totals</td></tr><tr><td>4 · Borrow</td><td>Principal borrowed from a person</td><td>Adds to account; tracks outstanding obligation</td></tr><tr><td>5 · Repayment</td><td>Partial or full loan repayment</td><td>Adjusts account and marks the loan settled when outstanding reaches zero</td></tr></tbody></table></div></div></section>
+<section class="entry"><div class="rail">AI assistant <span>5 to 13 Sep</span></div><div class="col"><h2>Spoken sentences and scanned documents become previewed drafts</h2><p>Between 5 and 8 September (<code>c77c448</code> to <code>fae2ac5</code>), and in PR #3 on 13 September (<code>9483453</code>), I built the AI assistant so a single sentence such as *&#x27;spent 200 taka on lunch with bKash and remind me to call the doctor at 5, and add Napa 3 times a day for 5 days&#x27;* creates an expense, a task with a reminder, and a medicine course.</p><p>Speech recognition and ML Kit document OCR always run on the device (<code>speech_service.dart</code>, <code>ocr_service.dart</code>), so audio and photos never leave the phone. The transcript is sent with the action schema (<code>ai_command_schema.dart</code>) and the names of the user&#x27;s categories, accounts, people, habits, and projects to whichever provider is chosen in Settings: Claude, OpenAI, Gemini, or DeepSeek. The user&#x27;s API key lives in <code>flutter_secure_storage</code> (platform keychain). Without a key, <code>LocalCommandParser</code> splits clauses on English and Banglish conjunctions (<code>and</code>, <code>then</code>, <code>ar</code>, <code>ebong</code>) and routes each clause to the local task, medicine, and expense parsers.</p><figure><div class="scroll"><svg viewBox="0 0 900 420" role="img" aria-label="Sequence diagram showing the zero-leak grounded AI voice pipeline: on-device speech recognition, local entity injection, structured LLM parsing, card preview, and atomic SQLite transaction." xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="sh" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="d-m" d="M0 0L8 4L0 8z"/></marker>
+    <marker id="sa" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="d-ma" d="M0 0L8 4L0 8z"/></marker>
+  </defs>
+
+  <!-- Lifelines -->
+  <line class="d-life" x1="90" y1="56" x2="90" y2="400"/>
+  <line class="d-life" x1="330" y1="56" x2="330" y2="400"/>
+  <line class="d-life" x1="570" y1="56" x2="570" y2="400"/>
+  <line class="d-life" x1="810" y1="56" x2="810" y2="400"/>
+
+  <!-- Actor boxes -->
+  <rect class="d-box" x="30" y="20" width="120" height="36" rx="6"/><text class="d-t" x="90" y="43" text-anchor="middle">User (Voice)</text>
+  <rect class="d-box" x="270" y="20" width="120" height="36" rx="6"/><text class="d-t" x="330" y="43" text-anchor="middle">App &amp; Grounding</text>
+  <rect class="d-box" x="510" y="20" width="120" height="36" rx="6"/><text class="d-t" x="570" y="43" text-anchor="middle">Picked LLM Brain</text>
+  <rect class="d-box" x="750" y="20" width="120" height="36" rx="6"/><text class="d-t" x="810" y="43" text-anchor="middle">Drift SQLite DB</text>
+
+  <!-- Step 1: Voice input -->
+  <line class="d-a" x1="90" y1="94" x2="329" y2="94" marker-end="url(#sa)"/>
+  <text class="d-at" x="210" y="86" text-anchor="middle">Speak natural command</text>
+
+  <!-- Step 2: Speech to text & local whitelist injection -->
+  <line class="d-l" x1="330" y1="138" x2="440" y2="138"/>
+  <line class="d-l" x1="440" y1="138" x2="440" y2="158"/>
+  <line class="d-l" x1="440" y1="158" x2="331" y2="158" marker-end="url(#sh)"/>
+  <text class="d-t" x="345" y="152">Inject category &amp; account names</text>
+
+  <!-- Step 3: LLM prompt with keychain API key -->
+  <line class="d-a" x1="330" y1="194" x2="569" y2="194" marker-end="url(#sa)"/>
+  <text class="d-at" x="450" y="186" text-anchor="middle">Transcript + JSON schema + names</text>
+
+  <!-- Step 4: LLM reply -->
+  <line class="d-l d-dash" x1="570" y1="234" x2="331" y2="234" marker-end="url(#sh)"/>
+  <text class="d-t" x="450" y="226" text-anchor="middle">Structured actions (kind, amount, date)</text>
+
+  <!-- Step 5: Card preview -->
+  <line class="d-l d-dash" x1="330" y1="274" x2="91" y2="274" marker-end="url(#sh)"/>
+  <text class="d-t" x="210" y="266" text-anchor="middle">Present interactive Preview Sheet</text>
+
+  <!-- Step 6: Confirmation -->
+  <line class="d-a" x1="90" y1="314" x2="329" y2="314" marker-end="url(#sa)"/>
+  <text class="d-at" x="210" y="306" text-anchor="middle">Confirm ("Save all" or tap to edit)</text>
+
+  <!-- Step 7: Guarantee and Commit -->
+  <rect class="d-check" x="270" y="338" width="540" height="42" rx="6"/>
+  <text class="d-t" x="540" y="364" text-anchor="middle">Atomic drift transaction: zero silent rows or mis-heard creations</text>
+
+  <line class="d-a" x1="330" y1="392" x2="809" y2="392" marker-end="url(#sa)"/>
+  <text class="d-at" x="570" y="386" text-anchor="middle">Write validated rows to Drift tables</text>
+</svg>
+</div><figcaption>On-device speech or OCR text is paired with local entity names, parsed into drafts, and shown as preview cards before any row is written.</figcaption></figure></div></section>
+<section class="entry"><div class="rail">Sounds, backup &amp; motion <span>6 to 13 Sep</span></div><div class="col"><h2>Click-free WAV loops, all-or-nothing restore, and iOS motion</h2><p>Three commits in early September closed gaps between what the UI offered and what ran underneath, followed by a full spacing and motion pass in PR #4 (<code>8665585</code>) and the rename from mySuite to LogSuite (<code>caa068b</code>).</p><dl class="defs"><div><dt>Synthesised WAV loops (15cfc3d)</dt><dd>Six 16-bit mono PCM files in assets/sounds/ (rain, ocean, forest, cafe, white_noise, brown_noise) built in the frequency domain with random phase so every buffer is periodic and loops without an MP3/AAC padding click.</dd></div><div><dt>All-or-nothing JSON restore (15cfc3d)</dt><dd>RestoreService parses and validates the entire backup file before opening a database transaction, defers foreign keys for self-referencing folders, and decodes base64 profile photos back to local storage.</dd></div><div><dt>How-to guides (7f93da7)</dt><dd>Settings -&gt; How to renders collapsible step-by-step cards from how_to_content.dart with a button that opens or enables each module.</dd></div><div><dt>Spacing and iOS motion (PR #4)</dt><dd>Unified AppSpacing tokens (gutter 20, section 24, card gap 10), computed bottom clearance from bar height plus safe-area inset, and added Cupertino swipe-back transitions and rubber-band overscroll.</dd></div></dl></div></section>
+<section class="entry"><div class="rail">Drop &amp; triage <span>29 Oct to 6 Nov</span></div><div class="col"><h2>Drop: quick-capture inbox, tag autocomplete, and triage gamification</h2><p>On 29 October I added native Flutter integration tests (<code>integration_test/app_test.dart</code>, commit <code>acfef31</code>). Then on 5 and 6 November I shipped the seventh module, Drop (<code>2ee5f96</code> to <code>3953c20</code>, closing issues #5 through #13): a stream for capturing links, YouTube videos, photos, and rough thoughts before deciding where they belong.</p><ul class="tight"><li><strong>Rich capture and OS share sheet (#6, #7, #8, #11):</strong> Schema v3 migration adds <code>Drops</code> and <code>DropTags</code>, ingests payloads from the native OS share sheet (<code>receive_sharing_intent</code>), scrapes OpenGraph and YouTube metadata for preview cards, downscales thumbnails to 400px, and runs on-device ML Kit OCR on images.</li><li><strong>Triage, escalation, and summarization (#9, #12, #13):</strong> Items can be pinned, bulk-selected, scheduled with &#x27;Remind Me Later&#x27; notifications, summarized with AI or extractive fallback, or converted into a Note or Task prefilled in its editor.</li><li>**WhatsApp-style <code>#</code> tag suggestions (<code>8ffdb49</code>, <code>9c9f698</code>):** Typing <code>#</code> in the bottom capture bar opens a suggestion card with fuzzy matching over existing tags.</li><li>**Gamification, haptics, and in-app browser (<code>1dd6ef8</code>, <code>4d05d73</code>, <code>3953c20</code>):** Triage actions award XP, build daily streaks, unlock badges, and trigger an Inbox Zero celebration, paired with an app-wide haptics toggle and an in-app browser with external launch fallback.</li></ul></div></section>
+<section class="entry"><div class="rail">Under the hood <span>Guardrails</span></div><div class="col"><h2>The details a visitor never sees</h2><dl class="defs"><div><dt>Restore table guard</dt><dd>restore_service_test.dart asserts that RestoreService.sections covers every table declared on AppDatabase, so a new table cannot be wiped and left empty on restore.</dd></div><div><dt>Audio seam test</dt><dd>ambient_sounds_test.dart parses the bundled WAV headers and samples to verify 16-bit mono PCM, matched RMS loudness, no clipping, and a wrap-around step no larger than interior sample steps.</dd></div><div><dt>Keychain storage</dt><dd>API keys use flutter_secure_storage across Android, iOS, macOS, and Linux (libsecret-1-dev), never SharedPreferences.</dd></div><div><dt>Git blame hygiene</dt><dd>Commit ee3f38b reformatted 911 lines across 22 files; commit 1d361c5 recorded it in .git-blame-ignore-revs so git blame still points to the commit that wrote the logic.</dd></div></dl></div></section>
+<section class="entry"><div class="rail">Working with AI <span>76 of 102 commits</span></div><div class="col"><h2>How I worked with Claude Code</h2><p>I worked solo on the repository with Claude Code as my pair. For major changes such as the six-phase <code>forui</code> migration, the expense and loan schema (<code>expense-module-plan.md</code>), and the 9-issue Drop rollout, we agreed on the table shapes and commit order first, then landed small commits checked by in-memory Drift repository tests and widget tests.</p><div class="split"><div><h3><i style="background:var(--me)"></i>What I directed and verified</h3><ul class="tight"><li>Module scope, Coral palette, Bricolage Grotesque + Hugeicons visual direction, and LogSuite rebrand</li><li>Six-phase forui migration plan and follow-up verification fixes</li><li>Relational expense rules: People, month-scoped Budgets, Loans, and non-destructive category/person deletion</li><li>On-device voice and OCR privacy boundary, keychain storage, and Bangladesh locale defaults (BDT, bKash, Nagad, Banglish)</li><li>Drop module spec (issues #5 to #13), <code>#</code> tag autocomplete UX, gamification rules, haptics, and in-app browser</li></ul></div><div><h3><i style="background:var(--team)"></i>What Claude Code drafted in our sessions</h3><ul class="tight"><li>Drift table definitions, migration steps, and repository queries</li><li>Screen-by-screen widget swaps during Phases 3 to 6 of the forui migration</li><li>Four-provider AI client adapters, action schema, and LocalCommandParser regex routing</li><li>Frequency-domain WAV synthesiser and RestoreService round-trip serialization</li><li>46 test files (392 passing tests) across repositories, parsers, themes, audio files, and widgets</li></ul></div></div></div></section>
+<section class="entry"><div class="rail">Where it stands <span>November 2026</span></div><div class="col"><h2>Where it stands</h2><p>LogSuite is at version <code>0.0.2+2</code> on <a href="https://github.com/aminurislamarnob/logsuite">github.com/aminurislamarnob/logsuite</a>, with native targets configured for Android, iOS, macOS, Linux, and Windows.</p><ul class="tight"><li><strong>7 toggleable modules</strong> sharing one 22-table Drift SQLite database: Tasks, Notes, Habits, Medicine, Expenses, Focus, and Drop.</li><li><strong>4 AI providers plus offline fallback</strong> turning spoken English, Bangla, or Banglish commands and scanned documents into previewed entries.</li><li><strong>392 passing automated tests</strong> across 46 test files, plus native end-to-end coverage in <code>integration_test/app_test.dart</code>.</li></ul></div></section>
+</div></main>
+<footer class="gutter"><div class="wrap">
+<h3>Where the numbers come from</h3>
+<p>Commit counts are non-merge commits on <code>origin/main</code> (at <code>3953c20</code>), from 24 June to 6 November 2026 in the Asia/Dhaka time zone, counted by <code>git_stats.py</code> with author patterns <code>Aminur</code>, <code>arnob</code>, and <code>Claude</code> (102 non-merge commits, 104 total including 2 merge commits). Eleven commits created inside my Claude Code sessions on 5 to 7 September carry <code>Claude &lt;noreply@anthropic.com&gt;</code> as the git author and count as mine; 76 of the 102 non-merge commits carry a <code>Co-Authored-By: Claude</code> trailer. GitHub counts (2 merged PRs via merge commit, 10 issues of which 9 are closed and #2 remains open for manual QA) come from <code>aminurislamarnob/logsuite</code>. Test counts (392 passing tests in 46 files under <code>test/</code>) were measured by running <code>flutter test</code> locally on 8 November 2026. Commit counts measure activity, not effort.</p>
+<p class="stack" style="margin-top:14px">Flutter · Dart · Drift SQLite · Riverpod · go_router · forui · Hugeicons · Bricolage Grotesque</p>
+<p style="margin-top:14px">Md. Aminur Islam (Arnob), developer and architect.</p>
+</div></footer>
+</body>
+</html>

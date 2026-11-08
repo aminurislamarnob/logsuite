@@ -1,0 +1,147 @@
+{
+  "generated": "2026-11-08",
+  "authors": [
+    "Aminur",
+    "arnob",
+    "Claude"
+  ],
+  "repos": [
+    {
+      "name": "logsuite",
+      "path": "/Users/aiarnob/Herd/others/logsuite",
+      "ref": "origin/main",
+      "commits": 102,
+      "mine": 102,
+      "team": 0,
+      "first_commit": "2026-06-24 23:53",
+      "my_first_commit": "2026-06-24 23:53",
+      "my_last_commit": "2026-11-06 14:48",
+      "team_authors": [],
+      "mine_coauthored": 76,
+      "github": {
+        "slug": "aminurislamarnob/logsuite",
+        "merged_prs": 2,
+        "my_merged_prs": 2,
+        "issues": 10,
+        "my_issues": 10
+      }
+    }
+  ],
+  "totals": {
+    "commits": 102,
+    "mine": 102,
+    "team": 0,
+    "mine_coauthored": 76,
+    "merged_prs": 2,
+    "my_merged_prs": 2,
+    "issues": 10,
+    "my_issues": 10
+  },
+  "series": {
+    "granularity": "week",
+    "first": "2026-06-24",
+    "last": "2026-11-06",
+    "rows": [
+      {
+        "start": "2026-06-22",
+        "me": 1,
+        "team": 0
+      },
+      {
+        "start": "2026-06-29",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-07-06",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-07-13",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-07-20",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-07-27",
+        "me": 19,
+        "team": 0
+      },
+      {
+        "start": "2026-08-03",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-08-10",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-08-17",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-08-24",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-08-31",
+        "me": 53,
+        "team": 0
+      },
+      {
+        "start": "2026-09-07",
+        "me": 16,
+        "team": 0
+      },
+      {
+        "start": "2026-09-14",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-09-21",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-09-28",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-10-05",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-10-12",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-10-19",
+        "me": 0,
+        "team": 0
+      },
+      {
+        "start": "2026-10-26",
+        "me": 2,
+        "team": 0
+      },
+      {
+        "start": "2026-11-02",
+        "me": 11,
+        "team": 0
+      }
+    ]
+  }
+}

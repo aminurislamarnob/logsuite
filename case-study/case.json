@@ -1,0 +1,422 @@
+{
+  "title": "LogSuite",
+  "lang": "en",
+  "eyebrow": "Case study · Cross-platform mobile app",
+  "headline": "Seven offline-first productivity modules on one SQLite database",
+  "lede": "Between June and November 2026, I built [LogSuite](https://github.com/aminurislamarnob/logsuite), an offline-first Flutter app that combines tasks, notes, habits, medicine schedules, expenses, a focus timer, and a quick-capture inbox called Drop. Every module reads and writes a local SQLite database through Drift and can be turned off in Settings when a user wants a smaller app. I made **all 102 non-merge commits** on `main`, pairing with Claude Code across 76 of them, and backed the codebase with 392 automated tests.",
+  "facts": [
+    [
+      "My role",
+      "Developer and architect, with Claude Code as pair"
+    ],
+    [
+      "Team",
+      "1 developer, 1 repository"
+    ],
+    [
+      "Window",
+      "24 Jun to 6 Nov 2026"
+    ],
+    [
+      "Milestone",
+      "v0.0.2+2, 392 automated tests passing"
+    ],
+    [
+      "Stack",
+      "Flutter, Dart, Drift SQLite, Riverpod, go_router, forui, Hugeicons"
+    ]
+  ],
+  "shots": {
+    "main": {
+      "src": "img/home-desktop.jpg",
+      "w": 1440,
+      "h": 900,
+      "alt": "Three LogSuite screens showing the Expense entry sheet with BDT and bKash options, the home dashboard, and the Drop inbox with summarized articles"
+    },
+    "phone": {
+      "src": "img/home-phone.jpg",
+      "w": 390,
+      "h": 875,
+      "alt": "LogSuite Quick Add sheet showing voice command, document scan, and module shortcuts"
+    }
+  },
+  "shot_note": "LogSuite on mobile viewports: the Expense entry sheet, Dashboard, Drop inbox, and Quick Add sheet. Captured in November 2026.",
+  "theme": {
+    "light": {
+      "accent": "#F15F43",
+      "me": "#E24E32",
+      "band": "#13232B",
+      "highlight": "#FFAA99"
+    },
+    "dark": {
+      "accent": "#FFAA99",
+      "me": "#F15F43"
+    }
+  },
+  "sections": [
+    {
+      "rail": "The months",
+      "when": "24 Jun to 6 Nov",
+      "heading": "What the five months looked like",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Most of the work landed in three stretches. Over 29 and 30 July (19 commits), I built the initial six-module app and migrated every screen from Material 3 widgets onto `forui` primitives. Between 2 and 13 September (69 commits), I rebuilt the expense module around people, loans, and monthly budgets, added the four-provider AI voice and document-scanning assistant, synthesised the six WAV ambient loops, and shipped full JSON backup and restore. On 5 and 6 November (11 commits), I built the Drop capture and triage module with tag suggestions, gamification, haptics, and an in-app browser. The repository was quiet from 25 June to 28 July, from 31 July to 1 September, and from 14 September to 28 October."
+        },
+        {
+          "type": "chart",
+          "me_label": "My commits",
+          "team_label": "Team commits",
+          "caption": "Each column is one week of non-merge commits on `main` in `aminurislamarnob/logsuite`."
+        },
+        {
+          "type": "totals",
+          "items": [
+            [
+              "102 of 102",
+              "commits on main"
+            ],
+            [
+              "76 of 102",
+              "co-authored with Claude Code"
+            ],
+            [
+              "9 of 10",
+              "GitHub issues closed"
+            ],
+            [
+              "392",
+              "automated tests passing"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "rail": "The brief",
+      "when": "before 29 Jul",
+      "heading": "What had to be true from the start",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "From the README and taste rules, five constraints shaped the project:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "**Offline-first persistence:** Every module reads and writes a local SQLite database through Drift (`lib/core/database/app_database.dart`), with no mandatory account or server.",
+            "**Optional modules:** Each module can be switched on or off in Settings so the navigation shell and dashboard only show what the user uses.",
+            "**First-class Bangladesh locale:** ৳ (BDT) currency, Bangla numerals (`০` to `৯`), seeded Cash, bKash, Nagad, and Bank accounts, and English/Bangla/Banglish voice parsing.",
+            "**User-owned AI keys:** Spoken and scanned commands work with Claude, OpenAI, Gemini, or DeepSeek using an API key kept in the platform keychain, and fall back to an offline parser when no key is set.",
+            "**No dead buttons or half-shipped features:** Every toggle, backup action, reminder, and sound option in the UI is wired end to end and covered by tests."
+          ]
+        }
+      ]
+    },
+    {
+      "rail": "Architecture",
+      "when": "29 Jul to 5 Nov",
+      "heading": "One SQLite database beneath seven modules",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "The UI sits on `go_router` nested shells and a shared widget kit in `lib/core/widgets/` built over `forui` primitives. `AppColors` defines the coral brand accent (`#F15F43`), a three-way pastel card rotation, and warm per-module tints that pass contrast checks."
+        },
+        {
+          "type": "p",
+          "text": "Below the screens, Riverpod providers watch 22 Drift SQLite tables (`Folders`, `Notes`, `Tags`, `NoteTags`, `Projects`, `Tasks`, `TaskTags`, `Habits`, `HabitLogs`, `People`, `Medicines`, `MedicineDoses`, `SymptomLogs`, `Accounts`, `ExpenseCategories`, `Expenses`, `Budgets`, `RecurringExpenses`, `Loans`, `FocusSessions`, `Drops`, and `DropTags`). The AI command executor and the editor sheets write through the same repository methods, so a spoken or scanned entry produces the exact same rows and OS notifications as a typed one."
+        },
+        {
+          "type": "svg",
+          "file": "diagrams/arch.svg",
+          "caption": "ForUI screens watch Riverpod providers backed by 22 Drift SQLite tables, while the AI assistant reads API keys from the platform keychain."
+        }
+      ]
+    },
+    {
+      "rail": "Design system",
+      "when": "29 to 30 Jul",
+      "heading": "Moving every screen off Material onto forui in six phases",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Commit `bb15faf` on 29 July stood up the six initial modules on Drift, Riverpod, and `go_router` with the coral palette, Hugeicons stroke-rounded glyphs (`6559e93`), and Bricolage Grotesque typography (`883b25c`). Material 3 components still controlled buttons, inputs, tabs, and dialogs across screens. On 30 July I ran a six-phase migration onto `forui: 0.24.3` and recorded the audit in `forui-migration-verification.md`."
+        },
+        {
+          "type": "log",
+          "rows": [
+            [
+              "30 Jul 09:54",
+              "Pin forui 0.24.3 and drive FThemeData from BrandTokens (af29c78)"
+            ],
+            [
+              "30 Jul 10:14",
+              "Rebuild BrandScaffold, TintCard, BrandTile, BrandField, and CurvedNavBar on forui (3026454)"
+            ],
+            [
+              "30 Jul 10:24",
+              "Migrate Settings, Onboarding, and the app shell (01bd709, a0c61f0)"
+            ],
+            [
+              "30 Jul 11:38",
+              "Phase 4: move Tasks, Habits, and Medicine off Material widgets (0b2e277)"
+            ],
+            [
+              "30 Jul 11:48",
+              "Phase 5: move Expenses, Notes, and Focus off Material widgets (a510316)"
+            ],
+            [
+              "30 Jul 15:37",
+              "Phase 6: move Dashboard, chrome, and the lock gate; verify and close follow-ups (e327d8b, e64a617)"
+            ]
+          ]
+        },
+        {
+          "type": "defs",
+          "items": [
+            [
+              "Radius ramp",
+              "Pinned across FThemeData: 16px fields, 20px tiles, 24px cards, and 28px bottom sheets."
+            ],
+            [
+              "Hugeicons bridge",
+              "All 22 FIcons slots bridged to Hugeicons stroke-rounded via AppIcon with semanticsLabel pass-through."
+            ],
+            [
+              "CurvedNavBar",
+              "Preserved the custom-painted center notch under FBottomNavigationBar for the floating Quick Add button."
+            ],
+            [
+              "PIN and biometric gate",
+              "Added module-level and app-level lock protection in commit 7510835, mounted above the shell."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "rail": "Expenses & loans",
+      "when": "2 to 4 Sep",
+      "heading": "Expenses: people, loans, and month-scoped budgets",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Household spending rarely belongs to one person or stays inside simple income and expense rows. On 3 September I wrote `expense-module-plan.md` and shipped a 14-commit sequence (`0465f94` to `46cafbf`) that split `expenses_screen.dart` into five tab files (Overview, Reports, Budgets, Bills, and Loans) and added a core `People` table, month-scoped budgets, and a loan ledger."
+        },
+        {
+          "type": "p",
+          "text": "Editing a transaction reverses its old account delta and applies the new one inside a single Drift transaction (`ead7675`). Swiping to delete raises an undo toast that re-inserts the row with its original primary key so `loanId` and receipt links stay intact. Deleting a category or person with history prompts to reassign those transactions rather than orphaning them."
+        },
+        {
+          "type": "table",
+          "head": [
+            "TxKind",
+            "What it records",
+            "Effect on balances and reports"
+          ],
+          "rows": [
+            [
+              "0 · Expense",
+              "Spending attributed to a person (defaults to Self)",
+              "Subtracts from account; counted in monthly spend and person reports"
+            ],
+            [
+              "1 · Income",
+              "Salary, freelance, or refund",
+              "Adds to account; counted in monthly income"
+            ],
+            [
+              "2 · Transfer",
+              "Move money between Cash, bKash, Nagad, or Bank",
+              "Updates both accounts; excluded from income/spend totals"
+            ],
+            [
+              "3 · Lend",
+              "Principal lent to a person in Loans",
+              "Subtracts from account; excluded from spend totals"
+            ],
+            [
+              "4 · Borrow",
+              "Principal borrowed from a person",
+              "Adds to account; tracks outstanding obligation"
+            ],
+            [
+              "5 · Repayment",
+              "Partial or full loan repayment",
+              "Adjusts account and marks the loan settled when outstanding reaches zero"
+            ]
+          ],
+          "numeric": []
+        }
+      ]
+    },
+    {
+      "rail": "AI assistant",
+      "when": "5 to 13 Sep",
+      "heading": "Spoken sentences and scanned documents become previewed drafts",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Between 5 and 8 September (`c77c448` to `fae2ac5`), and in PR #3 on 13 September (`9483453`), I built the AI assistant so a single sentence such as *'spent 200 taka on lunch with bKash and remind me to call the doctor at 5, and add Napa 3 times a day for 5 days'* creates an expense, a task with a reminder, and a medicine course."
+        },
+        {
+          "type": "p",
+          "text": "Speech recognition and ML Kit document OCR always run on the device (`speech_service.dart`, `ocr_service.dart`), so audio and photos never leave the phone. The transcript is sent with the action schema (`ai_command_schema.dart`) and the names of the user's categories, accounts, people, habits, and projects to whichever provider is chosen in Settings: Claude, OpenAI, Gemini, or DeepSeek. The user's API key lives in `flutter_secure_storage` (platform keychain). Without a key, `LocalCommandParser` splits clauses on English and Banglish conjunctions (`and`, `then`, `ar`, `ebong`) and routes each clause to the local task, medicine, and expense parsers."
+        },
+        {
+          "type": "svg",
+          "file": "diagrams/ai-pipeline.svg",
+          "caption": "On-device speech or OCR text is paired with local entity names, parsed into drafts, and shown as preview cards before any row is written."
+        }
+      ]
+    },
+    {
+      "rail": "Sounds, backup & motion",
+      "when": "6 to 13 Sep",
+      "heading": "Click-free WAV loops, all-or-nothing restore, and iOS motion",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Three commits in early September closed gaps between what the UI offered and what ran underneath, followed by a full spacing and motion pass in PR #4 (`8665585`) and the rename from mySuite to LogSuite (`caa068b`)."
+        },
+        {
+          "type": "defs",
+          "items": [
+            [
+              "Synthesised WAV loops (15cfc3d)",
+              "Six 16-bit mono PCM files in assets/sounds/ (rain, ocean, forest, cafe, white_noise, brown_noise) built in the frequency domain with random phase so every buffer is periodic and loops without an MP3/AAC padding click."
+            ],
+            [
+              "All-or-nothing JSON restore (15cfc3d)",
+              "RestoreService parses and validates the entire backup file before opening a database transaction, defers foreign keys for self-referencing folders, and decodes base64 profile photos back to local storage."
+            ],
+            [
+              "How-to guides (7f93da7)",
+              "Settings -> How to renders collapsible step-by-step cards from how_to_content.dart with a button that opens or enables each module."
+            ],
+            [
+              "Spacing and iOS motion (PR #4)",
+              "Unified AppSpacing tokens (gutter 20, section 24, card gap 10), computed bottom clearance from bar height plus safe-area inset, and added Cupertino swipe-back transitions and rubber-band overscroll."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "rail": "Drop & triage",
+      "when": "29 Oct to 6 Nov",
+      "heading": "Drop: quick-capture inbox, tag autocomplete, and triage gamification",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "On 29 October I added native Flutter integration tests (`integration_test/app_test.dart`, commit `acfef31`). Then on 5 and 6 November I shipped the seventh module, Drop (`2ee5f96` to `3953c20`, closing issues #5 through #13): a stream for capturing links, YouTube videos, photos, and rough thoughts before deciding where they belong."
+        },
+        {
+          "type": "list",
+          "items": [
+            "**Rich capture and OS share sheet (#6, #7, #8, #11):** Schema v3 migration adds `Drops` and `DropTags`, ingests payloads from the native OS share sheet (`receive_sharing_intent`), scrapes OpenGraph and YouTube metadata for preview cards, downscales thumbnails to 400px, and runs on-device ML Kit OCR on images.",
+            "**Triage, escalation, and summarization (#9, #12, #13):** Items can be pinned, bulk-selected, scheduled with 'Remind Me Later' notifications, summarized with AI or extractive fallback, or converted into a Note or Task prefilled in its editor.",
+            "**WhatsApp-style `#` tag suggestions (`8ffdb49`, `9c9f698`):** Typing `#` in the bottom capture bar opens a suggestion card with fuzzy matching over existing tags.",
+            "**Gamification, haptics, and in-app browser (`1dd6ef8`, `4d05d73`, `3953c20`):** Triage actions award XP, build daily streaks, unlock badges, and trigger an Inbox Zero celebration, paired with an app-wide haptics toggle and an in-app browser with external launch fallback."
+          ]
+        }
+      ]
+    },
+    {
+      "rail": "Under the hood",
+      "when": "Guardrails",
+      "heading": "The details a visitor never sees",
+      "blocks": [
+        {
+          "type": "defs",
+          "items": [
+            [
+              "Restore table guard",
+              "restore_service_test.dart asserts that RestoreService.sections covers every table declared on AppDatabase, so a new table cannot be wiped and left empty on restore."
+            ],
+            [
+              "Audio seam test",
+              "ambient_sounds_test.dart parses the bundled WAV headers and samples to verify 16-bit mono PCM, matched RMS loudness, no clipping, and a wrap-around step no larger than interior sample steps."
+            ],
+            [
+              "Keychain storage",
+              "API keys use flutter_secure_storage across Android, iOS, macOS, and Linux (libsecret-1-dev), never SharedPreferences."
+            ],
+            [
+              "Git blame hygiene",
+              "Commit ee3f38b reformatted 911 lines across 22 files; commit 1d361c5 recorded it in .git-blame-ignore-revs so git blame still points to the commit that wrote the logic."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "rail": "Working with AI",
+      "when": "76 of 102 commits",
+      "heading": "How I worked with Claude Code",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "I worked solo on the repository with Claude Code as my pair. For major changes such as the six-phase `forui` migration, the expense and loan schema (`expense-module-plan.md`), and the 9-issue Drop rollout, we agreed on the table shapes and commit order first, then landed small commits checked by in-memory Drift repository tests and widget tests."
+        },
+        {
+          "type": "split",
+          "left": {
+            "title": "What I directed and verified",
+            "items": [
+              "Module scope, Coral palette, Bricolage Grotesque + Hugeicons visual direction, and LogSuite rebrand",
+              "Six-phase forui migration plan and follow-up verification fixes",
+              "Relational expense rules: People, month-scoped Budgets, Loans, and non-destructive category/person deletion",
+              "On-device voice and OCR privacy boundary, keychain storage, and Bangladesh locale defaults (BDT, bKash, Nagad, Banglish)",
+              "Drop module spec (issues #5 to #13), `#` tag autocomplete UX, gamification rules, haptics, and in-app browser"
+            ]
+          },
+          "right": {
+            "title": "What Claude Code drafted in our sessions",
+            "items": [
+              "Drift table definitions, migration steps, and repository queries",
+              "Screen-by-screen widget swaps during Phases 3 to 6 of the forui migration",
+              "Four-provider AI client adapters, action schema, and LocalCommandParser regex routing",
+              "Frequency-domain WAV synthesiser and RestoreService round-trip serialization",
+              "46 test files (392 passing tests) across repositories, parsers, themes, audio files, and widgets"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "rail": "Where it stands",
+      "when": "November 2026",
+      "heading": "Where it stands",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "LogSuite is at version `0.0.2+2` on [github.com/aminurislamarnob/logsuite](https://github.com/aminurislamarnob/logsuite), with native targets configured for Android, iOS, macOS, Linux, and Windows."
+        },
+        {
+          "type": "list",
+          "items": [
+            "**7 toggleable modules** sharing one 22-table Drift SQLite database: Tasks, Notes, Habits, Medicine, Expenses, Focus, and Drop.",
+            "**4 AI providers plus offline fallback** turning spoken English, Bangla, or Banglish commands and scanned documents into previewed entries.",
+            "**392 passing automated tests** across 46 test files, plus native end-to-end coverage in `integration_test/app_test.dart`."
+          ]
+        }
+      ]
+    }
+  ],
+  "footer": {
+    "heading": "Where the numbers come from",
+    "text": "Commit counts are non-merge commits on `origin/main` (at `3953c20`), from 24 June to 6 November 2026 in the Asia/Dhaka time zone, counted by `git_stats.py` with author patterns `Aminur`, `arnob`, and `Claude` (102 non-merge commits, 104 total including 2 merge commits). Eleven commits created inside my Claude Code sessions on 5 to 7 September carry `Claude <noreply@anthropic.com>` as the git author and count as mine; 76 of the 102 non-merge commits carry a `Co-Authored-By: Claude` trailer. GitHub counts (2 merged PRs via merge commit, 10 issues of which 9 are closed and #2 remains open for manual QA) come from `aminurislamarnob/logsuite`. Test counts (392 passing tests in 46 files under `test/`) were measured by running `flutter test` locally on 8 November 2026. Commit counts measure activity, not effort.",
+    "stack": [
+      "Flutter",
+      "Dart",
+      "Drift SQLite",
+      "Riverpod",
+      "go_router",
+      "forui",
+      "Hugeicons",
+      "Bricolage Grotesque"
+    ],
+    "byline": "Md. Aminur Islam (Arnob), developer and architect."
+  }
+}

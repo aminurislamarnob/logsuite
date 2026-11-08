@@ -1,0 +1,67 @@
+<svg viewBox="0 0 1000 320" role="img" aria-label="LogSuite system architecture: UI layer on ForUI and Brand widgets connects via Riverpod to the AI command parser and SQLite drift engine, backed by platform secure keychains." xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-m" d="M0 0L8 4L0 8z"/></marker>
+    <marker id="aa" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-ma" d="M0 0L8 4L0 8z"/></marker>
+  </defs>
+
+  <!-- Zone 1: UI Layer -->
+  <rect class="d-zone" x="20" y="24" width="290" height="270" rx="8"/>
+  <text class="d-z" x="36" y="46">UI Layer · ForUI &amp; Brand Tokens</text>
+
+  <rect class="d-box" x="40" y="66" width="250" height="54" rx="6"/>
+  <text class="d-t" x="165" y="90" text-anchor="middle">Curved Shell &amp; Navigation</text>
+  <text class="d-s" x="165" y="107" text-anchor="middle">go_router nested shells · Hugeicons</text>
+
+  <rect class="d-box" x="40" y="134" width="250" height="64" rx="6"/>
+  <text class="d-t" x="165" y="157" text-anchor="middle">7 Modular Features</text>
+  <text class="d-s" x="165" y="174" text-anchor="middle">Tasks · Notes · Habits · Meds</text>
+  <text class="d-s" x="165" y="189" text-anchor="middle">Expenses · Focus · Drop Triage</text>
+
+  <rect class="d-box" x="40" y="212" width="250" height="54" rx="6"/>
+  <text class="d-t" x="165" y="235" text-anchor="middle">Brand Primitives Layer</text>
+  <text class="d-s" x="165" y="252" text-anchor="middle">BrandScaffold · TintCard · FCard</text>
+
+  <!-- Arrow from UI to State -->
+  <line class="d-a" x1="310" y1="166" x2="359" y2="166" marker-end="url(#aa)"/>
+  <text class="d-at" x="335" y="156" text-anchor="middle">watch</text>
+
+  <!-- Zone 2: State & Logic -->
+  <rect class="d-zone" x="360" y="24" width="300" height="270" rx="8"/>
+  <text class="d-z" x="376" y="46">Logic &amp; AI Engine</text>
+
+  <rect class="d-box" x="380" y="66" width="260" height="58" rx="6"/>
+  <text class="d-t" x="510" y="90" text-anchor="middle">Riverpod State Layer</text>
+  <text class="d-s" x="510" y="108" text-anchor="middle">AsyncNotifiers · StreamProviders</text>
+
+  <rect class="d-box" x="380" y="138" width="260" height="66" rx="6"/>
+  <text class="d-t" x="510" y="161" text-anchor="middle">Multi-Brain AI Parser</text>
+  <text class="d-s" x="510" y="178" text-anchor="middle">Claude · OpenAI · Gemini · DeepSeek</text>
+  <text class="d-s" x="510" y="193" text-anchor="middle">Injected entity grounding · Offline fallback</text>
+
+  <rect class="d-box" x="380" y="218" width="260" height="52" rx="6"/>
+  <text class="d-t" x="510" y="241" text-anchor="middle">Audio &amp; Voice Synthesis</text>
+  <text class="d-s" x="510" y="258" text-anchor="middle">speech_to_text · Frequency-domain WAV</text>
+
+  <!-- Arrow from State to Persistence -->
+  <line class="d-l" x1="660" y1="96" x2="709" y2="96" marker-end="url(#ah)"/>
+  <line class="d-a" x1="660" y1="172" x2="709" y2="172" marker-end="url(#aa)"/>
+  <text class="d-at" x="685" y="162" text-anchor="middle">write</text>
+
+  <!-- Zone 3: Storage & Security -->
+  <rect class="d-zone" x="710" y="24" width="270" height="270" rx="8"/>
+  <text class="d-z" x="726" y="46">Storage &amp; Platform Keychain</text>
+
+  <rect class="d-box" x="725" y="66" width="240" height="64" rx="6"/>
+  <text class="d-t" x="845" y="90" text-anchor="middle">Drift SQLite Engine</text>
+  <text class="d-s" x="845" y="108" text-anchor="middle">Reactive tables · Deferred FKs</text>
+  <text class="d-s" x="845" y="122" text-anchor="middle">Atomic multi-table transactions</text>
+
+  <rect class="d-box" x="725" y="144" width="240" height="58" rx="6"/>
+  <text class="d-t" x="845" y="167" text-anchor="middle">Platform Secure Keychain</text>
+  <text class="d-s" x="845" y="185" text-anchor="middle">iOS Keychain / Android KeyStore</text>
+  <text class="d-s" x="845" y="197" text-anchor="middle">macOS Keychain / Linux SecretService</text>
+
+  <rect class="d-box" x="725" y="216" width="240" height="54" rx="6"/>
+  <text class="d-t" x="845" y="239" text-anchor="middle">Atomic JSON Backup</text>
+  <text class="d-s" x="845" y="256" text-anchor="middle">Full roundtrip toJson/fromJson</text>
+</svg>
