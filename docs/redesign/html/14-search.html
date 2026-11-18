@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search</title>
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2401F}a:hover{color:#9A3016}
+button{font-family:inherit;cursor:pointer}
+mark{background:#FFE1D8;color:inherit;border-radius:4px;padding:0 2px}
+</style>
+
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 0; display: flex; flex-direction: column; gap: 14px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="#" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="flex-grow: 1; display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 6px 0 16px; border-radius: 26px; background: #FFFFFF; outline: 2px solid #1A1614; outline-offset: -2px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.08)">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg>
+      <label for="q" style="position: absolute; left: -9999px">Search across every module</label>
+      <input id="q" value="doctor" style="flex-grow: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 17px; font-weight: 600; color: #1A1614">
+      <button aria-label="Clear" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #F4F1EE; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+  </header>
+
+  <div role="tablist" aria-label="Filter by module" style="display: flex; gap: 6px">
+    <button role="tab" aria-selected="true" style="white-space: nowrap; flex-shrink: 0; height: 38px; padding: 0 14px; border-radius: 19px; border: none; background: #1A1614; color: #FFFFFF; font-size: 13px; font-weight: 700">All 6</button>
+    <button role="tab" aria-selected="false" style="white-space: nowrap; flex-shrink: 0; height: 38px; padding: 0 12px; border-radius: 19px; border: none; background: #FFFFFF; font-size: 13px; font-weight: 600; color: #5E5752; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(26,22,20,0.05)"><span style="width: 7px; height: 7px; border-radius: 4px; background: #5B7CE0"></span>Tasks 2</button>
+    <button role="tab" aria-selected="false" style="white-space: nowrap; flex-shrink: 0; height: 38px; padding: 0 12px; border-radius: 19px; border: none; background: #FFFFFF; font-size: 13px; font-weight: 600; color: #5E5752; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(26,22,20,0.05)"><span style="width: 7px; height: 7px; border-radius: 4px; background: #C38131"></span>Notes 2</button>
+    <button role="tab" aria-selected="false" style="white-space: nowrap; flex-shrink: 0; height: 38px; padding: 0 12px; border-radius: 19px; border: none; background: #FFFFFF; font-size: 13px; font-weight: 600; color: #5E5752; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(26,22,20,0.05)"><span style="width: 7px; height: 7px; border-radius: 4px; background: #9A6DD7"></span>Expenses 2</button>
+  </div>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 4px 4px 0; font-size: 12px; font-weight: 700; color: #3B4F8F; letter-spacing: 0.8px; text-transform: uppercase">Tasks</h2>
+    <div style="background: #FFFFFF; border-radius: 22px; padding: 2px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F0ECE8; text-decoration: none; color: #1A1614"><span style="width: 26px; height: 26px; border-radius: 13px; border: 2.5px solid #D98A2B; box-sizing: border-box; flex-shrink: 0"></span><span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Call the <mark>doctor</mark></span><span style="font-size: 12px; color: #6B625C">Today 5:00 PM · Health</span></span></a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; padding: 12px 0; text-decoration: none; color: #1A1614"><span style="width: 26px; height: 26px; border-radius: 13px; background: #2D8657; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span><span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600; color: #6B625C">Book <mark>doctor</mark> appointment</span><span style="font-size: 12px; color: #6B625C">Done 10 Nov</span></span></a>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 4px 4px 0; font-size: 12px; font-weight: 700; color: #8A5A1F; letter-spacing: 0.8px; text-transform: uppercase">Notes</h2>
+    <div style="background: #FFFFFF; border-radius: 22px; padding: 2px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <a href="#" style="display: flex; flex-direction: column; gap: 3px; padding: 12px 0; border-bottom: 1px solid #F0ECE8; text-decoration: none; color: #1A1614"><span style="font-size: 15px; font-weight: 600"><mark>Doctor</mark> questions</span><span style="font-size: 13px; color: #5E5752; line-height: 1.4">Ask about dosage after day 5, the blood test results…</span><span style="font-size: 12px; color: #6B625C">Health · edited 1h ago</span></a>
+      <a href="#" style="display: flex; flex-direction: column; gap: 3px; padding: 12px 0; text-decoration: none; color: #1A1614"><span style="font-size: 15px; font-weight: 600">Standup 17 Nov</span><span style="font-size: 13px; color: #5E5752; line-height: 1.4">…leaving early for the <mark>doctor</mark>, review moved to Thursday.</span><span style="font-size: 12px; color: #6B625C">Work · today</span></a>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 4px 4px 0; font-size: 12px; font-weight: 700; color: #6A41A8; letter-spacing: 0.8px; text-transform: uppercase">Expenses</h2>
+    <div style="background: #FFFFFF; border-radius: 22px; padding: 2px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F0ECE8; text-decoration: none; color: #1A1614"><span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600"><mark>Doctor</mark> visit</span><span style="font-size: 12px; color: #6B625C">Health · Cash · 10 Nov</span></span><span style="font-size: 15px; font-weight: 700">− ৳ 800</span></a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; padding: 12px 0; text-decoration: none; color: #1A1614"><span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Medicine from <mark>doctor</mark>’s list</span><span style="font-size: 12px; color: #6B625C">Health · bKash · 10 Nov</span></span><span style="font-size: 15px; font-weight: 700">− ৳ 340</span></a>
+    </div>
+  </section>
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI assistant settings</title>
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2401F}a:hover{color:#9A3016}
+button{font-family:inherit;cursor:pointer}
+</style>
+
+<div style="width: 390px; height: 1010px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 28px; display: flex; flex-direction: column; gap: 12px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="#" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0 0 0 2px; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; flex-grow: 1">AI assistant</h1>
+  </header>
+
+  <h2 style="margin: 6px 4px 0; font-size: 12px; font-weight: 700; color: #6B625C; letter-spacing: 0.8px; text-transform: uppercase">Provider</h2>
+  <div role="radiogroup" aria-label="AI provider" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <button role="radio" aria-checked="true" style="display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 14px; border-radius: 20px; border: none; background: #1A1614; color: #FFFFFF; text-align: left; box-shadow: 0 10px 26px rgba(26,22,20,0.22)"><span style="width: 22px; height: 22px; border-radius: 11px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px; font-weight: 700">Claude</span><span style="font-size: 11px; color: #B5ADA8">Key saved</span></span></button>
+    <button role="radio" aria-checked="false" style="display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 14px; border-radius: 20px; border: none; background: #FFFFFF; color: #1A1614; text-align: left; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="width: 22px; height: 22px; border-radius: 11px; border: 2px solid #CFC8C2; box-sizing: border-box; flex-shrink: 0"></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px; font-weight: 700">OpenAI</span><span style="font-size: 11px; color: #6B625C">No key</span></span></button>
+    <button role="radio" aria-checked="false" style="display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 14px; border-radius: 20px; border: none; background: #FFFFFF; color: #1A1614; text-align: left; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="width: 22px; height: 22px; border-radius: 11px; border: 2px solid #CFC8C2; box-sizing: border-box; flex-shrink: 0"></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px; font-weight: 700">Gemini</span><span style="font-size: 11px; color: #6B625C">No key</span></span></button>
+    <button role="radio" aria-checked="false" style="display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 14px; border-radius: 20px; border: none; background: #FFFFFF; color: #1A1614; text-align: left; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="width: 22px; height: 22px; border-radius: 11px; border: 2px solid #CFC8C2; box-sizing: border-box; flex-shrink: 0"></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px; font-weight: 700">DeepSeek</span><span style="font-size: 11px; color: #6B625C">No key</span></span></button>
+  </div>
+
+  <section style="background: #FFFFFF; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <label for="key" style="font-size: 12px; font-weight: 700; color: #6B625C; letter-spacing: 0.8px; text-transform: uppercase">API key</label>
+      <span style="height: 24px; padding: 0 9px; border-radius: 12px; background: #E6F4EC; color: #1F5E3D; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 5px"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1F5E3D" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Key saved</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 6px 0 14px; border-radius: 16px; background: #F4F1EE">
+      <input id="key" type="password" value="placeholderkey00000000" style="flex-grow: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 16px; letter-spacing: 2px; color: #1A1614">
+      <button aria-label="Show key" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: transparent; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5E5752" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"></path><circle cx="12" cy="12" r="2.8"></circle></svg></button>
+    </div>
+    <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: #5E5752; line-height: 1.4"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5E5752" stroke-width="2.2" stroke-linecap="round" style="flex-shrink: 0; margin-top: 1px"><rect x="5" y="11" width="14" height="9" rx="2.5"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Stored in this phone’s keychain. It never goes into a backup.</div>
+    <div style="display: flex; gap: 8px">
+      <button style="flex: 1; height: 44px; border-radius: 22px; border: none; background: #1A1614; color: #FFFFFF; font-size: 14px; font-weight: 700">Test connection</button>
+      <button style="height: 44px; padding: 0 18px; border-radius: 22px; border: none; background: #FDECEA; color: #B3261E; font-size: 14px; font-weight: 700">Remove key</button>
+    </div>
+  </section>
+
+  <div style="background: #FFFFFF; border-radius: 24px; padding: 2px 16px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <button style="display: flex; align-items: center; gap: 12px; height: 60px; border: none; border-bottom: 1px solid #F0ECE8; background: transparent; text-align: left; color: #1A1614"><span style="flex-grow: 1; font-size: 15px; font-weight: 600">Model</span><span style="font-size: 13px; color: #6B625C">Default</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A39B96" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+    <button style="display: flex; align-items: center; gap: 12px; height: 60px; border: none; border-bottom: 1px solid #F0ECE8; background: transparent; text-align: left; color: #1A1614"><span style="flex-grow: 1; font-size: 15px; font-weight: 600">Voice language</span><span style="font-size: 13px; color: #6B625C">English</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A39B96" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0">
+      <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Auto-save without preview</span><span style="font-size: 12px; color: #6B625C">Only when every entry resolved cleanly</span></span>
+      <button role="switch" aria-checked="true" aria-label="Auto-save without preview" style="width: 52px; height: 32px; border-radius: 16px; border: none; background: #1A1614; padding: 3px; display: flex; justify-content: flex-end; flex-shrink: 0"><span style="width: 26px; height: 26px; border-radius: 13px; background: #FFFFFF"></span></button>
+    </div>
+  </div>
+
+  <section style="background: #1A1614; color: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+    <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #FF7D63; letter-spacing: 0.8px; text-transform: uppercase"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF7D63" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"></path></svg>What leaves this phone</span>
+    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.4">
+      <span style="display: flex; gap: 10px"><span style="width: 6px; height: 6px; border-radius: 3px; background: #FFFFFF; margin-top: 7px; flex-shrink: 0"></span>The text of what you said or scanned</span>
+      <span style="display: flex; gap: 10px"><span style="width: 6px; height: 6px; border-radius: 3px; background: #FFFFFF; margin-top: 7px; flex-shrink: 0"></span>The names of your categories, accounts, people, habits and projects</span>
+    </div>
+    <span style="font-size: 13px; color: #B5ADA8; line-height: 1.4">Nothing else is sent. Speech is turned into text on this phone.</span>
+  </section>
+
+  <div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 18px; background: #EBE6E2; font-size: 13px; color: #4A433F; line-height: 1.4"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A433F" stroke-width="2.2" stroke-linecap="round" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 11v5.5M12 7.5h.01"></path></svg><span>Without a key the assistant uses the offline parser. It works in English and Banglish; Bangla script needs a provider.</span></div>
+</div>
+
+
+</body>
+</html>

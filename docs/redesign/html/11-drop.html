@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Drop</title>
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#02598A}a:hover{color:#014366}
+button{font-family:inherit;cursor:pointer}
+</style>
+
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 0; display: flex; flex-direction: column; gap: 14px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="#" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="display: flex; flex-direction: column; flex-grow: 1; margin-left: 2px">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.1">Drop</h1>
+      <span style="font-size: 13px; color: #6B625C">3 to go through</span>
+    </div>
+    <button aria-label="View archive" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 5h16v4H4zM6 9v10h12V9M10 13h4"></path></svg></button>
+    <button aria-label="Search drops" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg></button>
+  </header>
+
+  <div role="tablist" aria-label="Type" style="display: flex; gap: 6px">
+    <button role="tab" aria-selected="true" style="height: 38px; padding: 0 14px; border-radius: 19px; border: none; background: #1A1614; color: #FFFFFF; font-size: 13px; font-weight: 700">All</button>
+    <button role="tab" aria-selected="false" style="height: 38px; padding: 0 12px; border-radius: 19px; border: none; background: #FFFFFF; font-size: 13px; font-weight: 600; color: #5E5752; box-shadow: 0 1px 2px rgba(26,22,20,0.05)">Articles</button>
+    <button role="tab" aria-selected="false" style="height: 38px; padding: 0 12px; border-radius: 19px; border: none; background: #FFFFFF; font-size: 13px; font-weight: 600; color: #5E5752; box-shadow: 0 1px 2px rgba(26,22,20,0.05)">Videos</button>
+    <button role="tab" aria-selected="false" style="height: 38px; padding: 0 12px; border-radius: 19px; border: none; background: #FFFFFF; font-size: 13px; font-weight: 600; color: #5E5752; box-shadow: 0 1px 2px rgba(26,22,20,0.05)">Clips</button>
+    <button role="tab" aria-selected="false" style="height: 38px; padding: 0 12px; border-radius: 19px; border: none; background: #FFFFFF; font-size: 13px; font-weight: 600; color: #5E5752; box-shadow: 0 1px 2px rgba(26,22,20,0.05)">Images</button>
+  </div>
+
+  <article style="background: #FFFFFF; border-radius: 24px; padding: 12px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div aria-hidden="true" style="height: 132px; border-radius: 16px; background: #E3F1FA; display: flex; align-items: center; justify-content: center; position: relative"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#0274B0" stroke-width="1.6" stroke-linejoin="round"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M9 12h6M9 16h4" stroke-linecap="round"></path></svg><span style="position: absolute; left: 10px; top: 10px; height: 26px; padding: 0 10px; border-radius: 13px; background: #FFFFFF; font-size: 11px; font-weight: 800; color: #02598A; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center">Article · 6 min</span></div>
+    <div style="display: flex; flex-direction: column; gap: 4px; padding: 0 6px">
+      <span style="font-size: 17px; font-weight: 700; letter-spacing: -0.2px; line-height: 1.25">What’s new in Flutter 3.38 for Material 3</span>
+      <span style="font-size: 13px; color: #5E5752; line-height: 1.4">Updated components, predictive back and the new carousel APIs.</span>
+      <span style="font-size: 12px; color: #6B625C; padding-top: 2px">flutter.dev · 2h ago · #dev</span>
+    </div>
+    <div style="display: flex; gap: 8px; padding: 0 2px 2px">
+      <button style="flex: 1; height: 44px; border-radius: 22px; border: none; background: #1A1614; color: #FFFFFF; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Done</button>
+      <button style="flex: 1; height: 44px; border-radius: 22px; border: none; background: #F4F1EE; color: #1A1614; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>Tonight</button>
+      <button aria-label="Add to favorites" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #F4F1EE; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 16.9 6.6 19.8l1.1-6.1L3.2 9.4l6.1-.8z"></path></svg></button>
+    </div>
+  </article>
+
+  <article style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border-radius: 22px; padding: 12px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div aria-hidden="true" style="width: 96px; height: 72px; border-radius: 14px; background: #1A1614; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><span style="width: 32px; height: 32px; border-radius: 16px; background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M8 5l11 7-11 7z"></path></svg></span></div>
+    <div style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0">
+      <span style="font-size: 11px; font-weight: 800; color: #02598A; letter-spacing: 0.5px; text-transform: uppercase">Video · 14 min</span>
+      <span style="font-size: 15px; font-weight: 700; line-height: 1.25">Riverpod 3 in one sitting</span>
+      <span style="font-size: 12px; color: #6B625C">youtube.com · Yesterday</span>
+    </div>
+    <button aria-label="Mark done" style="width: 44px; height: 44px; border-radius: 22px; border: 2px solid #E4DFDB; background: #FFFFFF; flex-shrink: 0"></button>
+  </article>
+
+  <article style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border-radius: 22px; padding: 14px 12px 14px 16px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+      <span style="font-size: 11px; font-weight: 800; color: #02598A; letter-spacing: 0.5px; text-transform: uppercase">Clip</span>
+      <span style="font-size: 15px; font-weight: 600; line-height: 1.35">“Make the easy thing the right thing.” — for the onboarding rewrite</span>
+      <span style="font-size: 12px; color: #6B625C">Sat · #idea · reminder tomorrow 9:00 AM</span>
+    </div>
+    <button aria-label="Mark done" style="width: 44px; height: 44px; border-radius: 22px; border: 2px solid #E4DFDB; background: #FFFFFF; flex-shrink: 0"></button>
+  </article>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 24px; height: 62px; border-radius: 31px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 14px 36px rgba(26,22,20,0.14); display: flex; align-items: center; gap: 4px; padding: 0 8px 0 8px">
+    <button aria-label="Attach photo or screenshot" style="width: 46px; height: 46px; border-radius: 23px; border: none; background: #F4F1EE; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button>
+    <label for="dropin" style="position: absolute; left: -9999px">Drop something</label>
+    <input id="dropin" placeholder="Paste a link, thought or #tag" style="flex-grow: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 15px; color: #1A1614; padding: 0 8px">
+    <button aria-label="Drop it" style="width: 46px; height: 46px; border-radius: 23px; border: none; background: #0274B0; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"></path></svg></button>
+  </div>
+</div>
+
+
+</body>
+</html>

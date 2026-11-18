@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tasks calendar</title>
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3F5DB8}a:hover{color:#2E4790}
+button{font-family:inherit;cursor:pointer}
+.day{height:44px;border:none;background:transparent;border-radius:14px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:14px;font-weight:600;color:#1A1614}
+.day i{display:block;width:5px;height:5px;border-radius:3px;background:#4A67C4}
+.day b{display:flex;gap:2px;height:5px}
+</style>
+
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 0; display: flex; flex-direction: column; gap: 14px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="#" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0 0 0 2px; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; flex-grow: 1">Tasks</h1>
+    <button aria-label="Change view, Calendar selected" style="height: 44px; padding: 0 12px 0 14px; border-radius: 22px; border: none; background: #1A1614; color: #FFFFFF; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>Calendar<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B5ADA8" stroke-width="2.4" stroke-linecap="round"><path d="M7 10l5 5 5-5"></path></svg></button>
+  </header>
+
+  <section aria-label="November 2026" style="background: #FFFFFF; border-radius: 26px; padding: 14px 12px 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: center; gap: 6px; padding: 0 4px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; flex-grow: 1">November 2026</h2>
+      <button style="height: 36px; padding: 0 12px; border-radius: 18px; border: none; background: #F0ECE8; font-size: 13px; font-weight: 700; color: #1A1614">Today</button>
+      <button aria-label="Previous month" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: transparent; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></button>
+      <button aria-label="Next month" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: transparent; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg></button>
+    </div>
+    <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; font-size: 11px; font-weight: 700; color: #6B625C; text-align: center"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px">
+      <button class="day">1<b></b></button><button class="day">2<b></b></button><button class="day">3<b><i></i></b></button><button class="day">4<b></b></button><button class="day">5<b><i></i><i></i></b></button><button class="day">6<b></b></button><button class="day">7<b></b></button>
+      <button class="day">8<b></b></button><button class="day">9<b><i></i></b></button><button class="day">10<b><i></i><i></i></b></button><button class="day">11<b></b></button><button class="day">12<b><i></i></b></button><button class="day">13<b></b></button><button class="day">14<b><i></i></b></button>
+      <button class="day">15<b></b></button><button class="day" aria-label="16, 1 overdue">16<b><i style="background: #B3261E"></i></b></button><button class="day" aria-current="date" aria-label="17, today, 4 tasks" style="background: #1A1614; color: #FFFFFF; font-weight: 800">17<b><i style="background: #FFFFFF"></i><i style="background: #FFFFFF"></i><i style="background: #FFFFFF"></i></b></button><button class="day">18<b><i></i><i></i><i></i></b></button><button class="day">19<b></b></button><button class="day">20<b><i></i></b></button><button class="day">21<b></b></button>
+      <button class="day">22<b></b></button><button class="day">23<b></b></button><button class="day">24<b><i></i><i></i></b></button><button class="day">25<b></b></button><button class="day">26<b></b></button><button class="day">27<b><i></i></b></button><button class="day">28<b></b></button>
+      <button class="day">29<b></b></button><button class="day">30<b><i></i></b></button>
+    </div>
+  </section>
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 2px 4px 0">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.4px">Tue 17 Nov</h2>
+    <span style="font-size: 13px; color: #6B625C">3 open · 2 done</span>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 22px; padding: 2px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #F0ECE8">
+      <button aria-label="Complete Call the doctor" style="width: 28px; height: 28px; border-radius: 14px; border: 2.5px solid #D98A2B; background: #FFFFFF; flex-shrink: 0"></button>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Call the doctor</span><span style="font-size: 12px; color: #6B625C">5:00 PM · Health</span></div>
+      <span style="height: 24px; padding: 0 8px; border-radius: 8px; background: #FBF1E3; color: #A35E12; font-size: 11px; font-weight: 800; display: flex; align-items: center">P2</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #F0ECE8">
+      <button aria-label="Complete Finish design review" style="width: 28px; height: 28px; border-radius: 14px; border: 2.5px solid #D4CEC8; background: #FFFFFF; flex-shrink: 0"></button>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Finish design review</span><span style="font-size: 12px; color: #6B625C">2 of 3 subtasks · Work</span></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 11px 0">
+      <button aria-label="Complete Buy groceries" style="width: 28px; height: 28px; border-radius: 14px; border: 2.5px solid #D4CEC8; background: #FFFFFF; flex-shrink: 0"></button>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Buy groceries</span><span style="font-size: 12px; color: #6B625C">Anytime · Home</span></div>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 24px; height: 62px; border-radius: 31px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 14px 36px rgba(26,22,20,0.14); display: flex; align-items: center; gap: 6px; padding: 0 8px 0 20px">
+    <label for="newtask" style="position: absolute; left: -9999px">New task</label>
+    <input id="newtask" placeholder="Add a task for 17 Nov…" style="flex-grow: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 15px; color: #1A1614">
+    <button aria-label="Add task" style="width: 46px; height: 46px; border-radius: 23px; border: none; background: #1A1614; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></button>
+  </div>
+</div>
+
+
+</body>
+</html>

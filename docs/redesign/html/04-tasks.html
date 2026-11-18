@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tasks</title>
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3F5DB8}a:hover{color:#2E4790}
+button{font-family:inherit;cursor:pointer}
+</style>
+
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 0; display: flex; flex-direction: column; gap: 16px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="#" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0 0 0 2px; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; flex-grow: 1">Tasks</h1>
+    <button aria-label="Change view" style="height: 44px; padding: 0 12px 0 14px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"></path></svg>List<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C847F" stroke-width="2.4" stroke-linecap="round"><path d="M7 10l5 5 5-5"></path></svg></button>
+    <button aria-label="Search tasks" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg></button>
+  </header>
+
+  <div role="tablist" aria-label="Filter" style="display: flex; height: 48px; padding: 4px; box-sizing: border-box; border-radius: 24px; background: #E8E3DF">
+    <button role="tab" aria-selected="true" style="flex: 1.15; border: none; border-radius: 20px; background: #1A1614; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px">Today<span style="height: 20px; min-width: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 10px; background: #4A67C4; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center">3</span></button>
+    <button role="tab" aria-selected="false" style="flex: 1.15; border: none; border-radius: 20px; background: transparent; font-size: 13px; font-weight: 600; color: #5E5752">Upcoming</button>
+    <button role="tab" aria-selected="false" style="flex: 1; border: none; border-radius: 20px; background: transparent; font-size: 13px; font-weight: 600; color: #5E5752">Inbox</button>
+    <button role="tab" aria-selected="false" style="flex: 1; border: none; border-radius: 20px; background: transparent; font-size: 13px; font-weight: 600; color: #5E5752">Projects</button>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 14px; background: #FFFFFF; border-radius: 20px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1">
+      <span style="font-size: 15px; font-weight: 700">2 done · 3 left · <span style="color: #B3261E">1 overdue</span></span>
+      <div style="display: flex; gap: 3px; height: 6px"><span style="width: 40%; border-radius: 3px; background: #4A67C4"></span><span style="width: 20%; border-radius: 3px; background: #B3261E"></span><span style="flex-grow: 1; border-radius: 3px; background: #EFEAE6"></span></div>
+    </div>
+    <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px">40%</span>
+  </div>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0 4px; font-size: 12px; font-weight: 700; color: #B3261E; letter-spacing: 0.8px; text-transform: uppercase">Overdue</h2>
+    <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border-radius: 20px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <button aria-label="Complete Pay electricity bill" style="width: 28px; height: 28px; border-radius: 14px; border: 2.5px solid #B3261E; background: #FFFFFF; flex-shrink: 0"></button>
+      <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+        <span style="font-size: 16px; font-weight: 600">Pay electricity bill</span>
+        <span style="font-size: 12px; font-weight: 600; color: #B3261E">Yesterday <span style="color: #8C847F; font-weight: 500">· Home</span></span>
+      </div>
+      <span aria-label="Priority 1" style="height: 24px; padding: 0 8px; border-radius: 8px; background: #FDECEA; color: #B3261E; font-size: 11px; font-weight: 800; display: flex; align-items: center">P1</span>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0 4px; font-size: 12px; font-weight: 700; color: #8C847F; letter-spacing: 0.8px; text-transform: uppercase">Today</h2>
+    <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border-radius: 20px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <button aria-label="Complete Call the doctor" style="width: 28px; height: 28px; border-radius: 14px; border: 2.5px solid #D98A2B; background: #FFFFFF; flex-shrink: 0"></button>
+      <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+        <span style="font-size: 16px; font-weight: 600">Call the doctor</span>
+        <span style="font-size: 12px; color: #8C847F; display: flex; align-items: center; gap: 5px"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8C847F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"></path></svg>5:00 PM · Health</span>
+      </div>
+      <span aria-label="Priority 2" style="height: 24px; padding: 0 8px; border-radius: 8px; background: #FBF1E3; color: #A35E12; font-size: 11px; font-weight: 800; display: flex; align-items: center">P2</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border-radius: 20px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <button aria-label="Complete Finish design review" style="width: 28px; height: 28px; border-radius: 14px; border: 2.5px solid #D4CEC8; background: #FFFFFF; flex-shrink: 0"></button>
+      <div style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1; min-width: 0">
+        <span style="font-size: 16px; font-weight: 600">Finish design review</span>
+        <div style="display: flex; align-items: center; gap: 8px"><div style="width: 72px; height: 5px; border-radius: 3px; background: #EFEAE6"><div style="width: 66%; height: 5px; border-radius: 3px; background: #4A67C4"></div></div><span style="font-size: 12px; color: #8C847F">2/3 · Work</span></div>
+      </div>
+      <span style="width: 28px; height: 28px; border-radius: 14px; background: #EAEFFD; color: #4A67C4; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center">W</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border-radius: 20px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <button aria-label="Complete Buy groceries" style="width: 28px; height: 28px; border-radius: 14px; border: 2.5px solid #D4CEC8; background: #FFFFFF; flex-shrink: 0"></button>
+      <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+        <span style="font-size: 16px; font-weight: 600">Buy groceries</span>
+        <span style="font-size: 12px; color: #8C847F">Anytime · Home</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <button aria-expanded="true" style="display: flex; align-items: center; gap: 6px; border: none; background: transparent; padding: 0 4px; font-size: 12px; font-weight: 700; color: #8C847F; letter-spacing: 0.8px; text-transform: uppercase"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C847F" stroke-width="2.6" stroke-linecap="round"><path d="M7 10l5 5 5-5"></path></svg>Done · 2</button>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 6px 14px">
+      <span style="width: 28px; height: 28px; border-radius: 14px; background: #2D8657; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span>
+      <span style="font-size: 16px; color: #8C847F; text-decoration: line-through">Morning standup notes</span>
+    </div>
+  </section>
+
+  <button aria-expanded="false" style="display: flex; align-items: center; gap: 12px; border: none; background: #EBE6E2; border-radius: 18px; padding: 0 14px; height: 52px; font-size: 14px; font-weight: 600; color: #1A1614; text-align: left"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5E5752" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg><span style="flex-grow: 1">Tomorrow <span style="color: #5E5752; font-weight: 500">· 3 tasks</span></span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E5752" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 24px; height: 62px; border-radius: 31px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 14px 36px rgba(26,22,20,0.14); display: flex; align-items: center; gap: 6px; padding: 0 8px 0 20px">
+    <label for="newtask" style="position: absolute; left: -9999px">New task</label>
+    <input id="newtask" placeholder="Add a task… “rent fri 9am p1”" style="flex-grow: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 15px; color: #1A1614">
+    <button aria-label="Set date" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: transparent; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C847F" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg></button>
+    <button aria-label="Add task" style="width: 46px; height: 46px; border-radius: 23px; border: none; background: #1A1614; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></button>
+  </div>
+</div>
+
+
+</body>
+</html>

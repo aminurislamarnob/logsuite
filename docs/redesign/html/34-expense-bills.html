@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bills</title>
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#6A41A8}a:hover{color:#4F2F82}
+button{font-family:inherit;cursor:pointer}
+</style>
+
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 0; display: flex; flex-direction: column; gap: 14px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="#" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0 0 0 2px; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; flex-grow: 1">Expenses</h1>
+    <button aria-label="Change month" style="height: 44px; padding: 0 12px 0 14px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #1A1614; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)">Nov<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C847F" stroke-width="2.4" stroke-linecap="round"><path d="M7 10l5 5 5-5"></path></svg></button>
+    <button aria-label="Export and categories" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="#1A1614"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+  </header>
+
+  <div role="tablist" aria-label="Sections" style="display: flex; height: 44px; padding: 4px; box-sizing: border-box; border-radius: 22px; background: #E8E3DF">
+    <a href="#" role="tab" aria-selected="false" style="flex: 1.2; border-radius: 18px; font-size: 13px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Overview</a>
+    <a href="#" role="tab" aria-selected="false" style="flex: 1.1; border-radius: 18px; font-size: 13px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Reports</a>
+    <a href="#" role="tab" aria-selected="false" style="flex: 1.1; border-radius: 18px; font-size: 13px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Budgets</a>
+    <button role="tab" aria-selected="true" style="flex: 0.8; border: none; border-radius: 18px; background: #1A1614; color: #FFFFFF; font-size: 13px; font-weight: 700">Bills</button>
+    <a href="#" role="tab" aria-selected="false" style="flex: 0.9; border-radius: 18px; font-size: 13px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Loans</a>
+  </div>
+
+  <div style="display: flex; gap: 10px">
+    <div style="flex: 1; background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="font-size: 12px; font-weight: 600; color: #6B625C">Due this month</span><span style="font-size: 22px; font-weight: 800; letter-spacing: -0.6px">৳ 2,900</span><span style="font-size: 12px; color: #6B625C">2 bills unpaid</span></div>
+    <div style="flex: 1; background: #F4EEFB; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="font-size: 12px; font-weight: 600; color: #5B4780">Every month</span><span style="font-size: 22px; font-weight: 800; letter-spacing: -0.6px">৳ 4,049</span><span style="font-size: 12px; color: #5B4780">5 bills and subscriptions</span></div>
+  </div>
+
+  <h2 style="margin: 4px 4px 0; font-size: 12px; font-weight: 700; color: #6B625C; letter-spacing: 0.8px; text-transform: uppercase">Due soon</h2>
+
+  <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border-radius: 22px; padding: 12px 12px 12px 14px; outline: 2px solid #D34247; outline-offset: -2px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <span style="width: 44px; height: 44px; border-radius: 15px; background: #FDECEA; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B3261E" stroke-width="2" stroke-linejoin="round"><path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"></path></svg></span>
+    <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Electricity</span><span style="font-size: 12px; font-weight: 700; color: #B3261E">Overdue since Mon 16</span></div>
+    <span style="font-size: 15px; font-weight: 800; white-space: nowrap; flex-shrink: 0">৳ 1,850</span>
+    <button style="height: 44px; padding: 0 18px; border-radius: 22px; border: none; background: #1A1614; color: #FFFFFF; font-size: 14px; font-weight: 700">Pay</button>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border-radius: 22px; padding: 12px 12px 12px 14px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <span style="width: 44px; height: 44px; border-radius: 15px; background: #F4EEFB; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7E52BE" stroke-width="2" stroke-linecap="round"><path d="M3 9.5a14 14 0 0 1 18 0M6.5 13a9 9 0 0 1 11 0M10 16.5a4 4 0 0 1 4 0"></path><circle cx="12" cy="19.5" r="1" fill="#7E52BE"></circle></svg></span>
+    <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Internet</span><span style="font-size: 12px; color: #6B625C">Due Fri 20 · in 3 days</span></div>
+    <span style="font-size: 15px; font-weight: 800; white-space: nowrap; flex-shrink: 0">৳ 1,050</span>
+    <button style="height: 44px; padding: 0 18px; border-radius: 22px; border: none; background: #1A1614; color: #FFFFFF; font-size: 14px; font-weight: 700">Pay</button>
+  </div>
+
+  <h2 style="margin: 4px 4px 0; font-size: 12px; font-weight: 700; color: #6B625C; letter-spacing: 0.8px; text-transform: uppercase">Subscriptions</h2>
+
+  <div style="background: #FFFFFF; border-radius: 22px; padding: 2px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F0ECE8">
+      <span style="width: 40px; height: 40px; border-radius: 14px; background: #F4EEFB; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E52BE" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2.5"></rect><path d="M8 21h8M10 9.5l4.5 2.5-4.5 2.5z"></path></svg></span>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Streaming</span><span style="font-size: 12px; color: #6B625C">Monthly · next 28 Nov · bKash</span></div>
+      <span style="font-size: 15px; font-weight: 700">৳ 499</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F0ECE8">
+      <span style="width: 40px; height: 40px; border-radius: 14px; background: #F4EEFB; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E52BE" stroke-width="2" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.5"></rect><path d="M11 18h2" stroke-linecap="round"></path></svg></span>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Mobile plan</span><span style="font-size: 12px; color: #6B625C">Monthly · next 1 Dec · Nagad</span></div>
+      <span style="font-size: 15px; font-weight: 700">৳ 399</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0">
+      <span style="width: 40px; height: 40px; border-radius: 14px; background: #E6F4EC; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D8657" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600; color: #5E5752">Gas</span><span style="font-size: 12px; color: #6B625C">Paid 5 Nov · next 5 Dec</span></div>
+      <span style="font-size: 15px; font-weight: 700; color: #5E5752">৳ 251</span>
+    </div>
+  </div>
+
+  <button style="position: absolute; right: 20px; bottom: 28px; height: 56px; padding: 0 22px 0 18px; border-radius: 28px; border: none; background: #1A1614; color: #FFFFFF; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; box-shadow: 0 14px 36px rgba(26,22,20,0.28)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add a bill</button>
+</div>
+
+
+</body>
+</html>

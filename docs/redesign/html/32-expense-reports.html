@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Expense reports</title>
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#6A41A8}a:hover{color:#4F2F82}
+button{font-family:inherit;cursor:pointer}
+</style>
+
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 0; display: flex; flex-direction: column; gap: 14px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="#" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0 0 0 2px; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; flex-grow: 1">Expenses</h1>
+    <button aria-label="Change month" style="height: 44px; padding: 0 12px 0 14px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #1A1614; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)">Nov<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C847F" stroke-width="2.4" stroke-linecap="round"><path d="M7 10l5 5 5-5"></path></svg></button>
+    <button aria-label="Export and categories" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="#1A1614"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+  </header>
+
+  <div role="tablist" aria-label="Sections" style="display: flex; height: 44px; padding: 4px; box-sizing: border-box; border-radius: 22px; background: #E8E3DF">
+    <a href="#" role="tab" aria-selected="false" style="flex: 1.2; border-radius: 18px; font-size: 13px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Overview</a>
+    <button role="tab" aria-selected="true" style="flex: 1.1; border: none; border-radius: 18px; background: #1A1614; color: #FFFFFF; font-size: 13px; font-weight: 700">Reports</button>
+    <a href="#" role="tab" aria-selected="false" style="flex: 1.1; border-radius: 18px; font-size: 13px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Budgets</a>
+    <a href="#" role="tab" aria-selected="false" style="flex: 0.8; border-radius: 18px; font-size: 13px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Bills</a>
+    <a href="#" role="tab" aria-selected="false" style="flex: 0.9; border-radius: 18px; font-size: 13px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Loans</a>
+  </div>
+
+  <section style="background: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <h2 style="margin: 0; font-size: 12px; font-weight: 700; color: #6B625C; letter-spacing: 0.8px; text-transform: uppercase">Spending by category</h2>
+      <div role="radiogroup" aria-label="Type" style="display: flex; height: 32px; padding: 3px; box-sizing: border-box; border-radius: 16px; background: #F0ECE8">
+        <button role="radio" aria-checked="true" style="padding: 0 12px; border: none; border-radius: 13px; background: #1A1614; color: #FFFFFF; font-size: 12px; font-weight: 700">Expense</button>
+        <button role="radio" aria-checked="false" style="padding: 0 12px; border: none; border-radius: 13px; background: transparent; color: #5E5752; font-size: 12px; font-weight: 600">Income</button>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 18px">
+      <div style="position: relative; width: 132px; height: 132px; flex-shrink: 0">
+        <svg role="img" aria-label="Food 34 percent, Bills 22 percent, Transport 12 percent, 9 others 32 percent" width="132" height="132" viewBox="0 0 132 132"><g fill="none" stroke-width="16" transform="rotate(-90 66 66)"><circle cx="66" cy="66" r="54" stroke="#7E52BE" stroke-dasharray="111 339.3"></circle><circle cx="66" cy="66" r="54" stroke="#A886DB" stroke-dasharray="72.4 339.3" stroke-dashoffset="-114"></circle><circle cx="66" cy="66" r="54" stroke="#CDB9EC" stroke-dasharray="39.3 339.3" stroke-dashoffset="-189.4"></circle><circle cx="66" cy="66" r="54" stroke="#EAE2F6" stroke-dasharray="104.6 339.3" stroke-dashoffset="-231.7"></circle></g></svg>
+        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 11px; color: #6B625C">Total</span><span style="font-size: 18px; font-weight: 800; letter-spacing: -0.5px">৳ 18,450</span></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 9px; flex-grow: 1; font-size: 14px">
+        <div style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #7E52BE"></span><span style="flex-grow: 1">Food</span><span style="font-weight: 700">6,200</span><span style="width: 32px; text-align: right; font-size: 12px; color: #6B625C">34%</span></div>
+        <div style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #A886DB"></span><span style="flex-grow: 1">Bills</span><span style="font-weight: 700">4,100</span><span style="width: 32px; text-align: right; font-size: 12px; color: #6B625C">22%</span></div>
+        <div style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #CDB9EC"></span><span style="flex-grow: 1">Transport</span><span style="font-weight: 700">2,300</span><span style="width: 32px; text-align: right; font-size: 12px; color: #6B625C">12%</span></div>
+        <div style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #EAE2F6; border: 1px solid #CDB9EC; box-sizing: border-box"></span><span style="flex-grow: 1">9 others</span><span style="font-weight: 700">5,850</span><span style="width: 32px; text-align: right; font-size: 12px; color: #6B625C">32%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <h2 style="margin: 0; font-size: 12px; font-weight: 700; color: #6B625C; letter-spacing: 0.8px; text-transform: uppercase">Spending by person</h2>
+    <div style="display: flex; align-items: center; gap: 12px"><span style="width: 36px; height: 36px; border-radius: 18px; background: #1A1614; color: #FFFFFF; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0">AR</span><div style="display: flex; flex-direction: column; gap: 5px; flex-grow: 1"><div style="display: flex; justify-content: space-between; font-size: 14px"><span style="font-weight: 600">Me</span><span style="font-weight: 700">৳ 10,900</span></div><div style="height: 6px; border-radius: 3px; background: #F0ECE8"><div style="width: 59%; height: 6px; border-radius: 3px; background: #7E52BE"></div></div></div></div>
+    <div style="display: flex; align-items: center; gap: 12px"><span style="width: 36px; height: 36px; border-radius: 18px; background: #FFE7E0; color: #B23A1F; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0">W</span><div style="display: flex; flex-direction: column; gap: 5px; flex-grow: 1"><div style="display: flex; justify-content: space-between; font-size: 14px"><span style="font-weight: 600">Wife</span><span style="font-weight: 700">৳ 5,150</span></div><div style="height: 6px; border-radius: 3px; background: #F0ECE8"><div style="width: 28%; height: 6px; border-radius: 3px; background: #A886DB"></div></div></div></div>
+    <div style="display: flex; align-items: center; gap: 12px"><span style="width: 36px; height: 36px; border-radius: 18px; background: #E6F4EC; color: #1F5E3D; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0">S</span><div style="display: flex; flex-direction: column; gap: 5px; flex-grow: 1"><div style="display: flex; justify-content: space-between; font-size: 14px"><span style="font-weight: 600">Son</span><span style="font-weight: 700">৳ 2,400</span></div><div style="height: 6px; border-radius: 3px; background: #F0ECE8"><div style="width: 13%; height: 6px; border-radius: 3px; background: #CDB9EC"></div></div></div></div>
+  </section>
+
+  <section style="background: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between">
+      <h2 style="margin: 0; font-size: 12px; font-weight: 700; color: #6B625C; letter-spacing: 0.8px; text-transform: uppercase">Last 6 months</h2>
+      <span style="font-size: 13px; color: #6B625C">Net this month <span style="font-weight: 700; color: #1F6B45">+ ৳ 26,550</span></span>
+    </div>
+    <div role="img" aria-label="Spending per month: June 24k, July 27k, August 22k, September 29k, October 25k, November 18k so far" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; align-items: end; height: 120px">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end"><span style="font-size: 10px; font-weight: 600; color: #6B625C">24k</span><span style="width: 100%; height: 62%; border-radius: 10px; background: #EAE2F6"></span><span style="font-size: 11px; font-weight: 600; color: #6B625C">Jun</span></div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end"><span style="font-size: 10px; font-weight: 600; color: #6B625C">27k</span><span style="width: 100%; height: 70%; border-radius: 10px; background: #EAE2F6"></span><span style="font-size: 11px; font-weight: 600; color: #6B625C">Jul</span></div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end"><span style="font-size: 10px; font-weight: 600; color: #6B625C">22k</span><span style="width: 100%; height: 57%; border-radius: 10px; background: #EAE2F6"></span><span style="font-size: 11px; font-weight: 600; color: #6B625C">Aug</span></div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end"><span style="font-size: 10px; font-weight: 600; color: #6B625C">29k</span><span style="width: 100%; height: 75%; border-radius: 10px; background: #EAE2F6"></span><span style="font-size: 11px; font-weight: 600; color: #6B625C">Sep</span></div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end"><span style="font-size: 10px; font-weight: 600; color: #6B625C">25k</span><span style="width: 100%; height: 65%; border-radius: 10px; background: #EAE2F6"></span><span style="font-size: 11px; font-weight: 600; color: #6B625C">Oct</span></div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end"><span style="font-size: 10px; font-weight: 800; color: #1A1614">18k</span><span style="width: 100%; height: 48%; border-radius: 10px; background: #7E52BE"></span><span style="font-size: 11px; font-weight: 800; color: #1A1614">Nov</span></div>
+    </div>
+  </section>
+</div>
+
+
+</body>
+</html>

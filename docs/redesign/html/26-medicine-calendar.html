@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Medicine calendar</title>
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2401F}a:hover{color:#9A3016}
+button{font-family:inherit;cursor:pointer}
+</style>
+
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 0; display: flex; flex-direction: column; gap: 14px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="#" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0 0 0 2px; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; flex-grow: 1">Medicine</h1>
+    <button aria-label="Scan a prescription" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button>
+    <a href="#" aria-label="Add medicine" style="width: 44px; height: 44px; border-radius: 22px; background: #1A1614; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></a>
+  </header>
+
+  <div role="tablist" aria-label="Views" style="display: flex; height: 44px; padding: 4px; box-sizing: border-box; border-radius: 22px; background: #E8E3DF">
+    <a role="tab" aria-selected="false" href="#" style="flex: 0.85; border-radius: 18px; font-size: 12.5px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Today</a>
+    <a role="tab" aria-selected="false" href="#" style="flex: 1.05; border-radius: 18px; font-size: 12.5px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Timeline</a>
+    <a role="tab" aria-selected="true" href="#" style="flex: 1.1; border-radius: 18px; background: #1A1614; color: #FFFFFF; font-size: 12.5px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center">Calendar</a>
+    <a role="tab" aria-selected="false" href="#" style="flex: 0.8; border-radius: 18px; font-size: 12.5px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Table</a>
+    <a role="tab" aria-selected="false" href="#" style="flex: 1.2; border-radius: 18px; font-size: 12.5px; font-weight: 600; color: #5E5752; text-decoration: none; display: flex; align-items: center; justify-content: center">Medicines</a>
+  </div>
+
+  <section style="background: #FFFFFF; border-radius: 24px; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: center; gap: 8px">
+      <div style="display: flex; flex-direction: column; flex-grow: 1"><span style="font-size: 19px; font-weight: 700; letter-spacing: -0.3px">November 2026</span><span style="font-size: 12px; font-weight: 600; color: #1F6B45">93% on time this month</span></div>
+      <button aria-label="Previous month" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #F4F1EE; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></button>
+      <button aria-label="Next month" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #F4F1EE; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg></button>
+    </div>
+    <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); font-size: 11px; font-weight: 700; color: #6B625C; text-align: center"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 5px">
+        <button aria-label="1 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">1</button>
+        <button aria-label="2 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">2</button>
+        <button aria-label="3 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">3</button>
+        <button aria-label="4 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">4</button>
+        <button aria-label="5 November, partly taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: 2.5px solid #D98A2B; background: #FFFFFF; color: #1A1614; font-weight: 700">5</button>
+        <button aria-label="6 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">6</button>
+        <button aria-label="7 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">7</button>
+        <button aria-label="8 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">8</button>
+        <button aria-label="9 November, missed" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #FDECEA; color: #B3261E; font-weight: 700">9<span style="position: absolute; left: 17px; bottom: 4px; width: 6px; height: 6px; border-radius: 3px; background: #B3261E"></span></button>
+        <button aria-label="10 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">10</button>
+        <button aria-label="11 November, partly taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: 2.5px solid #D98A2B; background: #FFFFFF; color: #1A1614; font-weight: 700">11</button>
+        <button aria-label="12 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">12</button>
+        <button aria-label="13 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">13</button>
+        <button aria-label="14 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">14</button>
+        <button aria-label="15 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">15</button>
+        <button aria-label="16 November, all taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: #2D8657; color: #FFFFFF; font-weight: 700">16</button>
+        <button aria-current="date" aria-label="17 November, today, 2 of 4 taken" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: 2.5px solid #D98A2B; background: #FFFFFF; color: #1A1614; font-weight: 800; box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 5px #1A1614">17</button>
+        <button aria-label="18 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">18</button>
+        <button aria-label="19 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">19</button>
+        <button aria-label="20 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">20</button>
+        <button aria-label="21 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">21</button>
+        <button aria-label="22 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">22</button>
+        <button aria-label="23 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">23</button>
+        <button aria-label="24 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">24</button>
+        <button aria-label="25 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">25</button>
+        <button aria-label="26 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">26</button>
+        <button aria-label="27 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">27</button>
+        <button aria-label="28 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">28</button>
+        <button aria-label="29 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">29</button>
+        <button aria-label="30 November, scheduled" style="justify-self: center; width: 40px; height: 40px; border-radius: 20px; font-family: inherit; font-size: 14px; padding: 0; position: relative; box-sizing: border-box; border: none; background: transparent; color: #6B625C; font-weight: 600">30</button>
+    </div>
+    <div style="display: flex; justify-content: center; gap: 14px; font-size: 11px; font-weight: 600; color: #5E5752; padding-top: 2px">
+      <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #2D8657"></span>All taken</span>
+      <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 5px; border: 2px solid #D98A2B; box-sizing: border-box"></span>Partly</span>
+      <span style="display: flex; align-items: center; gap: 5px"><span style="width: 6px; height: 6px; border-radius: 3px; background: #B3261E"></span>Missed</span>
+    </div>
+  </section>
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 4px">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.4px">Tue 17 · Today</h2>
+    <span style="font-size: 13px; font-weight: 600; color: #6B625C">2 of 4 taken</span>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 22px; padding: 2px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F0ECE8">
+      <span style="width: 28px; height: 28px; border-radius: 14px; background: #2D8657; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span>
+      <span style="flex-grow: 1; font-size: 15px; font-weight: 600; color: #5E5752">Omeprazole 20 mg</span><span style="font-size: 13px; color: #6B625C">7:50 AM</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F0ECE8">
+      <span style="width: 28px; height: 28px; border-radius: 14px; background: #2D8657; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span>
+      <span style="flex-grow: 1; font-size: 15px; font-weight: 600; color: #5E5752">Napa 500 mg</span><span style="font-size: 13px; color: #6B625C">8:05 AM</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F0ECE8">
+      <span style="width: 28px; height: 28px; border-radius: 14px; border: 2.5px solid #E24E32; box-sizing: border-box; flex-shrink: 0"></span>
+      <span style="flex-grow: 1; font-size: 15px; font-weight: 700">Napa 500 mg</span><span style="font-size: 13px; font-weight: 700; color: #B23A1F">Due now · 2:00 PM</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0">
+      <span style="width: 28px; height: 28px; border-radius: 14px; border: 2.5px solid #D4CEC8; box-sizing: border-box; flex-shrink: 0"></span>
+      <span style="flex-grow: 1; font-size: 15px; font-weight: 600">Napa 500 mg</span><span style="font-size: 13px; color: #6B625C">9:00 PM</span>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Expenses</title>
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#6A41A8}a:hover{color:#4F2F82}
+button{font-family:inherit;cursor:pointer}
+</style>
+
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 0; display: flex; flex-direction: column; gap: 14px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="#" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0 0 0 2px; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; flex-grow: 1">Expenses</h1>
+    <button aria-label="Change month" style="height: 44px; padding: 0 12px 0 14px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #1A1614; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)">Nov<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C847F" stroke-width="2.4" stroke-linecap="round"><path d="M7 10l5 5 5-5"></path></svg></button>
+    <button aria-label="Export and categories" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="#1A1614"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+  </header>
+
+  <div role="tablist" aria-label="Sections" style="display: flex; height: 44px; padding: 4px; box-sizing: border-box; border-radius: 22px; background: #E8E3DF">
+    <button role="tab" aria-selected="true" style="flex: 1.2; border: none; border-radius: 18px; background: #1A1614; color: #FFFFFF; font-size: 13px; font-weight: 700">Overview</button>
+    <button role="tab" aria-selected="false" style="flex: 1.1; border: none; border-radius: 18px; background: transparent; font-size: 13px; font-weight: 600; color: #5E5752">Reports</button>
+    <button role="tab" aria-selected="false" style="flex: 1.1; border: none; border-radius: 18px; background: transparent; font-size: 13px; font-weight: 600; color: #5E5752">Budgets</button>
+    <button role="tab" aria-selected="false" style="flex: 0.8; border: none; border-radius: 18px; background: transparent; font-size: 13px; font-weight: 600; color: #5E5752">Bills</button>
+    <button role="tab" aria-selected="false" style="flex: 0.9; border: none; border-radius: 18px; background: transparent; font-size: 13px; font-weight: 600; color: #5E5752">Loans</button>
+  </div>
+
+  <section aria-label="This month" style="background: #1A1614; color: #FFFFFF; border-radius: 28px; padding: 20px 20px 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 16px 40px rgba(26,22,20,0.22)">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 12px; font-weight: 700; color: #B58DEC; letter-spacing: 1px; text-transform: uppercase">Spent in November</span>
+        <span style="font-size: 40px; font-weight: 800; letter-spacing: -1.6px; line-height: 1"><span style="font-size: 26px; font-weight: 600; color: #A39B96; letter-spacing: 0">৳ </span>18,450</span>
+      </div>
+      <span style="height: 28px; padding: 0 10px; border-radius: 14px; background: rgba(86,206,142,0.16); color: #7EE0AC; font-size: 12px; font-weight: 700; display: flex; align-items: center">On track</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="position: relative; height: 10px; border-radius: 5px; background: rgba(255,255,255,0.12)"><div style="width: 61%; height: 10px; border-radius: 5px; background: #B58DEC"></div><span aria-hidden="true" style="position: absolute; left: 57%; top: -3px; width: 2px; height: 16px; border-radius: 1px; background: #FFFFFF"></span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: #B5ADA8"><span>61% of ৳ 30,000 budget</span><span>Day 17 of 30</span></div>
+    </div>
+    <div style="display: flex; gap: 8px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.07)"><span style="font-size: 11px; color: #B5ADA8">Income</span><span style="font-size: 16px; font-weight: 700">৳ 45,000</span></div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.07)"><span style="font-size: 11px; color: #B5ADA8">Left to spend</span><span style="font-size: 16px; font-weight: 700">৳ 11,550</span></div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.07)"><span style="font-size: 11px; color: #B5ADA8">Per day</span><span style="font-size: 16px; font-weight: 700">৳ 888</span></div>
+    </div>
+  </section>
+
+  <div style="display: flex; gap: 8px">
+    <button style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 18px; border: none; background: #FFFFFF; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="font-size: 11px; font-weight: 600; color: #6B625C">Cash</span><span style="font-size: 15px; font-weight: 700; color: #1A1614">৳ 2,300</span></button>
+    <button style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 18px; border: none; background: #FFFFFF; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="font-size: 11px; font-weight: 600; color: #6B625C">bKash</span><span style="font-size: 15px; font-weight: 700; color: #1A1614">৳ 5,120</span></button>
+    <button style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 18px; border: none; background: #FFFFFF; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="font-size: 11px; font-weight: 600; color: #6B625C">Nagad</span><span style="font-size: 15px; font-weight: 700; color: #1A1614">৳ 840</span></button>
+    <button style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 18px; border: none; background: #FFFFFF; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="font-size: 11px; font-weight: 600; color: #6B625C">Bank</span><span style="font-size: 15px; font-weight: 700; color: #1A1614">৳ 62k</span></button>
+  </div>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 4px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.4px">Recent</h2>
+      <a href="#" style="font-size: 14px; font-weight: 600; text-decoration: none; color: #6B625C">All 64</a>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 22px; padding: 4px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F0ECE8">
+        <span style="width: 40px; height: 40px; border-radius: 14px; background: #F4EEFB; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E52BE" stroke-width="2" stroke-linecap="round"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M16 21V3c-2 1-3 4-3 7h3"></path></svg></span>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Lunch</span><span style="font-size: 12px; color: #6B625C">Food · bKash · 1:10 PM</span></div>
+        <span style="font-size: 15px; font-weight: 700">− ৳ 200</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F0ECE8">
+        <span style="width: 40px; height: 40px; border-radius: 14px; background: #F4EEFB; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E52BE" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="16" height="12" rx="3"></rect><path d="M4 11h16M7 19l1-3M17 19l-1-3"></path></svg></span>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Rickshaw</span><span style="font-size: 12px; color: #6B625C">Transport · Cash · 9:20 AM</span></div>
+        <span style="font-size: 15px; font-weight: 700">− ৳ 60</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0">
+        <span style="width: 40px; height: 40px; border-radius: 14px; background: #E6F4EC; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D8657" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></span>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 15px; font-weight: 600">Salary</span><span style="font-size: 12px; color: #6B625C">Income · Bank · 1 Nov</span></div>
+        <span style="font-size: 15px; font-weight: 700; color: #1F6B45">+ ৳ 45,000</span>
+      </div>
+    </div>
+  </section>
+
+  <a href="#" style="display: flex; align-items: center; gap: 12px; background: #FBF1E3; border-radius: 18px; padding: 12px 14px; text-decoration: none; color: #1A1614">
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A5A1F" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"></path><path d="M9 8h6M9 12h6" stroke-linecap="round"></path></svg>
+    <span style="flex-grow: 1; font-size: 14px; font-weight: 600">Internet bill due in 3 days <span style="font-weight: 500; color: #6E5530">· ৳ 1,050</span></span>
+    <span style="font-size: 13px; font-weight: 700; color: #8A5A1F">Pay</span>
+  </a>
+
+  <a href="#" style="position: absolute; right: 20px; bottom: 28px; height: 56px; padding: 0 22px 0 18px; border-radius: 28px; background: #1A1614; color: #FFFFFF; text-decoration: none; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; box-shadow: 0 14px 36px rgba(26,22,20,0.28)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add</a>
+</div>
+
+
+</body>
+</html>
