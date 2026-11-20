@@ -8006,6 +8006,38 @@ class $MedicinesTable extends Medicines
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _openedDateMeta = const VerificationMeta(
+    'openedDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> openedDate = GeneratedColumn<DateTime>(
+    'opened_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bestUseWithinDaysMeta = const VerificationMeta(
+    'bestUseWithinDays',
+  );
+  @override
+  late final GeneratedColumn<int> bestUseWithinDays = GeneratedColumn<int>(
+    'best_use_within_days',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiryAlertDaysBeforeMeta =
+      const VerificationMeta('expiryAlertDaysBefore');
+  @override
+  late final GeneratedColumn<int> expiryAlertDaysBefore = GeneratedColumn<int>(
+    'expiry_alert_days_before',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -8054,6 +8086,9 @@ class $MedicinesTable extends Medicines
     startDate,
     endDate,
     skipDates,
+    openedDate,
+    bestUseWithinDays,
+    expiryAlertDaysBefore,
     isActive,
     createdAt,
   ];
@@ -8204,6 +8239,30 @@ class $MedicinesTable extends Medicines
         skipDates.isAcceptableOrUnknown(data['skip_dates']!, _skipDatesMeta),
       );
     }
+    if (data.containsKey('opened_date')) {
+      context.handle(
+        _openedDateMeta,
+        openedDate.isAcceptableOrUnknown(data['opened_date']!, _openedDateMeta),
+      );
+    }
+    if (data.containsKey('best_use_within_days')) {
+      context.handle(
+        _bestUseWithinDaysMeta,
+        bestUseWithinDays.isAcceptableOrUnknown(
+          data['best_use_within_days']!,
+          _bestUseWithinDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('expiry_alert_days_before')) {
+      context.handle(
+        _expiryAlertDaysBeforeMeta,
+        expiryAlertDaysBefore.isAcceptableOrUnknown(
+          data['expiry_alert_days_before']!,
+          _expiryAlertDaysBeforeMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -8301,6 +8360,18 @@ class $MedicinesTable extends Medicines
         DriftSqlType.string,
         data['${effectivePrefix}skip_dates'],
       )!,
+      openedDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}opened_date'],
+      ),
+      bestUseWithinDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}best_use_within_days'],
+      ),
+      expiryAlertDaysBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}expiry_alert_days_before'],
+      ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -8351,6 +8422,13 @@ class Medicine extends DataClass implements Insertable<Medicine> {
 
   /// Comma-separated yyyy-MM-dd dates to skip (travel/holiday mode).
   final String skipDates;
+
+  /// After-opening shelf life tracking for syrup, drops, and inhaler.
+  final DateTime? openedDate;
+  final int? bestUseWithinDays;
+
+  /// Advance alert lead time in days before use-by date; null disables alerts.
+  final int? expiryAlertDaysBefore;
   final bool isActive;
   final DateTime createdAt;
   const Medicine({
@@ -8373,6 +8451,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     required this.startDate,
     required this.endDate,
     required this.skipDates,
+    this.openedDate,
+    this.bestUseWithinDays,
+    this.expiryAlertDaysBefore,
     required this.isActive,
     required this.createdAt,
   });
@@ -8406,6 +8487,15 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     map['start_date'] = Variable<DateTime>(startDate);
     map['end_date'] = Variable<DateTime>(endDate);
     map['skip_dates'] = Variable<String>(skipDates);
+    if (!nullToAbsent || openedDate != null) {
+      map['opened_date'] = Variable<DateTime>(openedDate);
+    }
+    if (!nullToAbsent || bestUseWithinDays != null) {
+      map['best_use_within_days'] = Variable<int>(bestUseWithinDays);
+    }
+    if (!nullToAbsent || expiryAlertDaysBefore != null) {
+      map['expiry_alert_days_before'] = Variable<int>(expiryAlertDaysBefore);
+    }
     map['is_active'] = Variable<bool>(isActive);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -8440,6 +8530,15 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       startDate: Value(startDate),
       endDate: Value(endDate),
       skipDates: Value(skipDates),
+      openedDate: openedDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openedDate),
+      bestUseWithinDays: bestUseWithinDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bestUseWithinDays),
+      expiryAlertDaysBefore: expiryAlertDaysBefore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiryAlertDaysBefore),
       isActive: Value(isActive),
       createdAt: Value(createdAt),
     );
@@ -8470,6 +8569,11 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       startDate: serializer.fromJson<DateTime>(json['startDate']),
       endDate: serializer.fromJson<DateTime>(json['endDate']),
       skipDates: serializer.fromJson<String>(json['skipDates']),
+      openedDate: serializer.fromJson<DateTime?>(json['openedDate']),
+      bestUseWithinDays: serializer.fromJson<int?>(json['bestUseWithinDays']),
+      expiryAlertDaysBefore: serializer.fromJson<int?>(
+        json['expiryAlertDaysBefore'],
+      ),
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -8497,6 +8601,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       'startDate': serializer.toJson<DateTime>(startDate),
       'endDate': serializer.toJson<DateTime>(endDate),
       'skipDates': serializer.toJson<String>(skipDates),
+      'openedDate': serializer.toJson<DateTime?>(openedDate),
+      'bestUseWithinDays': serializer.toJson<int?>(bestUseWithinDays),
+      'expiryAlertDaysBefore': serializer.toJson<int?>(expiryAlertDaysBefore),
       'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -8522,6 +8629,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     DateTime? startDate,
     DateTime? endDate,
     String? skipDates,
+    Value<DateTime?> openedDate = const Value.absent(),
+    Value<int?> bestUseWithinDays = const Value.absent(),
+    Value<int?> expiryAlertDaysBefore = const Value.absent(),
     bool? isActive,
     DateTime? createdAt,
   }) => Medicine(
@@ -8546,6 +8656,13 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     startDate: startDate ?? this.startDate,
     endDate: endDate ?? this.endDate,
     skipDates: skipDates ?? this.skipDates,
+    openedDate: openedDate.present ? openedDate.value : this.openedDate,
+    bestUseWithinDays: bestUseWithinDays.present
+        ? bestUseWithinDays.value
+        : this.bestUseWithinDays,
+    expiryAlertDaysBefore: expiryAlertDaysBefore.present
+        ? expiryAlertDaysBefore.value
+        : this.expiryAlertDaysBefore,
     isActive: isActive ?? this.isActive,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -8586,6 +8703,15 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
       endDate: data.endDate.present ? data.endDate.value : this.endDate,
       skipDates: data.skipDates.present ? data.skipDates.value : this.skipDates,
+      openedDate: data.openedDate.present
+          ? data.openedDate.value
+          : this.openedDate,
+      bestUseWithinDays: data.bestUseWithinDays.present
+          ? data.bestUseWithinDays.value
+          : this.bestUseWithinDays,
+      expiryAlertDaysBefore: data.expiryAlertDaysBefore.present
+          ? data.expiryAlertDaysBefore.value
+          : this.expiryAlertDaysBefore,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -8613,6 +8739,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('skipDates: $skipDates, ')
+          ..write('openedDate: $openedDate, ')
+          ..write('bestUseWithinDays: $bestUseWithinDays, ')
+          ..write('expiryAlertDaysBefore: $expiryAlertDaysBefore, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -8640,6 +8769,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     startDate,
     endDate,
     skipDates,
+    openedDate,
+    bestUseWithinDays,
+    expiryAlertDaysBefore,
     isActive,
     createdAt,
   ]);
@@ -8666,6 +8798,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
           other.startDate == this.startDate &&
           other.endDate == this.endDate &&
           other.skipDates == this.skipDates &&
+          other.openedDate == this.openedDate &&
+          other.bestUseWithinDays == this.bestUseWithinDays &&
+          other.expiryAlertDaysBefore == this.expiryAlertDaysBefore &&
           other.isActive == this.isActive &&
           other.createdAt == this.createdAt);
 }
@@ -8690,6 +8825,9 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
   final Value<DateTime> startDate;
   final Value<DateTime> endDate;
   final Value<String> skipDates;
+  final Value<DateTime?> openedDate;
+  final Value<int?> bestUseWithinDays;
+  final Value<int?> expiryAlertDaysBefore;
   final Value<bool> isActive;
   final Value<DateTime> createdAt;
   const MedicinesCompanion({
@@ -8712,6 +8850,9 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     this.startDate = const Value.absent(),
     this.endDate = const Value.absent(),
     this.skipDates = const Value.absent(),
+    this.openedDate = const Value.absent(),
+    this.bestUseWithinDays = const Value.absent(),
+    this.expiryAlertDaysBefore = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -8735,6 +8876,9 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     required DateTime startDate,
     required DateTime endDate,
     this.skipDates = const Value.absent(),
+    this.openedDate = const Value.absent(),
+    this.bestUseWithinDays = const Value.absent(),
+    this.expiryAlertDaysBefore = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name),
@@ -8760,6 +8904,9 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     Expression<DateTime>? startDate,
     Expression<DateTime>? endDate,
     Expression<String>? skipDates,
+    Expression<DateTime>? openedDate,
+    Expression<int>? bestUseWithinDays,
+    Expression<int>? expiryAlertDaysBefore,
     Expression<bool>? isActive,
     Expression<DateTime>? createdAt,
   }) {
@@ -8783,6 +8930,10 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
       if (startDate != null) 'start_date': startDate,
       if (endDate != null) 'end_date': endDate,
       if (skipDates != null) 'skip_dates': skipDates,
+      if (openedDate != null) 'opened_date': openedDate,
+      if (bestUseWithinDays != null) 'best_use_within_days': bestUseWithinDays,
+      if (expiryAlertDaysBefore != null)
+        'expiry_alert_days_before': expiryAlertDaysBefore,
       if (isActive != null) 'is_active': isActive,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -8808,6 +8959,9 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     Value<DateTime>? startDate,
     Value<DateTime>? endDate,
     Value<String>? skipDates,
+    Value<DateTime?>? openedDate,
+    Value<int?>? bestUseWithinDays,
+    Value<int?>? expiryAlertDaysBefore,
     Value<bool>? isActive,
     Value<DateTime>? createdAt,
   }) {
@@ -8831,6 +8985,10 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       skipDates: skipDates ?? this.skipDates,
+      openedDate: openedDate ?? this.openedDate,
+      bestUseWithinDays: bestUseWithinDays ?? this.bestUseWithinDays,
+      expiryAlertDaysBefore:
+          expiryAlertDaysBefore ?? this.expiryAlertDaysBefore,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -8896,6 +9054,17 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     if (skipDates.present) {
       map['skip_dates'] = Variable<String>(skipDates.value);
     }
+    if (openedDate.present) {
+      map['opened_date'] = Variable<DateTime>(openedDate.value);
+    }
+    if (bestUseWithinDays.present) {
+      map['best_use_within_days'] = Variable<int>(bestUseWithinDays.value);
+    }
+    if (expiryAlertDaysBefore.present) {
+      map['expiry_alert_days_before'] = Variable<int>(
+        expiryAlertDaysBefore.value,
+      );
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -8927,6 +9096,9 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('skipDates: $skipDates, ')
+          ..write('openedDate: $openedDate, ')
+          ..write('bestUseWithinDays: $bestUseWithinDays, ')
+          ..write('expiryAlertDaysBefore: $expiryAlertDaysBefore, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -18576,6 +18748,9 @@ typedef $$MedicinesTableCreateCompanionBuilder =
       required DateTime startDate,
       required DateTime endDate,
       Value<String> skipDates,
+      Value<DateTime?> openedDate,
+      Value<int?> bestUseWithinDays,
+      Value<int?> expiryAlertDaysBefore,
       Value<bool> isActive,
       Value<DateTime> createdAt,
     });
@@ -18600,6 +18775,9 @@ typedef $$MedicinesTableUpdateCompanionBuilder =
       Value<DateTime> startDate,
       Value<DateTime> endDate,
       Value<String> skipDates,
+      Value<DateTime?> openedDate,
+      Value<int?> bestUseWithinDays,
+      Value<int?> expiryAlertDaysBefore,
       Value<bool> isActive,
       Value<DateTime> createdAt,
     });
@@ -18740,6 +18918,21 @@ class $$MedicinesTableFilterComposer
 
   ColumnFilters<String> get skipDates => $composableBuilder(
     column: $table.skipDates,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get openedDate => $composableBuilder(
+    column: $table.openedDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bestUseWithinDays => $composableBuilder(
+    column: $table.bestUseWithinDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get expiryAlertDaysBefore => $composableBuilder(
+    column: $table.expiryAlertDaysBefore,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -18901,6 +19094,21 @@ class $$MedicinesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get openedDate => $composableBuilder(
+    column: $table.openedDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bestUseWithinDays => $composableBuilder(
+    column: $table.bestUseWithinDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get expiryAlertDaysBefore => $composableBuilder(
+    column: $table.expiryAlertDaysBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -19014,6 +19222,21 @@ class $$MedicinesTableAnnotationComposer
   GeneratedColumn<String> get skipDates =>
       $composableBuilder(column: $table.skipDates, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get openedDate => $composableBuilder(
+    column: $table.openedDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get bestUseWithinDays => $composableBuilder(
+    column: $table.bestUseWithinDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get expiryAlertDaysBefore => $composableBuilder(
+    column: $table.expiryAlertDaysBefore,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
@@ -19116,6 +19339,9 @@ class $$MedicinesTableTableManager
                 Value<DateTime> startDate = const Value.absent(),
                 Value<DateTime> endDate = const Value.absent(),
                 Value<String> skipDates = const Value.absent(),
+                Value<DateTime?> openedDate = const Value.absent(),
+                Value<int?> bestUseWithinDays = const Value.absent(),
+                Value<int?> expiryAlertDaysBefore = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => MedicinesCompanion(
@@ -19138,6 +19364,9 @@ class $$MedicinesTableTableManager
                 startDate: startDate,
                 endDate: endDate,
                 skipDates: skipDates,
+                openedDate: openedDate,
+                bestUseWithinDays: bestUseWithinDays,
+                expiryAlertDaysBefore: expiryAlertDaysBefore,
                 isActive: isActive,
                 createdAt: createdAt,
               ),
@@ -19162,6 +19391,9 @@ class $$MedicinesTableTableManager
                 required DateTime startDate,
                 required DateTime endDate,
                 Value<String> skipDates = const Value.absent(),
+                Value<DateTime?> openedDate = const Value.absent(),
+                Value<int?> bestUseWithinDays = const Value.absent(),
+                Value<int?> expiryAlertDaysBefore = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => MedicinesCompanion.insert(
@@ -19184,6 +19416,9 @@ class $$MedicinesTableTableManager
                 startDate: startDate,
                 endDate: endDate,
                 skipDates: skipDates,
+                openedDate: openedDate,
+                bestUseWithinDays: bestUseWithinDays,
+                expiryAlertDaysBefore: expiryAlertDaysBefore,
                 isActive: isActive,
                 createdAt: createdAt,
               ),

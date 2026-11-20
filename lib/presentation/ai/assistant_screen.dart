@@ -85,26 +85,78 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(assistantControllerProvider);
     final controller = ref.read(assistantControllerProvider.notifier);
+    final brand = context.brand;
+    final isListening = state is AssistantListening;
 
-    return BrandScaffold(
-      header: BrandTopBar(
-        title: 'Assistant',
-        leadingIcon: AppIcons.back,
-        actions: [
-          CircleIconButton(
-            icon: AppIcons.settings,
-            tooltip: 'AI settings',
-            size: 40,
-            onPressed: () => context.go('/settings'),
-          ),
-        ],
-      ),
+    final scaffold = BrandScaffold(
+      header: isListening
+          ? SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.gutter,
+                  8,
+                  AppSpacing.gutter,
+                  8,
+                ),
+                child: Row(
+                  children: [
+                    CircleIconButton(
+                      icon: AppIcons.close,
+                      tooltip: 'Back',
+                      onInk: true,
+                      onPressed: () {
+                        controller.cancelListening();
+                        Navigator.maybePop(context);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Assistant',
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.8,
+                            ),
+                      ),
+                    ),
+                    const _SourceBadge(onInk: true),
+                    const SizedBox(width: 8),
+                    CircleIconButton(
+                      icon: AppIcons.settings,
+                      tooltip: 'AI settings',
+                      onInk: true,
+                      onPressed: () => context.go('/settings'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : BrandTopBar(
+              title: 'Assistant',
+              leadingIcon: AppIcons.close,
+              actions: [
+                if (state is AssistantPreview)
+                  _SourceBadge(source: state.result.source),
+                CircleIconButton(
+                  icon: AppIcons.settings,
+                  tooltip: 'AI settings',
+                  size: 44,
+                  onPressed: () => context.go('/settings'),
+                ),
+              ],
+            ),
       child: switch (state) {
         AssistantIdle() => _Idle(onListen: () => _record(controller)),
         AssistantListening s => _Listening(
           state: s,
           onStop: controller.stopListening,
           onCancel: controller.cancelListening,
+          onTypeInstead: controller.typeInstead,
+          onScanInstead: () => _scan(context, ref),
         ),
         AssistantTranscript s => _Transcript(
           controller: _transcript..text = s.text,
@@ -119,6 +171,12 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
         AssistantFailure s => _Failure(state: s),
       },
     );
+
+    if (!isListening) return scaffold;
+    return Theme(
+      data: Theme.of(context).copyWith(scaffoldBackgroundColor: brand.inkDeep),
+      child: ColoredBox(color: brand.inkDeep, child: scaffold),
+    );
   }
 }
 
@@ -127,11 +185,14 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
 /// Says which parser will answer, so nobody wonders where the words went.
 class _SourceBadge extends ConsumerWidget {
   final AiSource? source;
+  final bool onInk;
 
-  const _SourceBadge({this.source});
+  const _SourceBadge({this.source, this.onInk = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
     const offline = OfflineSource();
     final String label =
         source?.label ??
@@ -144,10 +205,39 @@ class _SourceBadge extends ConsumerWidget {
               loading: () => '…',
               error: (_, _) => offline.label,
             );
-    return Pill(
-      label: label,
-      icon: label == offline.label ? AppIcons.lock : AppIcons.sparkle,
-      color: context.muted,
+
+    final isOffline = label == offline.label;
+    final dotColor = isOffline
+        ? context.muted
+        : (onInk ? brand.successRoles.onInk : brand.success);
+
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: ShapeDecoration(
+        color: onInk ? Colors.white.withValues(alpha: 0.08) : brand.surface,
+        shape: const StadiumBorder(),
+        shadows: onInk ? const [] : AppShadows.circleButton(theme.brightness),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: onInk ? Colors.white : context.muted,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -160,9 +250,12 @@ class _MicButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
-    final fill = live ? context.brand.danger : scheme.primary;
+    final brand = context.brand;
+    final coral = brand.medicineRoles.onInk;
+    final fill = live ? coral : brand.medicine;
+    final fg = live ? brand.inkDeep : Colors.white;
     final reduceMotion = ref.watch(settingsProvider).reduceMotion;
+    final size = live ? 108.0 : 88.0;
 
     Widget button = BrandTappable(
       onPressed: onPressed,
@@ -171,23 +264,32 @@ class _MicButton extends ConsumerWidget {
         decoration: ShapeDecoration(
           color: fill,
           shape: const CircleBorder(),
-          shadows: [
-            BoxShadow(
-              color: fill.withValues(alpha: 0.3),
-              blurRadius: 18,
-              spreadRadius: -2,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          shadows: live
+              ? [
+                  BoxShadow(
+                    color: coral.withValues(alpha: 0.16),
+                    spreadRadius: 12,
+                    blurRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: coral.withValues(alpha: 0.07),
+                    spreadRadius: 26,
+                    blurRadius: 0,
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: fill.withValues(alpha: 0.3),
+                    blurRadius: 18,
+                    spreadRadius: -2,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
         ),
         child: SizedBox(
-          width: 88,
-          height: 88,
-          child: AppIcon(
-            live ? AppIcons.micOff : AppIcons.mic,
-            color: scheme.onPrimary,
-            size: 38,
-          ),
+          width: size,
+          height: size,
+          child: AppIcon(AppIcons.mic, color: fg, size: live ? 40 : 38),
         ),
       ),
     );
@@ -205,43 +307,57 @@ class _MicButton extends ConsumerWidget {
   }
 }
 
-/// Concentric rings behind the live mic that swell with the input level,
-/// so the animation answers the voice instead of looping on its own.
-class _PulseRings extends ConsumerWidget {
+/// Live sound level waveform bars above the mic button (38-assistant-listening.html).
+class _SoundLevelWave extends StatelessWidget {
   final double level;
-  final Widget child;
 
-  const _PulseRings({required this.level, required this.child});
+  const _SoundLevelWave({required this.level});
 
-  static const _size = 88.0;
-  static const _rings = 3;
+  static const _baseHeights = <double>[
+    14,
+    26,
+    18,
+    40,
+    30,
+    56,
+    44,
+    68,
+    36,
+    60,
+    48,
+    24,
+    52,
+    34,
+    44,
+    20,
+    30,
+    12,
+  ];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final color = context.brand.danger;
-    final reduceMotion = ref.watch(settingsProvider).reduceMotion;
-    // A floor so the rings breathe even in silence; the voice adds on top.
-    final drive = reduceMotion ? 0.0 : 0.15 + level * 0.85;
+  Widget build(BuildContext context) {
+    final coral = context.brand.medicineRoles.onInk;
+    final scale = 0.45 + 0.55 * level.clamp(0.0, 1.0);
     return SizedBox(
-      width: _size * 2.6,
-      height: _size * 2.6,
-      child: Stack(
-        alignment: Alignment.center,
+      height: 72,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          for (var i = _rings; i >= 1; i--)
+          for (final (i, h) in _baseHeights.indexed) ...[
+            if (i > 0) const SizedBox(width: 5),
             AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              curve: Curves.easeOut,
-              width: _size + (_size * 0.5 * i) * (0.35 + 0.65 * drive),
-              height: _size + (_size * 0.5 * i) * (0.35 + 0.65 * drive),
+              duration: const Duration(milliseconds: 140),
+              width: 5,
+              height: math.max(8, h * scale),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: color.withValues(
-                  alpha: math.max(0.04, (0.22 - 0.06 * i) * (0.4 + drive)),
-                ),
+                color: (i >= 5 && i <= 12)
+                    ? coral
+                    : coral.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
-          child,
+          ],
         ],
       ),
     );
@@ -331,84 +447,252 @@ class _Listening extends StatelessWidget {
   final AssistantListening state;
   final VoidCallback onStop;
   final VoidCallback onCancel;
+  final VoidCallback onTypeInstead;
+  final VoidCallback onScanInstead;
 
   const _Listening({
     required this.state,
     required this.onStop,
     required this.onCancel,
+    required this.onTypeInstead,
+    required this.onScanInstead,
   });
 
   static String _clock(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final m = d.inMinutes.remainder(60).toString();
     final sec = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$m:$sec';
   }
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.muted;
-    final danger = context.brand.danger;
-    return _Centered(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: danger,
-                    shape: BoxShape.circle,
+    final brand = context.brand;
+    final coral = brand.medicineRoles.onInk;
+    return ColoredBox(
+      color: brand.inkDeep,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.gutter,
+            10,
+            AppSpacing.gutter,
+            24,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: coral,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const SizedBox(width: 8, height: 8),
+                      )
+                      .animate(onPlay: (c) => c.repeat(reverse: true))
+                      .fade(begin: 1, end: 0.2, duration: 800.ms),
+                  const SizedBox(width: 8),
+                  Text(
+                    'LISTENING · ${_clock(state.elapsed)}',
+                    style: TextStyle(
+                      color: coral,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
-                  child: const SizedBox(width: 8, height: 8),
-                )
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .fade(begin: 1, end: 0.2, duration: 800.ms),
-            const SizedBox(width: 8),
-            Text(
-              'Recording  ${_clock(state.elapsed)}',
-              style: TextStyle(
-                color: muted,
-                fontSize: 13,
-                letterSpacing: 0.4,
-                fontFeatures: const [FontFeature.tabularFigures()],
+                ],
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        _PulseRings(
-          level: state.level,
-          child: _MicButton(live: true, onPressed: onStop),
-        ),
-        Text('Tap to send', style: TextStyle(color: muted, fontSize: 12)),
-        const SizedBox(height: 20),
-        ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 60),
-          child: Text(
-            state.partial.isEmpty ? 'Listening…' : state.partial,
-            textAlign: TextAlign.center,
-            style: state.partial.isEmpty
-                ? TextStyle(color: muted, fontSize: 15, height: 1.4)
-                : Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(fontSize: 17, height: 1.4),
+              const SizedBox(height: 6),
+              const Text(
+                'Say what you want to add',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.8,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(minHeight: 132),
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      color: state.partial.isEmpty
+                          ? brand.onInkMuted
+                          : Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      height: 1.45,
+                      letterSpacing: -0.2,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: state.partial.isEmpty
+                            ? 'Listening…'
+                            : state.partial,
+                      ),
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Container(
+                          width: 3,
+                          height: 22,
+                          margin: const EdgeInsets.only(left: 4),
+                          decoration: BoxDecoration(
+                            color: coral,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (state.notice != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  state.notice!,
+                  style: TextStyle(
+                    color: brand.onInkMuted,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+              const Spacer(),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _SoundLevelWave(level: state.level),
+                    const SizedBox(height: 22),
+                    _MicButton(live: true, onPressed: onStop),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  'TRY SAYING',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: brand.onInkMuted,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: const [
+                  _TrySayingPill('“Add Napa 3 times a day for 5 days”'),
+                  _TrySayingPill('“Rickshaw 60 cash”'),
+                  _TrySayingPill('“Rent Friday 9am”'),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  CircleIconButton(
+                    icon: AppIcons.textSize,
+                    tooltip: 'Type instead',
+                    size: 58,
+                    onInk: true,
+                    onPressed: () {
+                      onCancel();
+                      onTypeInstead();
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                  CircleIconButton(
+                    icon: AppIcons.camera,
+                    tooltip: 'Scan instead',
+                    size: 58,
+                    onInk: true,
+                    onPressed: () {
+                      onCancel();
+                      onScanInstead();
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: BrandTappable(
+                      onPressed: onStop,
+                      semanticsLabel: 'Tap to send',
+                      child: Container(
+                        height: 58,
+                        alignment: Alignment.center,
+                        decoration: const ShapeDecoration(
+                          color: Colors.white,
+                          shape: StadiumBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Tap to send',
+                              style: TextStyle(
+                                color: brand.inkDeep,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            AppIcon(
+                              AppIcons.chevronRight,
+                              size: 18,
+                              color: brand.inkDeep,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        if (state.notice != null) ...[
-          const SizedBox(height: 12),
-          Text(
-            state.notice!,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: muted, fontSize: 12, height: 1.4),
-          ),
+      ),
+    );
+  }
+}
+
+class _TrySayingPill extends StatelessWidget {
+  final String text;
+
+  const _TrySayingPill(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = context.brand;
+    return Container(
+      height: 34,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(17),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(text, style: TextStyle(fontSize: 13, color: brand.onInkMuted)),
         ],
-        const SizedBox(height: 20),
-        BrandButton(
-          label: 'Cancel',
-          kind: BrandButtonKind.ghost,
-          expand: false,
-          onPressed: onCancel,
-        ),
-      ],
+      ),
     );
   }
 }
@@ -512,6 +796,8 @@ class _Preview extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
     final controller = ref.read(assistantControllerProvider.notifier);
     final muted = context.muted;
     final pending = state.pending.length;
@@ -528,43 +814,108 @@ class _Preview extends ConsumerWidget {
               12,
             ),
             children: [
-              TintCard(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                onTap: controller.editAgain,
-                child: Row(
+              // "You said" ink hero card (13-assistant.html)
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: brand.heroSurface,
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: AppShadows.hero(theme.brightness),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        '“${state.transcript}”',
-                        style: TextStyle(
-                          color: muted,
-                          fontSize: 13,
-                          height: 1.4,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AppIcon(
+                              AppIcons.mic,
+                              size: 16,
+                              color: brand.medicineRoles.onInk,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'YOU SAID',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.8,
+                                color: brand.medicineRoles.onInk,
+                              ),
+                            ),
+                          ],
                         ),
+                        BrandTappable(
+                          onPressed: controller.editAgain,
+                          semanticsLabel: 'Edit text',
+                          child: Container(
+                            height: 32,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            alignment: Alignment.center,
+                            decoration: ShapeDecoration(
+                              color: Colors.white.withValues(alpha: 0.10),
+                              shape: const StadiumBorder(),
+                            ),
+                            child: const Text(
+                              'Edit text',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '“${state.transcript}”',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        height: 1.45,
+                        letterSpacing: -0.2,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    AppIcon(AppIcons.edit, color: muted, size: 18),
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  _SourceBadge(source: state.result.source),
-                  const Spacer(),
-                  Text(
-                    '${state.previews.length} '
-                    '${state.previews.length == 1 ? 'entry' : 'entries'}',
-                    style: TextStyle(color: muted, fontSize: 12),
-                  ),
-                ],
+              const SizedBox(height: 16),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${state.previews.length} '
+                      '${state.previews.length == 1 ? 'thing' : 'things'} to add',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    Text(
+                      'Tap a card to adjust',
+                      style: TextStyle(color: muted, fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
               if (state.result.reply.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Text(
-                  state.result.reply,
-                  style: const TextStyle(fontSize: 14, height: 1.4),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    state.result.reply,
+                    style: const TextStyle(fontSize: 14, height: 1.4),
+                  ),
                 ),
               ],
               if (state.error != null) ...[
@@ -572,11 +923,7 @@ class _Preview extends ConsumerWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppIcon(
-                      AppIcons.warning,
-                      color: context.brand.danger,
-                      size: 18,
-                    ),
+                    AppIcon(AppIcons.warning, color: brand.danger, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -584,14 +931,14 @@ class _Preview extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 13,
                           height: 1.4,
-                          color: context.brand.danger,
+                          color: brand.danger,
                         ),
                       ),
                     ),
                   ],
                 ),
               ],
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               for (var i = 0; i < state.previews.length; i++)
                 ActionPreviewCard(
                   key: ValueKey(state.previews[i].draft),
@@ -600,12 +947,6 @@ class _Preview extends ConsumerWidget {
                   onRemove: () => controller.removePreview(i),
                   onSaved: (item) => controller.markSaved(i, item),
                 ),
-              const SizedBox(height: 4),
-              Text(
-                'Tap a card to adjust it in its own form before saving.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: muted, fontSize: 12),
-              ),
             ],
           ),
         ),
@@ -620,13 +961,21 @@ class _Preview extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                BrandButton(
-                  label: 'Discard',
-                  kind: BrandButtonKind.ghost,
-                  expand: false,
+                CircleIconButton(
+                  icon: AppIcons.mic,
+                  tooltip: 'Add something else by voice',
+                  size: 58,
+                  onPressed: controller.startListening,
+                ),
+                const SizedBox(width: 10),
+                CircleIconButton(
+                  icon: AppIcons.delete,
+                  tooltip: 'Discard',
+                  size: 58,
+                  color: brand.danger,
                   onPressed: controller.discard,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: BrandButton(
                     label: pending == 0
@@ -705,6 +1054,7 @@ class _SavedState extends State<_Saved> {
         ],
         const SizedBox(height: 16),
         TintCard(
+          fill: context.brand.surface,
           padding: EdgeInsets.zero,
           child: TileGroup(
             children: [

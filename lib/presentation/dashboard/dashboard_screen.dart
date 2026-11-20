@@ -2,33 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/database/app_database.dart';
 import '../../core/people/people_repository.dart';
+import '../../core/people/person_avatar.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
+import '../ai/widgets/document_source_sheet.dart';
+import '../drop/providers/drop_provider.dart';
 import '../expenses/providers/expenses_provider.dart';
 import '../focus/providers/focus_provider.dart';
 import '../habits/providers/habits_provider.dart';
 import '../habits/repository/habit_repository.dart';
+import '../habits/utils/habit_stats.dart';
 import '../medicine/medicine_screen.dart' show DoseTile;
 import '../medicine/providers/medicine_provider.dart';
 import '../medicine/repository/medicine_repository.dart';
+import '../medicine/utils/after_opening_expiry.dart';
 import '../notes/providers/notes_provider.dart';
 import '../notes/repository/note_repository.dart';
+import '../reminders/reminders_screen.dart';
 import '../settings/people_screen.dart';
 import '../tasks/providers/tasks_provider.dart';
+import '../tasks/repository/task_repository.dart';
 import '../tasks/widgets/task_tile.dart';
-import '../../core/people/person_avatar.dart';
-import '../../core/database/app_database.dart';
-import '../ai/widgets/document_source_sheet.dart';
-import '../drop/providers/drop_provider.dart';
 
-/// The home screen, laid out to the fitness reference: greeting header, a hero
-/// card for the next thing due, a pastel "My Plans" row of module stats, an
-/// activity chart, then the per-module detail sections.
+/// Today (`01-today.png`): greeting header, ink hero card with day timeline and
+/// module sub-tiles, AI add bar, "Up next", then per-module sections in
+/// [AppSettings.dashboardOrder].
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -36,8 +41,12 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final self = ref.watch(selfProvider);
+    final reminders = ref.watch(remindersProvider).valueOrNull ?? const [];
+    final today = Fmt.dateOnly(DateTime.now());
+    final dueReminders = reminders
+        .where((item) => !Fmt.dateOnly(item.at).isAfter(today))
+        .length;
 
-    // Widgets are keyed by module name so the order is user-configurable.
     final builders = <String, Widget Function()>{
       'medicine': () => const _MedicineWidget(),
       'tasks': () => const _TasksWidget(),
@@ -60,53 +69,37 @@ class DashboardScreen extends ConsumerWidget {
           padding: pageInsets(context, top: 12, end: PageEnd.navBar),
           children: [
             GreetingHeader(
-              greeting: '${Fmt.greeting()},',
+              greeting: Fmt.greeting(),
               subtitle: Fmt.headerDate(DateTime.now()),
-              // Falls back to the app's mark while Self is still unnamed.
               initials: Fmt.initials(self?.name ?? ''),
               photoPath: self?.photoPath,
-              color: self == null ? null : personColor(context, self.color),
+              color: self == null || self.color == personColorSeed
+                  ? null
+                  : Color(self.color),
               onAvatarTap: self == null
                   ? null
                   : () => PersonEditor.show(context, ref, person: self),
               actions: [
                 CircleIconButton(
-                  icon: AppIcons.sparkle,
-                  tooltip: 'Speak a command',
-                  size: 36,
-                  onPressed: () => context.push('/assistant'),
-                ),
-                CircleIconButton(
-                  icon: AppIcons.camera,
-                  tooltip: 'Scan a document',
-                  size: 36,
-                  onPressed: () async {
-                    final fromCamera = await showDocumentSourceSheet(context);
-                    if (fromCamera != null && context.mounted) {
-                      context.push('/assistant', extra: fromCamera);
-                    }
-                  },
-                ),
-                CircleIconButton(
                   icon: AppIcons.search,
                   tooltip: 'Search everything',
-                  size: 36,
                   onPressed: () => context.push('/search'),
                 ),
                 CircleIconButton(
                   icon: AppIcons.notifications,
                   tooltip: 'Reminders',
-                  size: 36,
+                  badgeCount: dueReminders,
                   onPressed: () => context.push('/reminders'),
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.section),
-            const _NextUpBanner(),
-            const SizedBox(height: AppSpacing.section),
-            const SectionHeader('My plans'),
-            const _TodaySummary(),
-            const SizedBox(height: AppSpacing.section),
+            const SizedBox(height: 16),
+            const _TodayHeroCard(),
+            const SizedBox(height: 14),
+            const _TodayAddBar(),
+            const SizedBox(height: 18),
+            const _UpNextSection(),
+            const SizedBox(height: 18),
             const _ActivityChart(),
             if (ordered.isEmpty)
               const Padding(
@@ -118,7 +111,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             for (final key in ordered) ...[
-              const SizedBox(height: AppSpacing.section),
+              const SizedBox(height: 18),
               builders[key]!(),
             ],
           ],
@@ -128,275 +121,1037 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-/// The hero card. It surfaces whatever is most pressing right now — the next
-/// dose, else the next task, else an invitation to focus — so the biggest
-/// element on the screen is never decorative.
-class _NextUpBanner extends ConsumerWidget {
-  const _NextUpBanner();
+class _TodayHeroCard extends ConsumerWidget {
+  const _TodayHeroCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
     final settings = ref.watch(settingsProvider);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryText = isDark ? brand.ink : brand.onInk;
 
-    if (settings.isEnabled(AppModule.medicine)) {
-      final doses = ref.watch(todayDoseViewsProvider).valueOrNull ?? const [];
-      final next = doses
-          .where((d) => d.status == DoseStatus.pending)
-          .firstOrNull;
-      if (next != null) {
-        return HeroBanner(
-          label: 'Medicine',
-          headline: 'Take ${next.medicine.name}',
-          footnote:
-              '${Fmt.time(next.dose.scheduledTime)} · ${next.dosageLabel}',
-          icon: AppIcons.medicineForm(next.medicine.form),
-          accent: context.brand.medicine,
-          onTap: () => context.push('/medicine'),
-        );
-      }
-    }
+    final tasks = settings.isEnabled(AppModule.tasks)
+        ? (ref.watch(todayTasksProvider).valueOrNull ?? const <Task>[])
+        : const <Task>[];
+    final doses = settings.isEnabled(AppModule.medicine)
+        ? (ref.watch(todayDoseViewsProvider).valueOrNull ?? const <DoseView>[])
+        : const <DoseView>[];
+    final habits = settings.isEnabled(AppModule.habits)
+        ? (ref.watch(habitsListProvider).valueOrNull ?? const <Habit>[])
+        : const <Habit>[];
+    final habitLogs = settings.isEnabled(AppModule.habits)
+        ? (ref.watch(todayHabitLogsProvider).valueOrNull ??
+              const <int, double>{})
+        : const <int, double>{};
+    final focusStats = settings.isEnabled(AppModule.focus)
+        ? ref.watch(focusStatsProvider).valueOrNull
+        : null;
 
-    if (settings.isEnabled(AppModule.tasks)) {
-      final tasks = ref.watch(todayTasksProvider).valueOrNull ?? const [];
-      final next = tasks.where((t) => !t.isCompleted).firstOrNull;
-      if (next != null) {
-        final due = next.dueDate;
-        return HeroBanner(
+    final tasksDone = tasks.where((t) => t.isCompleted).length;
+    final dosesDone = doses.where((d) => d.status == DoseStatus.taken).length;
+    final habitsDone = habits.where((h) {
+      final amount = habitLogs[h.id] ?? 0;
+      return h.goalType == 0
+          ? amount >= h.targetAmount
+          : amount <= h.targetAmount;
+    }).length;
+
+    final totalCount = tasks.length + doses.length + habits.length;
+    final doneCount = tasksDone + dosesDone + habitsDone;
+    final progress = totalCount == 0 ? 0.0 : doneCount / totalCount;
+    final remaining = totalCount - doneCount;
+    final habitsLeft = habits.length - habitsDone;
+
+    // Next upcoming timed item for the supporting line. "All caught up" only
+    // when every counted item is done — an open habit is still today's work.
+    final now = DateTime.now();
+    final nextDose = doses
+        .where((d) => d.status == DoseStatus.pending)
+        .firstOrNull;
+    final nextTask = tasks.where((t) => !t.isCompleted).firstOrNull;
+    final nextLine = nextDose != null
+        ? (!nextDose.dose.scheduledTime.isAfter(
+                now.add(const Duration(minutes: 15)),
+              )
+              ? 'Due now · ${Fmt.time(nextDose.dose.scheduledTime)}'
+              : 'Next up at ${Fmt.time(nextDose.dose.scheduledTime)}')
+        : nextTask != null
+        ? (nextTask.hasDueTime && nextTask.dueDate != null
+              ? (nextTask.dueDate!.isBefore(now)
+                    ? 'Overdue · ${Fmt.time(nextTask.dueDate!)}'
+                    : 'Next up at ${Fmt.time(nextTask.dueDate!)}')
+              : 'Next: ${nextTask.title}')
+        : remaining <= 0
+        ? (totalCount == 0
+              ? Fmt.fullDate(now)
+              : 'All caught up for today')
+        : habitsLeft == remaining
+        ? (habitsLeft == 1
+              ? '1 habit still open'
+              : '$habitsLeft habits still open')
+        : (remaining == 1 ? '1 thing still open' : '$remaining still open');
+
+    // Timeline dots from today's timed doses, tasks & habits.
+    final todayDate = Fmt.dateOnly(now);
+    final events = <({DateTime time, Color color, bool done})>[
+      for (final d in doses)
+        (
+          time: d.dose.scheduledTime,
+          color: brand.medicineRoles.onInk,
+          done: d.status == DoseStatus.taken,
+        ),
+      for (final t in tasks)
+        if (t.hasDueTime && t.dueDate != null)
+          (time: t.dueDate!, color: brand.taskRoles.onInk, done: t.isCompleted),
+      for (final h in habits)
+        if (h.reminderMinutes != null)
+          (
+            time: todayDate.add(Duration(minutes: h.reminderMinutes!)),
+            color: brand.habitRoles.onInk,
+            done: h.goalType == 0
+                ? (habitLogs[h.id] ?? 0) >= h.targetAmount
+                : (habitLogs[h.id] ?? 0) <= h.targetAmount,
+          ),
+    ];
+
+    final subTiles = <Widget>[
+      if (settings.isEnabled(AppModule.tasks))
+        _HeroSubTile(
+          dot: brand.taskRoles.onInk,
           label: 'Tasks',
-          headline: next.title,
-          footnote: due == null
-              ? 'Due today'
-              : 'Due ${Fmt.due(due, withTime: next.hasDueTime)}',
-          icon: AppIcons.tasks,
-          accent: context.brand.task,
+          done: '$tasksDone',
+          total: '/${tasks.length}',
           onTap: () => context.push('/tasks'),
-        );
-      }
-    }
+        ),
+      if (settings.isEnabled(AppModule.medicine))
+        _HeroSubTile(
+          dot: brand.medicineRoles.onInk,
+          label: 'Meds',
+          done: '$dosesDone',
+          total: '/${doses.length}',
+          onTap: () => context.push('/medicine'),
+        ),
+      if (settings.isEnabled(AppModule.habits))
+        _HeroSubTile(
+          dot: brand.habitRoles.onInk,
+          label: 'Habits',
+          done: '$habitsDone',
+          total: '/${habits.length}',
+          onTap: () => context.push('/habits'),
+        ),
+      if (settings.isEnabled(AppModule.focus))
+        _HeroSubTile(
+          dot: brand.focusRoles.onInk,
+          label: 'Focus',
+          done: '${(focusStats?.today ?? Duration.zero).inMinutes}',
+          total: 'm',
+          onTap: () => context.push('/focus'),
+        ),
+    ];
 
-    if (settings.isEnabled(AppModule.focus)) {
-      final stats = ref.watch(focusStatsProvider).valueOrNull;
-      return HeroBanner(
-        label: 'Focus',
-        headline: 'Start a focus session',
-        footnote: stats == null || stats.today == Duration.zero
-            ? 'Nothing focused yet today'
-            : '${Fmt.duration(stats.today)} focused so far',
-        icon: AppIcons.focus,
-        accent: context.brand.focus,
-        onTap: () => context.push('/focus'),
-      );
-    }
-
-    return HeroBanner(
-      label: 'All clear',
-      headline: 'Nothing needs you right now',
-      footnote: Fmt.fullDate(DateTime.now()),
-      icon: AppIcons.checkCircle,
-      accent: context.brand.habit,
-      onTap: () => context.push('/insights'),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+      decoration: BoxDecoration(
+        color: brand.heroSurface,
+        borderRadius: BorderRadius.circular(AppRadii.hero),
+        boxShadow: AppShadows.hero(theme.brightness),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TODAY',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: brand.medicineRoles.onInk,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '$doneCount',
+                          style: theme.textTheme.displayLarge?.copyWith(
+                            color: primaryText,
+                            fontSize: 48,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -2,
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'of $totalCount done',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: brand.onInkMuted,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      nextLine,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: brand.onInkMuted, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              ProgressRing(
+                value: progress,
+                size: 92,
+                thickness: 10,
+                onInk: true,
+                color: brand.medicineRoles.onInk,
+                center: Text(
+                  '${(progress * 100).round()}%',
+                  style: TextStyle(
+                    color: primaryText,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          _DayTimeline(events: events, now: now),
+          if (subTiles.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                for (final (i, tile) in subTiles.take(4).indexed) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Expanded(child: tile),
+                ],
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
 
-/// The "My plans" row: one pastel stat card per enabled module.
-class _TodaySummary extends ConsumerWidget {
-  const _TodaySummary();
+class _HeroSubTile extends StatelessWidget {
+  final Color dot;
+  final String label;
+  final String done;
+  final String total;
+  final VoidCallback? onTap;
+
+  const _HeroSubTile({
+    required this.dot,
+    required this.label,
+    required this.done,
+    required this.total,
+    this.onTap,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final currency = settings.currencySymbol;
-
-    final cards = <Widget>[];
-
-    void add(PlanCard Function(int tint) build) =>
-        cards.add(build(cards.length));
-
-    if (settings.isEnabled(AppModule.medicine)) {
-      final doses = ref.watch(todayDoseViewsProvider).valueOrNull ?? const [];
-      final remaining = doses
-          .where((d) => d.status == DoseStatus.pending)
-          .length;
-      add(
-        (tint) => PlanCard(
-          icon: AppIcons.medicine,
-          accent: context.brand.medicine,
-          label: 'Medicine',
-          value: remaining == 0 ? 'All taken' : '$remaining left',
-          tintIndex: tint,
-          onTap: () => context.push('/medicine'),
+  Widget build(BuildContext context) {
+    final brand = context.brand;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = isDark ? brand.ink : brand.onInk;
+    return BrandTappable(
+      onPressed: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(AppRadii.field),
         ),
-      );
-    }
-    if (settings.isEnabled(AppModule.tasks)) {
-      final tasks = ref.watch(todayTasksProvider).valueOrNull ?? const [];
-      final open = tasks.where((t) => !t.isCompleted).length;
-      add(
-        (tint) => PlanCard(
-          icon: AppIcons.tasks,
-          accent: context.brand.task,
-          label: 'Tasks',
-          value: open == 0 ? 'All done' : '$open due',
-          tintIndex: tint,
-          onTap: () => context.push('/tasks'),
-        ),
-      );
-    }
-    if (settings.isEnabled(AppModule.focus)) {
-      final stats = ref.watch(focusStatsProvider).valueOrNull;
-      add(
-        (tint) => PlanCard(
-          icon: AppIcons.focus,
-          accent: context.brand.focus,
-          label: 'Focus',
-          value: Fmt.duration(stats?.today ?? Duration.zero),
-          tintIndex: tint,
-          onTap: () => context.push('/focus'),
-        ),
-      );
-    }
-    if (settings.isEnabled(AppModule.expenses)) {
-      final today = ref.watch(recentExpensesProvider).valueOrNull ?? const [];
-      final spentToday = today
-          .where((e) => e.kind == 0 && Fmt.isSameDay(e.date, DateTime.now()))
-          .fold<double>(0, (a, e) => a + e.amount);
-      add(
-        (tint) => PlanCard(
-          icon: AppIcons.expenses,
-          accent: context.brand.expense,
-          label: 'Spent',
-          value: Fmt.compactMoney(spentToday, currency),
-          tintIndex: tint,
-          onTap: () => context.push('/expenses'),
-        ),
-      );
-    }
-    if (settings.isEnabled(AppModule.habits)) {
-      final habits = ref.watch(habitsListProvider).valueOrNull ?? const [];
-      final logs = ref.watch(todayHabitLogsProvider).valueOrNull ?? const {};
-      final done = habits.where((h) {
-        final amount = logs[h.id] ?? 0;
-        return h.goalType == 0
-            ? amount >= h.targetAmount
-            : amount <= h.targetAmount;
-      }).length;
-      add(
-        (tint) => PlanCard(
-          icon: AppIcons.habits,
-          accent: context.brand.habit,
-          label: 'Habits',
-          value: habits.isEmpty ? 'None yet' : '$done / ${habits.length}',
-          tintIndex: tint,
-          onTap: () => context.push('/habits'),
-        ),
-      );
-    }
-    if (settings.isEnabled(AppModule.drop)) {
-      final unread = ref.watch(unreadDropsCountProvider).valueOrNull ?? 0;
-      add(
-        (tint) => PlanCard(
-          icon: AppIcons.inbox,
-          accent: context.brand.drop,
-          label: 'Drop',
-          value: unread == 0 ? 'Inbox zero' : '$unread in inbox',
-          tintIndex: tint,
-          onTap: () => context.push('/drop'),
-        ),
-      );
-    }
-
-    if (cards.isEmpty) return const SizedBox.shrink();
-
-    // A horizontal rail keeps three cards visible at the reference proportions
-    // no matter how many modules are switched on.
-    return SizedBox(
-      height: 132,
-      child: GutterBleed(
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
-          itemCount: cards.length,
-          separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.grid),
-          itemBuilder: (context, i) => SizedBox(width: 112, child: cards[i]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: brand.onInkMuted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  done,
+                  style: TextStyle(
+                    color: primaryText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  total,
+                  style: TextStyle(
+                    color: brand.onInkMuted,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// The "Activities" spline. It plots whatever real seven-day series the user's
-/// enabled modules can supply, and names what it is plotting rather than
-/// implying a generic score.
-class _ActivityChart extends ConsumerWidget {
-  const _ActivityChart();
+class _DayTimeline extends StatelessWidget {
+  final List<({DateTime time, Color color, bool done})> events;
+  final DateTime now;
+
+  const _DayTimeline({required this.events, required this.now});
+
+  double _fraction(DateTime dt) {
+    const startHour = 5.0;
+    const endHour = 23.0;
+    final hours = dt.hour + dt.minute / 60.0;
+    return ((hours - startHour) / (endHour - startHour)).clamp(0.0, 1.0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = context.brand;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = isDark ? brand.ink : brand.onInk;
+    final nowFrac = _fraction(now);
+    return Column(
+      children: [
+        SizedBox(
+          height: 28,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final w = constraints.maxWidth;
+              if (w <= 14) return const SizedBox.shrink();
+              return Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 13,
+                    child: Container(
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    width: (nowFrac * w).clamp(0.0, w),
+                    top: 13,
+                    child: Container(
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.42),
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
+                  for (final e in events)
+                    Positioned(
+                      left: (_fraction(e.time) * (w - 10)).clamp(0.0, w - 10),
+                      top: 9,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: e.done ? e.color : brand.heroSurface,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: e.color, width: 2),
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    left: (nowFrac * (w - 2)).clamp(0.0, w - 2),
+                    top: 0,
+                    height: 28,
+                    child: Container(
+                      width: 2,
+                      decoration: BoxDecoration(
+                        color: brand.medicineRoles.onInk,
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: (nowFrac * (w - 14)).clamp(0.0, w - 14),
+                    top: 7,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: brand.medicineRoles.onInk,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: brand.heroSurface, width: 3),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '5 AM',
+              style: TextStyle(
+                color: brand.onInkMuted,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.4,
+              ),
+            ),
+            Text(
+              'Now · ${Fmt.time(now)}',
+              style: TextStyle(
+                color: primaryText,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.4,
+              ),
+            ),
+            Text(
+              '11 PM',
+              style: TextStyle(
+                color: brand.onInkMuted,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TodayAddBar extends StatelessWidget {
+  const _TodayAddBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    return Container(
+      height: 60,
+      padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+      decoration: ShapeDecoration(
+        color: brand.surface,
+        shape: const StadiumBorder(),
+        shadows: AppShadows.composer(theme.brightness),
+      ),
+      child: Row(
+        children: [
+          AppIcon(
+            AppIcons.sparkle,
+            size: 20,
+            color: brand.medicineRoles.graphicOnTint,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: BrandTappable(
+              onPressed: () {
+                context.push('/assistant');
+              },
+              semanticsLabel: 'Add anything',
+              child: Text(
+                'Add anything...',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: context.muted,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+          CircleIconButton(
+            icon: AppIcons.camera,
+            tooltip: 'Scan a document',
+            size: 38,
+            onPressed: () async {
+              final fromCamera = await showDocumentSourceSheet(context);
+              if (fromCamera != null && context.mounted) {
+                context.push('/assistant', extra: fromCamera);
+              }
+            },
+          ),
+          const SizedBox(width: 6),
+          CircleIconButton(
+            icon: AppIcons.mic,
+            tooltip: 'Speak a command',
+            size: 44,
+            filled: true,
+            color: brand.ink,
+            onPressed: () => context.push('/assistant'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UpNextSection extends ConsumerWidget {
+  const _UpNextSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
-    final today = Fmt.dateOnly(DateTime.now());
-    final days = [
-      for (var i = 6; i >= 0; i--) today.subtract(Duration(days: i)),
-    ];
+    final brand = context.brand;
+    final theme = Theme.of(context);
 
-    List<double>? values;
-    String title;
-    String Function(double) tick = (v) => v.round().toString();
+    final doses = settings.isEnabled(AppModule.medicine)
+        ? (ref.watch(todayDoseViewsProvider).valueOrNull ?? const <DoseView>[])
+        : const <DoseView>[];
+    final now = DateTime.now();
+    final pendingDoses = doses
+        .where((d) => d.status == DoseStatus.pending)
+        .take(1)
+        .toList();
 
-    if (settings.isEnabled(AppModule.focus)) {
-      final stats = ref.watch(focusStatsProvider).valueOrNull;
-      if (stats != null && stats.byDay.isNotEmpty) {
-        values = [
-          for (final d in days)
-            (stats.byDay[d] ?? Duration.zero).inMinutes.toDouble(),
-        ];
-        title = 'Focus minutes';
-      } else {
-        title = 'Activity';
-      }
-    } else {
-      title = 'Activity';
-    }
+    final tasks = settings.isEnabled(AppModule.tasks)
+        ? (ref.watch(todayTasksProvider).valueOrNull ?? const <Task>[])
+        : const <Task>[];
+    final openTasks = tasks.where((t) => !t.isCompleted).take(2).toList();
 
-    if (values == null && settings.isEnabled(AppModule.tasks)) {
-      final stats = ref.watch(taskStatsProvider(7)).valueOrNull;
-      if (stats != null && stats.perDay.isNotEmpty) {
-        values = [for (final d in days) (stats.perDay[d] ?? 0).toDouble()];
-        title = 'Tasks completed';
-      }
-    }
+    final habits = settings.isEnabled(AppModule.habits)
+        ? (ref.watch(habitsListProvider).valueOrNull ?? const <Habit>[])
+        : const <Habit>[];
+    final habitLogs = settings.isEnabled(AppModule.habits)
+        ? (ref.watch(todayHabitLogsProvider).valueOrNull ??
+              const <int, double>{})
+        : const <int, double>{};
+    final openHabits = habits
+        .where((h) {
+          final amount = habitLogs[h.id] ?? 0;
+          return h.goalType == 0
+              ? amount < h.targetAmount
+              : amount > h.targetAmount;
+        })
+        .take(pendingDoses.length + openTasks.length < 3 ? 1 : 0)
+        .toList();
 
-    if (values == null && settings.isEnabled(AppModule.expenses)) {
-      final expenses = ref.watch(monthTransactionsProvider).valueOrNull;
-      if (expenses != null && expenses.isNotEmpty) {
-        values = [
-          for (final d in days)
-            expenses
-                .where((e) => e.kind == 0 && Fmt.isSameDay(e.date, d))
-                .fold<double>(0, (a, e) => a + e.amount),
-        ];
-        title = 'Daily spending';
-        final symbol = settings.currencySymbol;
-        tick = (v) => Fmt.compactMoney(v, symbol);
-      }
-    }
-
-    if (values == null || values.every((v) => v == 0)) {
+    if (pendingDoses.isEmpty && openTasks.isEmpty && openHabits.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title),
-        SplineChart(
-          values: values,
-          labels: [for (final d in days) Fmt.weekday(d)],
-          color: Theme.of(context).colorScheme.primary,
-          highlight: values.length - 1,
-          formatTick: tick,
+        SectionHeader(
+          'Up next',
+          actionLabel: 'Full day',
+          onAction: () => context.push('/reminders'),
         ),
+        for (final v in pendingDoses) ...[
+          // Coral outline and "Due now" only when the dose is actually due.
+          // A later pending dose stays a plain row.
+          Builder(
+            builder: (context) {
+              final dueNow = !v.dose.scheduledTime.isAfter(
+                now.add(const Duration(minutes: 15)),
+              );
+              final expiry = AfterOpeningStatus.ofMedicine(v.medicine);
+              final showExpiry = expiry.needsAttention(now: now);
+              final expiryRoles = expiry.isExpired(now: now)
+                  ? brand.dangerRoles
+                  : brand.warningRoles;
+              return Container(
+                padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+                decoration: BoxDecoration(
+                  color: brand.surface,
+                  borderRadius: BorderRadius.circular(AppRadii.tile),
+                  border: dueNow
+                      ? Border.all(color: brand.medicine, width: 2)
+                      : null,
+                  boxShadow: AppShadows.card(theme.brightness),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: brand.medicineRoles.tintFill,
+                        borderRadius: BorderRadius.circular(AppRadii.field),
+                      ),
+                      child: AppIcon(
+                        AppIcons.medicineForm(v.medicine.form),
+                        size: 24,
+                        color: brand.medicineRoles.graphicOnTint,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            dueNow
+                                ? 'DUE NOW · ${Fmt.time(v.dose.scheduledTime)}'
+                                : Fmt.time(v.dose.scheduledTime),
+                            style: TextStyle(
+                              color: dueNow
+                                  ? brand.medicineRoles.textOnTint
+                                  : context.subtle,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: dueNow ? 0.6 : 0,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            v.medicine.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 17,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          Text(
+                            '${v.dosageLabel}${v.mealLabel.isEmpty ? '' : ' · ${v.mealLabel}'}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: context.subtle,
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (showExpiry) ...[
+                            const SizedBox(height: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: ShapeDecoration(
+                                color: expiryRoles.tintFill,
+                                shape: const StadiumBorder(),
+                              ),
+                              child: Text(
+                                expiry.shortBadgeLabel(now: now) ?? '',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: expiryRoles.textOnTint,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    BrandTappable(
+                      onPressed: () {
+                        AppHaptics.success();
+                        ref
+                            .read(medicineRepositoryProvider)
+                            .setDoseStatus(v.dose.id, DoseStatus.taken);
+                      },
+                      child: Container(
+                        height: 44,
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                        alignment: Alignment.center,
+                        decoration: ShapeDecoration(
+                          color: brand.ink,
+                          shape: const StadiumBorder(),
+                        ),
+                        child: Text(
+                          'Take',
+                          style: TextStyle(
+                            color: brand.onInk,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: cardGap),
+        ],
+        for (final t in openTasks) ...[
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+            decoration: BoxDecoration(
+              color: brand.surface,
+              borderRadius: BorderRadius.circular(AppRadii.tile),
+              boxShadow: AppShadows.card(theme.brightness),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: brand.taskRoles.tintFill,
+                    borderRadius: BorderRadius.circular(AppRadii.field),
+                  ),
+                  child: AppIcon(
+                    AppIcons.tasks,
+                    size: 24,
+                    color: brand.taskRoles.graphicOnTint,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (t.dueDate != null)
+                        Text(
+                          Fmt.due(t.dueDate!, withTime: t.hasDueTime),
+                          style: TextStyle(
+                            color: context.subtle,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      Text(
+                        t.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 17,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                BrandCheckbox(
+                  value: t.isCompleted,
+                  semanticsLabel: 'Complete ${t.title}',
+                  onChanged: (done) {
+                    ref.read(taskRepositoryProvider).setCompleted(t.id, done);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: cardGap),
+        ],
+        for (final h in openHabits) ...[
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+            decoration: BoxDecoration(
+              color: brand.surface,
+              borderRadius: BorderRadius.circular(AppRadii.tile),
+              boxShadow: AppShadows.card(theme.brightness),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: brand.habitRoles.tintFill,
+                    borderRadius: BorderRadius.circular(AppRadii.field),
+                  ),
+                  child: AppIcon(
+                    AppIcons.habit(h.icon),
+                    size: 24,
+                    color: brand.habitRoles.graphicOnTint,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        h.reminderMinutes != null
+                            ? '${Fmt.minutesOfDay(h.reminderMinutes!)} · Daily habit'
+                            : 'Daily habit',
+                        style: TextStyle(
+                          color: context.subtle,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        h.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 17,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                BrandCheckbox(
+                  value: false,
+                  semanticsLabel: 'Log ${h.name}',
+                  onChanged: (_) {
+                    AppHaptics.success();
+                    ref.read(habitRepositoryProvider).addToDay(h.id, 1);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: cardGap),
+        ],
       ],
+    );
+  }
+}
+
+class _ActivityChart extends ConsumerWidget {
+  const _ActivityChart();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final brand = context.brand;
+    final theme = Theme.of(context);
+    final today = Fmt.dateOnly(DateTime.now());
+    final days = [
+      for (var i = 6; i >= 0; i--) today.subtract(Duration(days: i)),
+    ];
+
+    final taskStats = settings.isEnabled(AppModule.tasks)
+        ? ref.watch(taskStatsProvider(14)).valueOrNull
+        : null;
+    final doseStats = settings.isEnabled(AppModule.medicine)
+        ? ref.watch(takenDosesByDayProvider(14)).valueOrNull
+        : null;
+    final focusStats = settings.isEnabled(AppModule.focus)
+        ? ref.watch(focusStatsProvider).valueOrNull
+        : null;
+    final habits = settings.isEnabled(AppModule.habits)
+        ? (ref.watch(habitsListProvider).valueOrNull ?? const <Habit>[])
+        : const <Habit>[];
+    final habitStats = {
+      for (final h in habits)
+        h.id:
+            ref.watch(habitStatsProvider(h.id)).valueOrNull ?? HabitStats.empty,
+    };
+
+    int thingsOn(DateTime day) {
+      var count = (taskStats?.perDay[day] ?? 0) + (doseStats?[day] ?? 0);
+      if ((focusStats?.byDay[day] ?? Duration.zero) > Duration.zero) {
+        count += 1;
+      }
+      for (final habit in habits) {
+        final amount = habitStats[habit.id]?.byDay[day];
+        if (amount == null) continue;
+        final met = habit.goalType == 0
+            ? amount >= habit.targetAmount
+            : amount <= habit.targetAmount;
+        if (met) count += 1;
+      }
+      return count;
+    }
+
+    final counts = [for (final d in days) thingsOn(d)];
+    final lastWeek = [
+      for (var i = 13; i >= 7; i--) today.subtract(Duration(days: i)),
+    ].fold<int>(0, (sum, day) => sum + thingsOn(day));
+    final totalDone = counts.fold<int>(0, (a, b) => a + b);
+    final maxCount = counts.fold<int>(1, (a, b) => a > b ? a : b);
+    // Section 8: show the week-over-week change only when last week has a
+    // baseline. A zero baseline cannot become a percentage.
+    final int? versusLastWeek = lastWeek == 0
+        ? null
+        : (((totalDone - lastWeek) / lastWeek) * 100).round();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+      decoration: BoxDecoration(
+        color: brand.surface,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        boxShadow: AppShadows.card(theme.brightness),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'THIS WEEK',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: context.subtle,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '$totalDone ',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.6,
+                        ),
+                      ),
+                      Text(
+                        totalDone == 1 ? 'thing done' : 'things done',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: context.subtle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              if (versusLastWeek != null)
+                Container(
+                  height: 28,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: versusLastWeek >= 0
+                        ? brand.habitRoles.tintFill
+                        : brand.dangerRoles.tintFill,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    versusLastWeek > 0
+                        ? '+$versusLastWeek% vs last week'
+                        : '$versusLastWeek% vs last week',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: versusLastWeek >= 0
+                          ? brand.habitRoles.textOnTint
+                          : brand.dangerRoles.textOnTint,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 88,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (var i = 0; i < days.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: FractionallySizedBox(
+                              widthFactor: 1,
+                              heightFactor: counts[i] == 0
+                                  ? 0.14
+                                  : (0.2 + 0.8 * (counts[i] / maxCount)).clamp(
+                                      0.14,
+                                      1.0,
+                                    ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: i == days.length - 1
+                                      ? brand.medicine
+                                      : brand.well,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          Fmt.weekday(days[i]).substring(0, 1),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: i == days.length - 1
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                            color: i == days.length - 1
+                                ? brand.ink
+                                : context.subtle,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -462,20 +1217,31 @@ class _HabitsWidget extends ConsumerWidget {
     final habits = ref.watch(habitsListProvider).valueOrNull ?? const [];
     final today = ref.watch(todayHabitLogsProvider).valueOrNull ?? const {};
     final repo = ref.read(habitRepositoryProvider);
+    final brand = context.brand;
+    final theme = Theme.of(context);
+
+    final doneCount = habits.where((h) {
+      final amount = today[h.id] ?? 0;
+      return h.goalType == 0
+          ? amount >= h.targetAmount
+          : amount <= h.targetAmount;
+    }).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
           'Habits',
-          actionLabel: 'Open',
+          actionLabel: habits.isEmpty
+              ? 'Open'
+              : '$doneCount of ${habits.length} done',
           onAction: () => context.push('/habits'),
         ),
         if (habits.isEmpty)
           _quiet(context, 'No habits yet.')
         else
           SizedBox(
-            height: 124,
+            height: 96,
             child: GutterBleed(
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
@@ -483,75 +1249,93 @@ class _HabitsWidget extends ConsumerWidget {
                   horizontal: AppSpacing.gutter,
                 ),
                 itemCount: habits.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: AppSpacing.grid),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, i) {
                   final h = habits[i];
                   final amount = today[h.id] ?? 0;
                   final color = Color(h.color);
+                  final roles = brand.roleFor(color);
                   final done = h.goalType == 0
                       ? amount >= h.targetAmount
                       : amount <= h.targetAmount;
-                  return SizedBox(
-                    width: 120,
-                    child: TintCard(
-                      accent: color,
-                      padding: const EdgeInsets.all(14),
-                      onTap: () => context.push('/habits'),
+                  final partial = !done && h.targetAmount > 1 && amount > 0;
+
+                  return BrandTappable(
+                    onPressed: () => repo.addToDay(h.id, 1),
+                    onLongPress: () => context.push('/habits'),
+                    semanticsLabel: 'Log ${h.name}',
+                    child: Container(
+                      width: 72,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: brand.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: AppShadows.card(theme.brightness),
+                      ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              AppIcon(
-                                AppIcons.habit(h.icon),
-                                color: color,
-                                size: 22,
+                          if (done)
+                            Container(
+                              width: 40,
+                              height: 40,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: brand.habit,
+                                shape: BoxShape.circle,
                               ),
-                              const Spacer(),
-                              if (done)
-                                AppIcon(
-                                  AppIcons.checkCircle,
-                                  size: 16,
-                                  color: color,
+                              child: const AppIcon(
+                                AppIcons.check,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            )
+                          else if (partial)
+                            ProgressRing(
+                              value: (amount / h.targetAmount).clamp(0.0, 1.0),
+                              size: 40,
+                              thickness: 3,
+                              color: roles.graphicOnTint,
+                              center: Text(
+                                '${amount.toInt()}/${h.targetAmount.toInt()}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: roles.textOnTint,
                                 ),
-                            ],
-                          ),
-                          const Spacer(),
+                              ),
+                            )
+                          else
+                            Container(
+                              width: 40,
+                              height: 40,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: brand.outlineIdle,
+                                  width: 2.5,
+                                ),
+                              ),
+                              child: AppIcon(
+                                AppIcons.habit(h.icon),
+                                color: roles.graphicOnTint,
+                                size: 18,
+                              ),
+                            ),
+                          const SizedBox(height: 8),
                           Text(
                             h.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                              fontSize: 11,
+                              color: done ? context.subtle : brand.ink,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${_trim(amount)} / ${_trim(h.targetAmount)}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: context.muted,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              // 2-tap logging straight from the dashboard.
-                              BrandTappable(
-                                onPressed: () => repo.addToDay(h.id, 1),
-                                semanticsLabel: 'Log ${h.name}',
-                                child: AppIcon(
-                                  AppIcons.addCircle,
-                                  color: color,
-                                  size: 24,
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -573,11 +1357,28 @@ class _ExpensesWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currency = ref.watch(settingsProvider).currencySymbol;
     final recent = ref.watch(recentExpensesProvider).valueOrNull ?? const [];
-    final categories = ref.watch(categoriesProvider).valueOrNull ?? const [];
+    final now = DateTime.now();
     final todays = recent
-        .where((e) => Fmt.isSameDay(e.date, DateTime.now()))
-        .take(3)
+        .where((e) => e.kind == 0 && Fmt.isSameDay(e.date, now))
         .toList();
+    final spentToday = todays.fold<double>(0, (a, e) => a + e.amount);
+    final brand = context.brand;
+    final reportMonth = ref.watch(reportMonthProvider);
+    final budgets =
+        reportMonth.year == now.year && reportMonth.month == now.month
+        ? (ref.watch(budgetProgressProvider).valueOrNull ?? const [])
+        : const <BudgetProgress>[];
+    final monthlyBudget = budgets.isEmpty
+        ? 0.0
+        : (budgets
+                  .where((row) => row.budget.categoryId == null)
+                  .firstOrNull
+                  ?.budget
+                  .amount ??
+              budgets.fold<double>(0, (sum, row) => sum + row.budget.amount));
+    final dailyBudget = monthlyBudget <= 0
+        ? null
+        : monthlyBudget / DateUtils.getDaysInMonth(now.year, now.month);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,47 +1388,70 @@ class _ExpensesWidget extends ConsumerWidget {
           actionLabel: 'Open',
           onAction: () => context.push('/expenses'),
         ),
-        if (todays.isEmpty)
-          _quiet(context, 'Nothing recorded today.')
-        else
-          TintCard(
-            tintIndex: 1,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-            child: TileGroup(
-              children: [
-                for (final e in todays)
-                  Builder(
-                    builder: (context) {
-                      final cat = categories
-                          .where((c) => c.id == e.categoryId)
-                          .firstOrNull;
-                      return BrandTile(
-                        leading: AppIcon(
-                          AppIcons.category(cat?.icon ?? 'other'),
-                          color: Color(cat?.color ?? 0xFF6C6C6C),
-                          size: 22,
-                        ),
-                        title: Text(
-                          e.note?.isNotEmpty == true
-                              ? e.note!
-                              : cat?.name ?? 'Expense',
-                          style: const TextStyle(fontSize: 14),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: Text(
-                          Fmt.money(e.amount, currency),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-              ],
-            ),
+        TintCard(
+          accent: brand.expense,
+          onTap: () => context.push('/expenses'),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Spent today',
+                      style: TextStyle(
+                        color: context.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(text: Fmt.money(spentToday, currency)),
+                          if (dailyBudget != null)
+                            TextSpan(
+                              text: ' / ${Fmt.money(dailyBudget, currency)}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0,
+                                color: context.subtle,
+                              ),
+                            ),
+                        ],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.8,
+                      ),
+                    ),
+                    if (dailyBudget != null) ...[
+                      const SizedBox(height: 10),
+                      BrandProgressBar(
+                        value: spentToday / dailyBudget,
+                        color: brand.expense,
+                        semanticsLabel: 'Spent today',
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Text(
+                '${todays.length} ${todays.length == 1 ? 'entry' : 'entries'}',
+                style: TextStyle(
+                  color: brand.expenseRoles.textOnTint,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ],
           ),
+        ),
       ],
     );
   }
@@ -640,6 +1464,7 @@ class _FocusWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(focusStatsProvider).valueOrNull ?? FocusStats.empty;
     final goal = ref.watch(focusGoalProvider);
+    final brand = context.brand;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -650,26 +1475,27 @@ class _FocusWidget extends ConsumerWidget {
           onAction: () => context.push('/focus'),
         ),
         TintCard(
-          accent: context.brand.focus,
+          accent: brand.focus,
+          onTap: () => context.push('/focus'),
           child: Row(
             children: [
               ProgressRing(
                 value: goal == 0 ? 0 : stats.today.inMinutes / goal,
-                size: 84,
-                thickness: 10,
+                size: 78,
+                thickness: 9,
                 dashedGuide: false,
-                color: context.brand.focus,
+                color: brand.focus,
                 center: FittedBox(
                   child: Text(
                     Fmt.percent(goal == 0 ? 0 : stats.today.inMinutes / goal),
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                      fontSize: 14,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 18),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -704,88 +1530,88 @@ class _NotesWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notes = ref.watch(recentNotesProvider).valueOrNull ?? const [];
+    final noteCount = ref.watch(activeNoteCountProvider).valueOrNull ?? 0;
+    final brand = context.brand;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          'Recent notes',
-          actionLabel: 'Open',
+          'Notes',
+          actionLabel: noteCount == 0 ? 'Open' : 'All $noteCount',
           onAction: () => context.push('/notes'),
         ),
         if (notes.isEmpty)
           _quiet(context, 'No notes yet.')
         else
-          TintCard(
-            tintIndex: 2,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-            child: TileGroup(
-              children: [
-                for (final n in notes)
-                  BrandTile(
-                    leading: AppIcon(
-                      AppIcons.notes,
-                      color: context.brand.note,
-                      size: 22,
-                    ),
-                    title: Text(
-                      n.title,
-                      style: const TextStyle(fontSize: 14),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: _NoteMeta(n),
+          Row(
+            children: [
+              for (final (i, n) in notes.take(2).indexed) ...[
+                if (i > 0) const SizedBox(width: AppSpacing.grid),
+                Expanded(
+                  child: TintCard(
+                    accent: brand.note,
                     onTap: () => context.push('/note_editor', extra: n.id),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: brand.surface,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: AppIcon(
+                            AppIcons.notes,
+                            color: brand.noteRoles.graphicOnTint,
+                            size: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          n.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          NoteRepository.previewOf(n.content, max: 60),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: context.muted, fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          Fmt.relativeDay(n.updatedAt),
+                          style: TextStyle(
+                            color: context.muted,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
               ],
-            ),
+            ],
           ),
       ],
     );
   }
 }
-
-String _trim(double v) =>
-    v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
 
 Widget _quiet(BuildContext context, String message) => Padding(
   padding: const EdgeInsets.symmetric(vertical: 4),
   child: Text(message, style: TextStyle(color: context.muted, fontSize: 14)),
 );
-
-/// When a note was last touched, with its first line after it if there is
-/// one. The task tiles show their date this way; a "recent" list without a
-/// date on each row did not say what made it recent.
-class _NoteMeta extends StatelessWidget {
-  final Note note;
-
-  const _NoteMeta(this.note);
-
-  @override
-  Widget build(BuildContext context) {
-    final muted = context.muted;
-    final style = TextStyle(fontSize: 11, color: muted);
-    final preview = NoteRepository.previewOf(note.content, max: 60);
-    return Row(
-      children: [
-        AppIcon(AppIcons.calendar, size: 12, color: muted),
-        const SizedBox(width: 3),
-        Text(Fmt.relativeDay(note.updatedAt), style: style),
-        if (preview.isNotEmpty) ...[
-          Text(' · ', style: style),
-          Expanded(
-            child: Text(
-              preview,
-              style: style,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
 
 class _DropWidget extends ConsumerWidget {
   const _DropWidget();
@@ -793,68 +1619,84 @@ class _DropWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final drops = ref.watch(recentDropsProvider).valueOrNull ?? const [];
+    final unread = ref.watch(unreadDropsCountProvider).valueOrNull ?? 0;
+    final brand = context.brand;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          'Quick Drop',
-          actionLabel: 'Open',
+          'Drop',
+          actionLabel: unread == 0 ? 'Open' : '$unread unread',
           onAction: () => context.push('/drop'),
         ),
         if (drops.isEmpty)
-          _quiet(context, 'No drops in inbox yet. Save links, notes, or photos.')
+          _quiet(
+            context,
+            'No drops in inbox yet. Save links, notes, or photos.',
+          )
         else
           TintCard(
-            tintIndex: 3,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-            child: TileGroup(
+            fill: brand.surface,
+            padding: const EdgeInsets.all(12),
+            onTap: () => context.push('/drop'),
+            child: Row(
               children: [
-                for (final item in drops)
-                  BrandTile(
-                    leading: AppIcon(
-                      item.isArticle
-                          ? AppIcons.link
-                          : item.isVideo
-                              ? AppIcons.play
-                              : item.isImage
-                                  ? AppIcons.camera
-                                  : AppIcons.document,
-                      color: context.brand.drop,
-                      size: 20,
-                    ),
-                    title: Text(
-                      item.title ?? item.content,
-                      style: const TextStyle(fontSize: 14),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Row(
-                      children: [
-                        AppIcon(AppIcons.clock, size: 12, color: context.muted),
-                        const SizedBox(width: 4),
-                        Text(
-                          Fmt.relativeDay(item.drop.createdAt),
-                          style: TextStyle(fontSize: 11, color: context.muted),
-                        ),
-                        if (item.drop.sourceDomain != null) ...[
-                          Text(' · ', style: TextStyle(fontSize: 11, color: context.muted)),
-                          Expanded(
-                            child: Text(
-                              item.drop.sourceDomain!,
-                              style: TextStyle(fontSize: 11, color: context.muted),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    trailing: item.isPinned
-                        ? AppIcon(AppIcons.pin, size: 14, color: context.brand.drop)
-                        : null,
-                    onTap: () => context.push('/drop'),
+                Container(
+                  width: 72,
+                  height: 72,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: brand.dropRoles.tintFill,
+                    borderRadius: BorderRadius.circular(AppRadii.field),
                   ),
+                  child: AppIcon(
+                    drops.first.isArticle
+                        ? AppIcons.link
+                        : drops.first.isVideo
+                        ? AppIcons.play
+                        : drops.first.isImage
+                        ? AppIcons.camera
+                        : AppIcons.document,
+                    color: brand.dropRoles.graphicOnTint,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (drops.first.drop.sourceDomain != null)
+                        Text(
+                          '${drops.first.isArticle ? 'ARTICLE · ' : ''}${drops.first.drop.sourceDomain!.toUpperCase()}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: brand.dropRoles.textOnTint,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      const SizedBox(height: 2),
+                      Text(
+                        drops.first.title ?? drops.first.content,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Saved ${Fmt.relativeDay(drops.first.drop.createdAt)}',
+                        style: TextStyle(color: context.subtle, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

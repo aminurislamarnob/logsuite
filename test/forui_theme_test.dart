@@ -204,7 +204,7 @@ void main() {
         brightness: Brightness.light,
       ).typography;
 
-      expect(typography.display.xl2.fontWeight, FontWeight.w700);
+      expect(typography.display.xl2.fontWeight, FontWeight.w800);
       expect(typography.display.xl2.letterSpacing, lessThan(0));
       // Body copy stays at default weight.
       expect(typography.body.sm.fontWeight, isNull);
@@ -266,13 +266,13 @@ void main() {
   });
 
   group('tabs', () {
-    test('the selected tab is a coral pill with a contrasting label', () {
-      // The tab strip borrows Pill's language: a solid coral stadium behind the
-      // selected label, muted labels elsewhere, and no track.
+    test('the selected tab is an ink pill with a contrasting label', () {
+      // The tab strip uses a well background with an ink stadium behind the
+      // selected label and muted labels elsewhere.
       final style = brandForuiTheme(brightness: Brightness.light).tabsStyle;
 
       final indicator = style.indicatorDecoration as ShapeDecoration;
-      expect(indicator.color, AppColors.coral);
+      expect(indicator.color, AppColors.ink);
       expect(indicator.shape, isA<StadiumBorder>());
 
       final selected = style.labelTextStyle.resolve({
@@ -280,24 +280,17 @@ void main() {
       }).color;
       final unselected = style.labelTextStyle.resolve(const {}).color;
 
-      // The bug this guards: TabBarThemeData.labelColor takes precedence over
-      // labelStyle.color inside Material's TabBar, which FTabs builds on. A
-      // stray Material tabBarTheme painted the label coral on the coral pill,
-      // making the selected tab's text invisible.
       expect(selected, isNot(indicator.color));
       expect(unselected, isNot(indicator.color));
-      // Whatever the palette puts on its primary (customized to white for coral light).
-      expect(selected, AppPalette.coral.spec(Brightness.light).onPrimary);
+      expect(selected, AppPalette.coral.spec(Brightness.light).onInk);
     });
 
-    test('the strip has no track of its own', () {
-      // Full-bleed only works because the track is gone; a filled track would
-      // show its clipped corners at the screen edges.
+    test('the strip sits on the well background', () {
       final decoration =
           brandForuiTheme(brightness: Brightness.light).tabsStyle.decoration
               as BoxDecoration;
 
-      expect(decoration.color, isNull);
+      expect(decoration.color, AppColors.wellLight);
       expect(decoration.border, isNull);
     });
 

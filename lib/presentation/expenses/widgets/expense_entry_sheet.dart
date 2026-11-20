@@ -318,6 +318,18 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
 
     _accountId ??= accounts.firstOrNull?.id;
 
+    final brand = context.brand;
+    final theme = Theme.of(context);
+    final selectedCat = categories
+        .where((c) => c.id == _categoryId)
+        .firstOrNull;
+    final selectedAcc = accounts.where((a) => a.id == _accountId).firstOrNull;
+    final summaryParts = [
+      if (_kind != TxKind.transfer && selectedCat != null) selectedCat.name,
+      if (selectedAcc != null) selectedAcc.name,
+      Fmt.isSameDay(_date, DateTime.now()) ? 'Today' : Fmt.dayMonth(_date),
+    ];
+
     return SheetScaffold(
       title: switch ((_kind, _existing != null)) {
         (TxKind.income, false) => 'Add income',
@@ -328,13 +340,11 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
         _ => 'Add expense',
       },
       actions: [
-        // The parser only ever produces an expense or income, so dictating
-        // into the bill form would silently leave it.
         if (!_isBill) ...[
           CircleIconButton(
             icon: _listening ? AppIcons.micOff : AppIcons.mic,
             tooltip: 'Voice entry',
-            color: _listening ? context.brand.danger : null,
+            color: _listening ? brand.danger : null,
             size: 40,
             onPressed: _voiceEntry,
           ),
@@ -345,24 +355,34 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
             onPressed: () async {
               final fromCamera = await showDocumentSourceSheet(context);
               if (fromCamera == null || !context.mounted) return;
-              // The scan lands in the assistant, which previews every entry
-              // it finds; this sheet only ever holds one.
               Navigator.of(context).pop();
               context.push('/assistant', extra: fromCamera);
             },
           ),
         ],
-        BrandButton(
-          label: 'Save',
-          kind: BrandButtonKind.ghost,
-          expand: false,
-          onPressed: _save,
+        CircleIconButton(
+          icon: AppIcons.close,
+          tooltip: 'Close',
+          size: 40,
+          onPressed: () => Navigator.of(context).maybePop(),
         ),
       ],
+      bottomAction: BrandButton(
+        label: _existing != null
+            ? 'Save changes'
+            : switch (_kind) {
+                TxKind.income => 'Save income',
+                TxKind.transfer => 'Save transfer',
+                ExpenseEntrySheet.billMode => 'Save bill',
+                _ => 'Save expense',
+              },
+        onPressed: _save,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           BrandSegmented<int>(
+            expand: true,
             options: {
               TxKind.expense: 'Expense',
               TxKind.income: 'Income',
@@ -373,36 +393,97 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
             onSelected: (k) => setState(() {
               _kind = k;
               _categoryId = null;
-              // A bill is dated by when it next falls due, not today.
               _date = _isBill
                   ? DateTime.now().add(const Duration(days: 30))
                   : DateTime.now();
             }),
           ),
-          const SizedBox(height: 20),
-          BrandField(
-            controller: _amount,
-            hint: '0',
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            textStyle: const TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
+          const SizedBox(height: 18),
+          Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  currency,
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: brand.medicine,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                IntrinsicWidth(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 64),
+                    child: TextField(
+                      controller: _amount,
+                      autofocus: true,
+                      textAlign: TextAlign.center,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        fontSize: 56,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -2.5,
+                        color: brand.ink,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: '0',
+                        hintStyle: TextStyle(
+                          fontSize: 56,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -2.5,
+                          color: brand.subtle,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        filled: false,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            // The field centres its prefix on the input's full height while the
-            // amount itself sits on a baseline. The two only line up when the
-            // symbol's line box matches the amount's, so this size tracks the
-            // textStyle above; weight and colour still set it back.
-            prefix: Text(
-              currency,
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w600,
-                color: muted,
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: ShapeDecoration(
+                color: brand.surface,
+                shape: const StadiumBorder(),
+                shadows: AppShadows.circleButton(theme.brightness),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: brand.expense,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    summaryParts.join(' · '),
+                    style: TextStyle(
+                      color: brand.ink,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           if (_isBill) ...[
             BrandField(
@@ -413,6 +494,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
             ),
             const SizedBox(height: 16),
             BrandSegmented<String>(
+              expand: true,
               options: const {
                 'weekly': 'Weekly',
                 'monthly': 'Monthly',
@@ -427,38 +509,130 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
               value: _isSubscription,
               onChanged: (v) => setState(() => _isSubscription = v),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
           ],
 
           if (_kind != TxKind.transfer) ...[
-            Text('Category', style: TextStyle(color: muted, fontSize: 12)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final c in categories)
-                  Pill(
-                    label: c.name,
-                    icon: AppIcons.category(c.icon),
-                    selected: _categoryId == c.id,
-                    color: Theme.of(context).colorScheme.primary,
-                    onTap: () => setState(() => _categoryId = c.id),
-                  ),
-                Pill(
-                  label: 'New',
-                  icon: AppIcons.add,
-                  color: muted,
-                  onTap: _newCategory,
-                ),
-              ],
+            Text(
+              'CATEGORY',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: muted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 84,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: categories.length + 1,
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (context, i) {
+                  if (i == categories.length) {
+                    return BrandTappable(
+                      onPressed: _newCategory,
+                      semanticsLabel: 'New category',
+                      child: SizedBox(
+                        width: 60,
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 52,
+                              height: 52,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: brand.surface,
+                                shape: BoxShape.circle,
+                                boxShadow: AppShadows.circleButton(
+                                  theme.brightness,
+                                ),
+                              ),
+                              child: AppIcon(
+                                AppIcons.add,
+                                size: 22,
+                                color: brand.ink,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'New',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 12, color: muted),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  final c = categories[i];
+                  final selected = _categoryId == c.id;
+                  return BrandTappable(
+                    onPressed: () => setState(() => _categoryId = c.id),
+                    semanticsLabel: c.name,
+                    child: SizedBox(
+                      width: 60,
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 52,
+                            height: 52,
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: selected
+                                  ? Border.all(color: brand.expense, width: 2)
+                                  : null,
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: selected ? brand.expense : brand.surface,
+                                shape: BoxShape.circle,
+                                boxShadow: selected
+                                    ? const []
+                                    : AppShadows.circleButton(theme.brightness),
+                              ),
+                              child: AppIcon(
+                                AppIcons.category(c.icon),
+                                size: 20,
+                                color: selected ? Colors.white : brand.ink,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            c.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: selected ? brand.ink : muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 16),
           ],
 
           Text(
-            _kind == TxKind.transfer ? 'From account' : 'Account',
-            style: TextStyle(color: muted, fontSize: 12),
+            _kind == TxKind.transfer ? 'FROM ACCOUNT' : 'PAID FROM',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: muted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -479,7 +653,15 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
 
           if (_kind == TxKind.transfer) ...[
             const SizedBox(height: 16),
-            Text('To account', style: TextStyle(color: muted, fontSize: 12)),
+            Text(
+              'TO ACCOUNT',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: muted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+              ),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -501,7 +683,15 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
 
           if (_kind != TxKind.transfer && !_isBill) ...[
             const SizedBox(height: 16),
-            Text('For', style: TextStyle(color: muted, fontSize: 12)),
+            Text(
+              'FOR',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: muted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+              ),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

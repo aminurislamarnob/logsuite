@@ -58,12 +58,21 @@ final taskStatsProvider = FutureProvider.family<TaskStats, int>((
   days,
 ) async {
   final repo = ref.watch(taskRepositoryProvider);
-  final from = Fmt.dateOnly(DateTime.now()).subtract(Duration(days: days - 1));
-  final to = Fmt.dateOnly(DateTime.now()).add(const Duration(days: 1));
+  // Modules reads this future before a task is completed. Without a stream
+  // dependency the snapshot stays stale, so Insights still says the task is open.
+  ref.watch(allTasksProvider);
+  final now = DateTime.now();
+  final today = Fmt.dateOnly(now);
+  final from = today.subtract(Duration(days: days - 1));
+  final to = today.add(const Duration(days: 1));
 
   final completed = await repo.completedBetween(from, to);
   final open = await repo.watchAll(includeCompleted: false).first;
-  final overdue = await repo.overdueCount();
+  final overdue = open.where((t) {
+    final due = t.dueDate;
+    if (due == null) return false;
+    return t.hasDueTime ? due.isBefore(now) : Fmt.dateOnly(due).isBefore(today);
+  }).length;
 
   final perDay = <DateTime, int>{};
   for (final t in completed) {

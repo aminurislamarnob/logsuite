@@ -78,6 +78,15 @@ final recentNotesProvider = StreamProvider<List<Note>>((ref) {
       .map((n) => n.take(3).toList());
 });
 
+/// How many active notes exist. The dashboard's "All N" label cannot use
+/// [recentNotesProvider], which is truncated to three.
+final activeNoteCountProvider = StreamProvider<int>((ref) {
+  return ref
+      .watch(noteRepositoryProvider)
+      .watchNotes()
+      .map((notes) => notes.length);
+});
+
 /// Count of notes sitting in the trash, shown as a badge in the drawer.
 final trashCountProvider = StreamProvider<int>((ref) {
   return ref

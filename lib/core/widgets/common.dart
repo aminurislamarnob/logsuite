@@ -41,52 +41,77 @@ class BrandButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Outlined buttons keep the hairline the rest of the design uses, or the text
-    // colour at high contrast where the hairline is too faint to read.
-    final side = switch (kind) {
-      BrandButtonKind.outline => BorderSide(
-        color: context.brand.tints.toSet().length == 1
-            ? Theme.of(context).colorScheme.onSurface
-            : context.brand.hairline,
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final (bg, fg, shadows) = switch (kind) {
+      BrandButtonKind.primary => (brand.ink, brand.onInk, const <BoxShadow>[]),
+      BrandButtonKind.outline => (
+        brand.surface,
+        brand.ink,
+        AppShadows.circleButton(theme.brightness),
       ),
-      _ => BorderSide.none,
+      BrandButtonKind.ghost => (
+        Colors.transparent,
+        brand.ink,
+        const <BoxShadow>[],
+      ),
+      BrandButtonKind.danger => (
+        brand.surface,
+        brand.dangerRoles.textOnTint,
+        AppShadows.circleButton(theme.brightness),
+      ),
     };
 
-    return FButton(
-      onPress: onPressed == null
-          ? null
-          : () {
-              if (kind == BrandButtonKind.danger) {
-                AppHaptics.heavy();
-              } else {
-                AppHaptics.tap();
-              }
-              onPressed!();
-            },
-      variant: switch (kind) {
-        BrandButtonKind.primary => .primary,
-        BrandButtonKind.outline => .outline,
-        BrandButtonKind.ghost => .ghost,
-        BrandButtonKind.danger => .destructive,
-      },
-      size: small ? .sm : .md,
-      mainAxisSize: expand ? .max : .min,
-      // Applied to the base and every interaction variant, so hover and pressed
-      // stay pills too.
-      style: .delta(
-        decoration: .delta([
-          .all(.shapeDelta(shape: StadiumBorder(side: side))),
-        ]),
-        // forui sizes its horizontal inset for a small-radius rectangle. The
-        // pill's ends curve back through that space, so the label reads as
-        // touching the edge; widen it rather than replace it, to keep forui's
-        // per-size vertical padding.
-        contentStyle: .delta(
-          padding: .add(EdgeInsets.symmetric(horizontal: small ? 6 : 10)),
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: small ? 42 : 54),
+      child: FButton(
+        onPress: onPressed == null
+            ? null
+            : () {
+                if (kind == BrandButtonKind.danger) {
+                  AppHaptics.heavy();
+                } else {
+                  AppHaptics.tap();
+                }
+                onPressed!();
+              },
+        variant: switch (kind) {
+          BrandButtonKind.primary => .primary,
+          BrandButtonKind.outline => .outline,
+          BrandButtonKind.ghost => .ghost,
+          BrandButtonKind.danger => .destructive,
+        },
+        size: small ? .sm : .md,
+        mainAxisSize: expand ? .max : .min,
+        // Applied to the base and every interaction variant, so hover and pressed
+        // stay pills too.
+        style: .delta(
+          decoration: .delta([
+            .all(
+              DecorationDelta.shapeDelta(
+                color: bg,
+                shape: const StadiumBorder(),
+                shadows: shadows,
+              ),
+            ),
+          ]),
+          contentStyle: .delta(
+            padding: .add(EdgeInsets.symmetric(horizontal: small ? 6 : 10)),
+            textStyle: .delta([
+              .all(
+                TextStyleDelta.delta(
+                  color: fg,
+                  fontWeight: FontWeight.w700,
+                  fontSize: small ? 14 : 15,
+                ),
+              ),
+            ]),
+            iconStyle: .delta([.all(IconThemeDataDelta.delta(color: fg))]),
+          ),
         ),
+        prefix: icon == null ? null : AppIcon(icon!, size: 18, color: fg),
+        child: Text(label),
       ),
-      prefix: icon == null ? null : AppIcon(icon!, size: 18),
-      child: Text(label),
     );
   }
 }
@@ -140,7 +165,7 @@ class SectionHeader extends StatelessWidget {
               child: Text(
                 actionLabel!,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: context.muted,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -169,42 +194,46 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(context).colorScheme.outline;
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final muted = theme.colorScheme.outline;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // A tinted disc behind the glyph, echoing the pastel cards.
             Container(
-              width: 88,
-              height: 88,
+              width: 72,
+              height: 72,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: context.brand.tint(0),
-                shape: BoxShape.circle,
+                color: brand.surface,
+                borderRadius: BorderRadius.circular(AppRadii.card),
+                boxShadow: AppShadows.card(theme.brightness),
               ),
               child: AppIcon(
                 icon,
-                size: 38,
-                color: Theme.of(context).colorScheme.primary,
+                size: 32,
+                color: brand.roleFor(theme.colorScheme.primary).graphicOnTint,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.4,
+              ),
             ),
             if (message != null) ...[
               const SizedBox(height: 8),
               Text(
                 message!,
                 textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: muted),
+                style: theme.textTheme.bodyMedium?.copyWith(color: muted),
               ),
             ],
             if (actionLabel != null) ...[
@@ -287,7 +316,9 @@ class StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final muted = Theme.of(context).colorScheme.outline;
+    final brand = context.brand;
     return TintCard(
+      fill: brand.surface,
       tintIndex: tintIndex,
       onTap: onTap,
       padding: const EdgeInsets.all(16),
@@ -297,14 +328,20 @@ class StatTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              AppIcon(icon, size: 20, color: color),
+              AppIcon(
+                icon,
+                size: 18,
+                color: brand.roleFor(color).graphicOnTint,
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   label,
-                  // Three of these fit across a phone, so the label has to
-                  // shrink rather than ellipsise on the narrowest layout.
-                  style: TextStyle(fontSize: 12, color: muted),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: muted,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -312,16 +349,14 @@ class StatTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          // Flexible so a long value or sublabel shrinks instead of
-          // overflowing the fixed-height grid cell it sits in.
           Flexible(
             child: Text(
               value,
               style: const TextStyle(
                 fontSize: 22,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
                 height: 1.1,
-                letterSpacing: -0.5,
+                letterSpacing: -0.6,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -361,17 +396,15 @@ class ContributionHeatmap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
-    final start = DateTime(
-      today.year,
-      today.month,
-      today.day,
-    ).subtract(Duration(days: days - 1));
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = today.subtract(Duration(days: days - 1));
     // Pad to the start of that week so columns line up as Mon–Sun.
     final leading = start.weekday - 1;
     final total = leading + days;
     final weeks = (total / 7).ceil();
-    final base = context.brand.hairline;
+    final brand = context.brand;
+    final base = brand.track;
 
     // Latest week at the right edge when there is more than fits, so the
     // present is what you land on; reading order from the left when it all
@@ -393,7 +426,17 @@ class ContributionHeatmap extends StatelessWidget {
                     return SizedBox(height: cell + 3, width: cell);
                   }
                   final day = start.add(Duration(days: index));
+                  final isToday = day == today;
                   final v = intensityFor(day).clamp(0.0, 1.0);
+                  final fill = v == 0
+                      ? base
+                      : v < 0.34
+                      ? color.withValues(alpha: 0.28)
+                      : v < 0.67
+                      ? color.withValues(alpha: 0.52)
+                      : v < 0.9
+                      ? color.withValues(alpha: 0.76)
+                      : color;
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 3),
                     child: FTooltip(
@@ -411,10 +454,11 @@ class ContributionHeatmap extends StatelessWidget {
                           width: cell,
                           height: cell,
                           decoration: BoxDecoration(
-                            color: v == 0
-                                ? base
-                                : color.withValues(alpha: 0.25 + v * 0.75),
-                            borderRadius: BorderRadius.circular(4),
+                            color: fill,
+                            borderRadius: BorderRadius.circular(5),
+                            border: isToday
+                                ? Border.all(color: brand.ink, width: 1.5)
+                                : null,
                           ),
                         ),
                       ),
@@ -485,79 +529,105 @@ class SheetScaffold extends StatelessWidget {
   final String title;
   final Widget child;
   final List<Widget> actions;
+  final Widget? bottomAction;
+  final bool showClose;
 
   const SheetScaffold({
     super.key,
     required this.title,
     required this.child,
     this.actions = const [],
+    this.bottomAction,
+    this.showClose = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    // The surface is the sheet's own responsibility now. Material's
-    // bottomSheetTheme supplied the background and the 28px top corners;
-    // showFSheet does not, and without this the page shows through the sheet.
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppRadii.sheet),
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    return Material(
+      type: MaterialType.transparency,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: brand.canvas,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppRadii.sheet),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: context.brand.hairline,
-                  borderRadius: BorderRadius.circular(999),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: brand.outlineIdle,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
-              ),
-              Padding(
-                // The title starts on the page gutter, so a sheet's content
-                // lines up with the page it slid over.
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.gutter,
-                  18,
-                  16,
-                  10,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontSize: 20,
-                          letterSpacing: -0.4,
-                        ),
-                      ),
-                    ),
-                    ...actions,
-                  ],
-                ),
-              ),
-              Flexible(
-                child: SingleChildScrollView(
+                Padding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.gutter,
-                    0,
+                    16,
                     AppSpacing.gutter,
-                    28,
+                    12,
                   ),
-                  child: child,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.7,
+                          ),
+                        ),
+                      ),
+                      for (final action in actions) ...[
+                        action,
+                        const SizedBox(width: actionGap),
+                      ],
+                      if (showClose && actions.isEmpty)
+                        CircleIconButton(
+                          icon: AppIcons.close,
+                          tooltip: 'Close',
+                          size: 40,
+                          onPressed: () => Navigator.of(context).maybePop(),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.gutter,
+                      0,
+                      AppSpacing.gutter,
+                      bottomAction == null ? 28 : 16,
+                    ),
+                    child: child,
+                  ),
+                ),
+                if (bottomAction != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.gutter,
+                      8,
+                      AppSpacing.gutter,
+                      20,
+                    ),
+                    child: bottomAction!,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -612,27 +682,33 @@ class BrandScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget body = child;
-
-    if (floatingAction != null) {
-      // FScaffold applies no bottom safe area, so the button has to clear the
-      // home indicator itself. It sits on the page gutter so its right edge
-      // lines up with the cards above it.
-      final inset = MediaQuery.paddingOf(context).bottom;
-      body = Stack(
-        children: [
-          Positioned.fill(child: body),
+    // Keep the Stack structure invariant whether or not [floatingAction] is
+    // present so toggling a FAB (e.g. hiding it on a read-only tab) does not
+    // unmount and reset state inside [child].
+    final inset = MediaQuery.paddingOf(context).bottom;
+    final body = Stack(
+      children: [
+        Positioned.fill(child: child),
+        if (floatingAction != null)
+          // FScaffold applies no bottom safe area, so the button has to clear
+          // the home indicator itself. It sits on the page gutter so its right
+          // edge lines up with the cards above it.
           Positioned(
             right: AppSpacing.gutter,
             bottom: 16 + inset,
             child: floatingAction!,
           ),
-        ],
-      );
-    }
+      ],
+    );
 
     return FScaffold(
-      header: header,
+      // The page Material below covers [child] only. forui puts [header]
+      // outside that boundary, so a TextField in the header (search) throws
+      // "No Material widget found". Transparency supplies the ancestor
+      // without painting over the scaffold.
+      header: header == null
+          ? null
+          : Material(type: MaterialType.transparency, child: header),
       footer: footer,
       childPad: pad,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
@@ -641,7 +717,7 @@ class BrandScaffold extends StatelessWidget {
           size: 24,
           color: Theme.of(context).colorScheme.onSurface,
         ),
-        child: Material(type: MaterialType.transparency, child: body),
+        child: Material(color: context.brand.canvas, child: body),
       ),
     );
   }
@@ -686,6 +762,8 @@ class BrandTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
     final padding = dense
         ? const EdgeInsetsGeometryDelta.value(densePadding)
         : null;
@@ -714,32 +792,23 @@ class BrandTile extends StatelessWidget {
       enabled: enabled,
       semanticsLabel: semanticsLabel,
       style: .delta(
-        // A lone tile rounds all four corners; one inside a [TileGroup] rounds
-        // only the corners that are actually the group's outer edge.
-        //
-        // Both of these matter. `shape` is the outer background; the visible
-        // outline is a RoundedSuperellipseBorder inside `contentDecoration`,
-        // which is why overriding `shape` alone left six outlined rows.
         shape: RoundedRectangleBorder(borderRadius: slot.radius),
-        // Both layers, or the lower one still paints: forui stacks
-        // `contentDecoration` above `backgroundColor`.
-        backgroundColor: fills ? null : .delta([.all(Colors.transparent)]),
+        backgroundColor: fills
+            ? .delta([.all(brand.surface)])
+            : .delta([.all(Colors.transparent)]),
         contentDecoration: .delta([
           .all(
             DecorationDelta.boxDelta(
-              color: fills ? null : Colors.transparent,
-              border: slot.border(context.brand.hairline, inCard: inCard),
+              color: fills ? brand.surface : Colors.transparent,
+              border: slot.border(brand.hairline, inCard: inCard),
               borderRadius: slot.radius,
+              boxShadow: fills ? AppShadows.card(theme.brightness) : const [],
             ),
           ),
         ]),
         contentStyle: .delta(
           suffixedPadding: padding,
           unsuffixedPadding: padding,
-          // forui tints a row's leading glyph with the primary colour. The brand
-          // keeps them muted — the Material listTileTheme used `iconColor: muted`
-          // — so a row of settings does not read as a column of coral. An
-          // explicit colour on the glyph still wins over this.
           prefixIconStyle: .delta([
             .all(IconThemeDataDelta.delta(color: context.muted, size: 24)),
           ]),
@@ -827,22 +896,34 @@ class TileGroup extends StatelessWidget {
   const TileGroup({super.key, required this.children});
 
   @override
-  Widget build(BuildContext context) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      for (final (i, child) in children.indexed)
-        _TileSlot(
-          position: children.length == 1
-              ? TilePosition.only
-              : i == 0
-              ? TilePosition.first
-              : i == children.length - 1
-              ? TilePosition.last
-              : TilePosition.middle,
-          child: child,
-        ),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final inCard = CardScope.of(context);
+    final col = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (i, child) in children.indexed)
+          _TileSlot(
+            position: children.length == 1
+                ? TilePosition.only
+                : i == 0
+                ? TilePosition.first
+                : i == children.length - 1
+                ? TilePosition.last
+                : TilePosition.middle,
+            child: child,
+          ),
+      ],
+    );
+    if (inCard || children.length <= 1) return col;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.brand.surface,
+        borderRadius: BorderRadius.circular(AppRadii.tile),
+        boxShadow: AppShadows.card(Theme.of(context).brightness),
+      ),
+      child: col,
+    );
+  }
 }
 
 /// A column of [BrandTile]s with [cardGap] between them.
@@ -1030,6 +1111,9 @@ class _BrandFieldState extends State<BrandField> {
             ),
       focusNode: widget.focusNode,
       style: .delta(
+        contentPadding: widget.bare
+            ? .value(const EdgeInsets.symmetric(vertical: 8))
+            : null,
         contentTextStyle: widget.textStyle == null
             ? null
             : .delta([.all(TextStyleDelta.value(widget.textStyle!))]),
@@ -1045,27 +1129,17 @@ class _BrandFieldState extends State<BrandField> {
                   ),
                 ),
               ]),
-        // At high contrast the tint flattens, so the field falls back to the
-        // page surface and leans on its border instead.
-        color: .delta([
-          .all(
-            widget.bare
-                ? Colors.transparent
-                : flattened
-                ? Theme.of(context).colorScheme.surface
-                : brand.tint(0),
-          ),
-        ]),
-        // Only the resting border is replaced. forui derives the focused and
-        // error borders from FColors, which are already the brand's coral and
-        // danger — the same treatment the Material inputDecorationTheme gave.
+        color: .delta([.all(widget.bare ? Colors.transparent : brand.surface)]),
+        // White, radius 20, 56 high, 2 px ink outline when focused. A bare
+        // field is a heading, so it keeps the theme's natural height.
+        constraints: widget.bare ? null : const BoxConstraints(minHeight: 56),
         border: .delta([
           if (widget.bare)
             .all(InputBorder.none)
-          else
+          else ...[
             .base(
               OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadii.field),
+                borderRadius: BorderRadius.circular(AppRadii.tile),
                 borderSide: flattened
                     ? BorderSide(
                         color: Theme.of(context).colorScheme.onSurface,
@@ -1074,6 +1148,14 @@ class _BrandFieldState extends State<BrandField> {
                     : BorderSide.none,
               ),
             ),
+            .match(
+              {FTextFieldVariant.focused},
+              OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadii.tile),
+                borderSide: BorderSide(color: brand.ink, width: 2),
+              ),
+            ),
+          ],
         ]),
       ),
     );
@@ -1093,37 +1175,44 @@ class BrandChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: context.brand.canvas,
-        shape: StadiumBorder(side: BorderSide(color: context.brand.hairline)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.only(left: 12, right: onRemove == null ? 12 : 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              AppIcon(icon!, size: 13, color: color),
-              const SizedBox(width: 6),
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 38),
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          color: brand.surface,
+          shape: const StadiumBorder(),
+          shadows: AppShadows.circleButton(theme.brightness),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(left: 14, right: onRemove == null ? 14 : 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                AppIcon(icon!, size: 14, color: brand.ink),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  color: brand.ink,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (onRemove != null) ...[
+                const SizedBox(width: 4),
+                CircleIconButton(
+                  icon: AppIcons.close,
+                  tooltip: 'Remove $label',
+                  size: 28,
+                  onPressed: onRemove,
+                ),
+              ],
             ],
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            if (onRemove != null)
-              CircleIconButton(
-                icon: AppIcons.close,
-                tooltip: 'Remove $label',
-                size: 28,
-                onPressed: onRemove,
-              ),
-          ],
+          ),
         ),
       ),
     );
@@ -1150,6 +1239,9 @@ class BrandCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = context.brand;
+    final checkedFill = color ?? brand.success;
+    final uncheckedBorder = color ?? brand.outlineIdle;
     return FCheckbox(
       value: value,
       onChange: onChanged == null
@@ -1159,18 +1251,29 @@ class BrandCheckbox extends StatelessWidget {
               onChanged!(v);
             },
       semanticsLabel: semanticsLabel,
-      style: color == null
-          ? const .context()
-          : .delta(
-              // `.match` rewrites only the constraints satisfied by {selected},
-              // so the checked fill changes and the disabled and error boxes
-              // keep forui's derivations.
-              decoration: .delta([
-                .match({
-                  FCheckboxVariant.selected,
-                }, DecorationDelta.shapeDelta(color: color)),
-              ]),
+      style: .delta(
+        size: 26,
+        iconStyle: .delta([
+          .all(IconThemeDataDelta.delta(color: Colors.white, size: 15)),
+        ]),
+        decoration: .delta([
+          .base(
+            DecorationDelta.shapeDelta(
+              color: Colors.transparent,
+              shape: CircleBorder(
+                side: BorderSide(color: uncheckedBorder, width: 2.5),
+              ),
             ),
+          ),
+          .match(
+            {FCheckboxVariant.selected},
+            DecorationDelta.shapeDelta(
+              color: checkedFill,
+              shape: const CircleBorder(),
+            ),
+          ),
+        ]),
+      ),
     );
   }
 }
@@ -1332,12 +1435,19 @@ class BrandSwitchTile extends StatelessWidget {
                 onChanged!(v);
               },
         semanticsLabel: title,
-        // forui's off-track is `colors.border`, which is the brand hairline —
-        // invisible against the peach card these rows sit on. Material's switch
-        // theme compensated with a muted track outline; forui's style has no
-        // outline, so the off-track itself carries the contrast.
         style: .delta(
-          trackColor: .delta([.base(context.muted.withValues(alpha: 0.28))]),
+          trackColor: .delta([
+            .base(context.brand.well),
+            .match({FSwitchVariant.selected}, context.brand.ink),
+          ]),
+          thumbColor: .delta([
+            .base(
+              Theme.of(context).brightness == Brightness.dark
+                  ? context.brand.onInkMuted
+                  : context.brand.surface,
+            ),
+            .match({FSwitchVariant.selected}, context.brand.onInk),
+          ]),
         ),
       ),
       onTap: onChanged == null ? null : () => onChanged!(!value),
@@ -1357,30 +1467,113 @@ class BrandSegmented<T extends Object> extends StatelessWidget {
   /// Optional leading glyph per option, keyed the same way as [options].
   final Map<T, HugeIconData> icons;
 
+  /// When true, stretches segments evenly across the full available width.
+  final bool expand;
+
   const BrandSegmented({
     super.key,
     required this.options,
     required this.selected,
     required this.onSelected,
     this.icons = const {},
+    this.expand = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final entry in options.entries)
-          Pill(
-            label: entry.value,
-            icon: icons[entry.key],
-            color: theme.colorScheme.primary,
-            selected: entry.key == selected,
-            onTap: () => onSelected(entry.key),
-          ),
-      ],
+    final brand = context.brand;
+    if (expand) {
+      return Container(
+        padding: const EdgeInsets.all(4),
+        decoration: ShapeDecoration(
+          color: brand.well,
+          shape: const StadiumBorder(),
+        ),
+        child: Row(
+          children: [
+            for (final (i, entry) in options.entries.indexed) ...[
+              if (i > 0) const SizedBox(width: 4),
+              Expanded(
+                child: FTappable(
+                  onPress: () {
+                    AppHaptics.selection();
+                    onSelected(entry.key);
+                  },
+                  semanticsLabel: entry.value,
+                  semanticsChecked: entry.key == selected,
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 38),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: ShapeDecoration(
+                      color: entry.key == selected
+                          ? brand.ink
+                          : Colors.transparent,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (icons[entry.key] != null) ...[
+                          AppIcon(
+                            icons[entry.key]!,
+                            size: 15,
+                            color: entry.key == selected
+                                ? brand.onInk
+                                : context.muted,
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Flexible(
+                          child: Text(
+                            entry.value,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: entry.key == selected
+                                  ? brand.onInk
+                                  : context.muted,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: ShapeDecoration(
+        color: brand.well,
+        shape: const StadiumBorder(),
+      ),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: [
+          for (final entry in options.entries)
+            Pill(
+              label: entry.value,
+              icon: icons[entry.key],
+              color: theme.colorScheme.primary,
+              selected: entry.key == selected,
+              onWell: true,
+              onTap: () => onSelected(entry.key),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -1454,27 +1647,105 @@ class _BrandAccordionState extends State<BrandAccordion> {
 
 /// A tab strip plus its views, replacing Material's `TabBar` + `TabBarView`.
 ///
-/// Always scrollable: the strip's pills size to their labels, so a long label
-/// like "Overview" cannot be squeezed into an equal-width slot and wrapped.
-class BrandTabs extends StatelessWidget {
+/// Renders the well inset by [AppSpacing.gutter] on each side (`06-medicine`,
+/// `08-expenses`) and scrolls gracefully at larger text scales or locales.
+class BrandTabs extends StatefulWidget {
   /// The tab labels, in order, mapped to the view each one shows.
   final Map<String, Widget> tabs;
+  final ValueChanged<int>? onTabChanged;
 
-  const BrandTabs({super.key, required this.tabs});
+  const BrandTabs({super.key, required this.tabs, this.onTabChanged});
 
   @override
-  Widget build(BuildContext context) => FTabs(
-    control: .managed(onChange: (_) => AppHaptics.selection()),
-    scrollable: true,
-    expands: true,
-    children: [
-      for (final entry in tabs.entries)
-        FTabEntry(
-          label: Text(entry.key, style: const TextStyle(fontSize: 15)),
-          child: entry.value,
+  State<BrandTabs> createState() => _BrandTabsState();
+}
+
+class _BrandTabsState extends State<BrandTabs>
+    with SingleTickerProviderStateMixin {
+  late TabController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TabController(length: widget.tabs.length, vsync: this);
+    _controller.addListener(_onTabChange);
+  }
+
+  void _onTabChange() {
+    if (!_controller.indexIsChanging) {
+      AppHaptics.selection();
+      widget.onTabChanged?.call(_controller.index);
+    }
+  }
+
+  @override
+  void didUpdateWidget(BrandTabs old) {
+    super.didUpdateWidget(old);
+    if (old.tabs.length != widget.tabs.length) {
+      _controller.removeListener(_onTabChange);
+      _controller.dispose();
+      _controller = TabController(length: widget.tabs.length, vsync: this);
+      _controller.addListener(_onTabChange);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onTabChange);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = context.theme.tabsStyle;
+    final selectedStyle = style.labelTextStyle
+        .resolve({FTabVariant.selected})
+        .copyWith(fontSize: 13, fontWeight: FontWeight.w700);
+    final unselectedStyle = style.labelTextStyle
+        .resolve(const {})
+        .copyWith(fontSize: 13, fontWeight: FontWeight.w600);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
+          child: Container(
+            width: double.infinity,
+            decoration: style.decoration,
+            clipBehavior: Clip.antiAlias,
+            child: TabBar(
+              controller: _controller,
+              isScrollable: true,
+              tabAlignment: TabAlignment.center,
+              padding: style.padding,
+              labelPadding: const EdgeInsets.symmetric(horizontal: 11),
+              indicator: style.indicatorDecoration,
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
+              labelColor: selectedStyle.color,
+              unselectedLabelColor: unselectedStyle.color,
+              labelStyle: selectedStyle,
+              unselectedLabelStyle: unselectedStyle,
+              overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+              splashFactory: NoSplash.splashFactory,
+              tabs: [
+                for (final label in widget.tabs.keys)
+                  Tab(height: style.minHeight, text: label),
+              ],
+            ),
+          ),
         ),
-    ],
-  );
+        SizedBox(height: style.spacing),
+        Expanded(
+          child: TabBarView(
+            controller: _controller,
+            children: [for (final child in widget.tabs.values) child],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// An overflow menu, replacing Material's [PopupMenuButton].
@@ -1524,11 +1795,13 @@ class BrandMenuButton<T extends Object> extends StatelessWidget {
   );
 }
 
-/// The coral disc that floats over a list, replacing [FloatingActionButton].
+/// The ink pill (or disc when [label] is omitted) that floats over a list,
+/// replacing [FloatingActionButton].
 class BrandFab extends StatelessWidget {
   final HugeIconData icon;
   final VoidCallback? onPressed;
   final String tooltip;
+  final String? label;
   final double size;
 
   const BrandFab({
@@ -1536,12 +1809,15 @@ class BrandFab extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     required this.tooltip,
-    this.size = 58,
+    this.label,
+    this.size = 54,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brand = context.brand;
+    final extended = label != null && label!.isNotEmpty;
     return FTooltip(
       key: ValueKey('fab-${tooltip.toLowerCase().replaceAll(' ', '-')}'),
       tipBuilder: (_, _) => Text(tooltip),
@@ -1556,22 +1832,132 @@ class BrandFab extends StatelessWidget {
         semanticsLabel: tooltip,
         child: DecoratedBox(
           decoration: ShapeDecoration(
-            color: theme.colorScheme.primary,
-            shape: const CircleBorder(),
-            shadows: [
-              BoxShadow(
-                color: theme.colorScheme.primary.withValues(alpha: 0.32),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            color: brand.ink,
+            shape: extended ? const StadiumBorder() : const CircleBorder(),
+            shadows: AppShadows.hero(theme.brightness),
           ),
-          child: SizedBox(
-            width: size,
-            height: size,
-            child: AppIcon(icon, size: size * 0.42, color: Colors.white),
-          ),
+          child: extended
+              ? SizedBox(
+                  height: size,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppIcon(icon, size: 20, color: brand.onInk),
+                        const SizedBox(width: 8),
+                        Text(
+                          label!,
+                          style: TextStyle(
+                            color: brand.onInk,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SizedBox(
+                  width: size,
+                  height: size,
+                  child: AppIcon(icon, size: size * 0.42, color: brand.onInk),
+                ),
         ),
+      ),
+    );
+  }
+}
+
+/// Floating white composer pill: 62 high, text field plus a 46 round send
+/// button (with optional leading actions such as mic or scan).
+class FloatingComposer extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final VoidCallback onSubmit;
+  final HugeIconData submitIcon;
+  final String submitTooltip;
+  final List<Widget> leadingActions;
+  final FocusNode? focusNode;
+  final bool enabled;
+
+  const FloatingComposer({
+    super.key,
+    required this.controller,
+    required this.hint,
+    required this.onSubmit,
+    this.submitIcon = AppIcons.add,
+    this.submitTooltip = 'Add',
+    this.leadingActions = const [],
+    this.focusNode,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    return Container(
+      height: 62,
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      decoration: ShapeDecoration(
+        color: brand.surface,
+        shape: const StadiumBorder(),
+        shadows: AppShadows.composer(theme.brightness),
+      ),
+      child: Row(
+        children: [
+          for (final action in leadingActions) ...[
+            action,
+            const SizedBox(width: 4),
+          ],
+          Expanded(
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              enabled: enabled,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => onSubmit(),
+              style: theme.textTheme.bodyLarge?.copyWith(color: brand.ink),
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                  color: context.muted,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                filled: false,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          FTooltip(
+            tipBuilder: (_, _) => Text(submitTooltip),
+            semanticsLabel: submitTooltip,
+            child: FTappable(
+              onPress: enabled
+                  ? () {
+                      AppHaptics.tap();
+                      onSubmit();
+                    }
+                  : null,
+              semanticsLabel: submitTooltip,
+              child: Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: brand.ink,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: AppIcon(submitIcon, size: 20, color: brand.onInk),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1796,7 +2182,20 @@ Future<T?> brandSheet<T>({
     side: .btt,
     mainAxisMaxRatio: null,
     barrierDismissible: dismissible,
-    builder: builder,
+    builder: (sheetContext) {
+      // showFSheet strips top MediaQuery.padding, so read viewPadding to keep
+      // tall sheets clear of the status bar while leaving short sheets compact.
+      final vp = MediaQuery.viewPaddingOf(sheetContext).top;
+      final pad = MediaQuery.paddingOf(sheetContext).top;
+      final topInset = vp > pad ? vp : pad;
+      final screenH = MediaQuery.sizeOf(sheetContext).height;
+      final content = builder(sheetContext);
+      if (topInset <= 0 || screenH <= topInset + 8) return content;
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: screenH - topInset - 8),
+        child: content,
+      );
+    },
   );
 }
 

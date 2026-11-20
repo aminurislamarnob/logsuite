@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
@@ -42,12 +44,120 @@ extension AppPaletteX on AppPalette {
       AppPalette.coral;
 }
 
+/// Four colour roles for one module or status hue.
+///
+/// - [accent]: progress rings, chart highlights, due-now outlines, badges.
+/// - [graphicOnTint]: icons and graphics drawn on [tintFill] (clears 3:1).
+/// - [textOnTint]: small labels drawn on [tintFill] (clears 4.5:1).
+/// - [tintFill]: soft pastel background for module summary cards and icon chips.
+/// - [onInk]: high-luminance accent for drawing on dark/ink surfaces.
+@immutable
+class ModuleColors {
+  final Color accent;
+  final Color graphicOnTint;
+  final Color textOnTint;
+  final Color tintFill;
+  final Color onInk;
+
+  const ModuleColors({
+    required this.accent,
+    required this.graphicOnTint,
+    required this.textOnTint,
+    required this.tintFill,
+    required this.onInk,
+  });
+
+  /// Derives the four roles from [accent] for palettes that do not pin
+  /// hand-picked values (Magenta, Cobalt, Aubergine, and dark mode).
+  factory ModuleColors.derive(
+    Color accent, {
+    required Color onInk,
+    required Brightness brightness,
+    Color? surface,
+    Color? heroSurface,
+  }) {
+    if (brightness == Brightness.dark) {
+      final fill = Color.alphaBlend(
+        accent.withValues(alpha: 0.14),
+        surface ?? AppColors.surfaceDark,
+      );
+      return ModuleColors(
+        accent: accent,
+        graphicOnTint: _ensureContrast(accent, fill, 3.0, lighten: true),
+        textOnTint: _ensureContrast(accent, fill, 4.5, lighten: true),
+        tintFill: fill,
+        onInk: accent,
+      );
+    }
+
+    final fill = Color.alphaBlend(
+      accent.withValues(alpha: 0.12),
+      surface ?? Colors.white,
+    );
+    final resolvedOnInk = heroSurface == null
+        ? onInk
+        : _ensureContrast(accent, heroSurface, 4.55, lighten: true);
+    return ModuleColors(
+      accent: accent,
+      graphicOnTint: _ensureContrast(accent, fill, 3.0, lighten: false),
+      textOnTint: _ensureContrast(accent, fill, 4.55, lighten: false),
+      tintFill: fill,
+      onInk: resolvedOnInk,
+    );
+  }
+
+  static ModuleColors lerp(ModuleColors a, ModuleColors b, double t) =>
+      ModuleColors(
+        accent: Color.lerp(a.accent, b.accent, t)!,
+        graphicOnTint: Color.lerp(a.graphicOnTint, b.graphicOnTint, t)!,
+        textOnTint: Color.lerp(a.textOnTint, b.textOnTint, t)!,
+        tintFill: Color.lerp(a.tintFill, b.tintFill, t)!,
+        onInk: Color.lerp(a.onInk, b.onInk, t)!,
+      );
+
+  static double _luminance(Color c) {
+    double ch(double v) => v <= 0.03928
+        ? v / 12.92
+        : math.pow((v + 0.055) / 1.055, 2.4).toDouble();
+    return 0.2126 * ch(c.r) + 0.7152 * ch(c.g) + 0.0722 * ch(c.b);
+  }
+
+  static double _contrast(Color a, Color b) {
+    final la = _luminance(a);
+    final lb = _luminance(b);
+    final hi = math.max(la, lb);
+    final lo = math.min(la, lb);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+
+  static Color _ensureContrast(
+    Color fg,
+    Color bg,
+    double target, {
+    required bool lighten,
+  }) {
+    if (_contrast(fg, bg) >= target) return fg;
+    var hsl = HSLColor.fromColor(fg);
+    for (var i = 0; i < 40; i++) {
+      final nextL = lighten
+          ? (hsl.lightness + 0.02).clamp(0.0, 1.0)
+          : (hsl.lightness - 0.02).clamp(0.0, 1.0);
+      hsl = hsl.withLightness(nextL);
+      final candidate = hsl.toColor();
+      if (_contrast(candidate, bg) >= target) return candidate;
+      if (nextL == 0.0 || nextL == 1.0) break;
+    }
+    return hsl.toColor();
+  }
+}
+
 /// One palette resolved for one brightness.
 ///
-/// Sixteen authored colours. The card tints, and the medicine accent, are
-/// derived — see [tints] and [medicine].
+/// The card tints, and the medicine accent, are derived — see [tints] and
+/// [medicine].
 @immutable
 class PaletteSpec {
+  final Brightness brightness;
   final Color primary;
   final Color onPrimary;
   final Color secondary;
@@ -55,7 +165,14 @@ class PaletteSpec {
   final Color surface;
   final Color text;
   final Color muted;
+  final Color subtle;
+  final Color onInk;
+  final Color onInkMuted;
+  final Color heroSurface;
   final Color hairline;
+  final Color track;
+  final Color well;
+  final Color outlineIdle;
 
   final Color success;
   final Color warning;
@@ -68,12 +185,25 @@ class PaletteSpec {
   final Color focus;
   final Color drop;
 
+  /// Optional pinned roles (used by Coral light to match the exact spec).
+  final ModuleColors? medicineRolesOverride;
+  final ModuleColors? taskRolesOverride;
+  final ModuleColors? habitRolesOverride;
+  final ModuleColors? expenseRolesOverride;
+  final ModuleColors? focusRolesOverride;
+  final ModuleColors? noteRolesOverride;
+  final ModuleColors? dropRolesOverride;
+  final ModuleColors? successRolesOverride;
+  final ModuleColors? warningRolesOverride;
+  final ModuleColors? dangerRolesOverride;
+
   /// Set only where a palette pins its own card fills. Coral does, to keep the
   /// hand-picked peach/apricot/cream rotation the design shipped with; every
   /// other palette derives them from its primary.
   final List<Color>? tintOverride;
 
   const PaletteSpec({
+    required this.brightness,
     required this.primary,
     required this.onPrimary,
     required this.secondary,
@@ -81,7 +211,14 @@ class PaletteSpec {
     required this.surface,
     required this.text,
     required this.muted,
+    required this.subtle,
+    required this.onInk,
+    required this.onInkMuted,
+    required this.heroSurface,
     required this.hairline,
+    required this.track,
+    required this.well,
+    required this.outlineIdle,
     required this.success,
     required this.warning,
     required this.danger,
@@ -91,12 +228,125 @@ class PaletteSpec {
     required this.expense,
     required this.focus,
     required this.drop,
+    this.medicineRolesOverride,
+    this.taskRolesOverride,
+    this.habitRolesOverride,
+    this.expenseRolesOverride,
+    this.focusRolesOverride,
+    this.noteRolesOverride,
+    this.dropRolesOverride,
+    this.successRolesOverride,
+    this.warningRolesOverride,
+    this.dangerRolesOverride,
     this.tintOverride,
   });
 
   /// The flagship module carries the brand, in every palette. A getter rather
   /// than a field so the convention cannot be broken by a typo in the table.
   Color get medicine => primary;
+
+  /// Ink fill used for primary buttons, selected segments, and nav bar.
+  Color get ink => text;
+
+  ModuleColors get medicineRoles =>
+      medicineRolesOverride ??
+      ModuleColors.derive(
+        medicine,
+        onInk: medicine,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
+
+  ModuleColors get taskRoles =>
+      taskRolesOverride ??
+      ModuleColors.derive(
+        task,
+        onInk: task,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
+
+  ModuleColors get habitRoles =>
+      habitRolesOverride ??
+      ModuleColors.derive(
+        habit,
+        onInk: habit,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
+
+  ModuleColors get expenseRoles =>
+      expenseRolesOverride ??
+      ModuleColors.derive(
+        expense,
+        onInk: expense,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
+
+  ModuleColors get focusRoles =>
+      focusRolesOverride ??
+      ModuleColors.derive(
+        focus,
+        onInk: focus,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
+
+  ModuleColors get noteRoles =>
+      noteRolesOverride ??
+      ModuleColors.derive(
+        note,
+        onInk: note,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
+
+  ModuleColors get dropRoles =>
+      dropRolesOverride ??
+      ModuleColors.derive(
+        drop,
+        onInk: drop,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
+
+  ModuleColors get successRoles =>
+      successRolesOverride ??
+      ModuleColors.derive(
+        success,
+        onInk: success,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
+
+  ModuleColors get warningRoles =>
+      warningRolesOverride ??
+      ModuleColors.derive(
+        warning,
+        onInk: warning,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
+
+  ModuleColors get dangerRoles =>
+      dangerRolesOverride ??
+      ModuleColors.derive(
+        danger,
+        onInk: danger,
+        brightness: brightness,
+        surface: surface,
+        heroSurface: heroSurface,
+      );
 
   /// The three rotating card fills: the primary laid over the page at rising
   /// densities, which is the same relationship the hand-picked coral tints
@@ -112,6 +362,7 @@ class PaletteSpec {
 const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
   AppPalette.coral: (
     light: PaletteSpec(
+      brightness: Brightness.light,
       primary: AppColors.primaryLight,
       onPrimary: Color(0xFFFFFFFF),
       secondary: AppColors.coralDeep,
@@ -119,7 +370,14 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       surface: AppColors.surfaceLight,
       text: AppColors.textLight,
       muted: AppColors.mutedLight,
+      subtle: AppColors.subtleLight,
+      onInk: AppColors.surfaceLight,
+      onInkMuted: AppColors.onInkMuted,
+      heroSurface: AppColors.ink,
       hairline: AppColors.hairlineLight,
+      track: AppColors.trackLight,
+      well: AppColors.wellLight,
+      outlineIdle: AppColors.outlineIdleLight,
       success: AppColors.successLight,
       warning: AppColors.warningLight,
       danger: AppColors.dangerLight,
@@ -129,9 +387,80 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       expense: AppColors.expenseAccent,
       focus: AppColors.focusAccent,
       drop: AppColors.dropAccent,
+      medicineRolesOverride: ModuleColors(
+        accent: AppColors.medicineAccent,
+        graphicOnTint: AppColors.medicineGraphicOnTint,
+        textOnTint: AppColors.medicineTextOnTint,
+        tintFill: AppColors.medicineTintFill,
+        onInk: AppColors.medicineAccentDark,
+      ),
+      taskRolesOverride: ModuleColors(
+        accent: AppColors.taskAccent,
+        graphicOnTint: AppColors.taskGraphicOnTint,
+        textOnTint: AppColors.taskTextOnTint,
+        tintFill: AppColors.taskTintFill,
+        onInk: AppColors.taskAccentDark,
+      ),
+      habitRolesOverride: ModuleColors(
+        accent: AppColors.habitAccent,
+        graphicOnTint: AppColors.habitGraphicOnTint,
+        textOnTint: AppColors.habitTextOnTint,
+        tintFill: AppColors.habitTintFill,
+        onInk: AppColors.habitAccentDark,
+      ),
+      expenseRolesOverride: ModuleColors(
+        accent: AppColors.expenseAccent,
+        graphicOnTint: AppColors.expenseGraphicOnTint,
+        textOnTint: AppColors.expenseTextOnTint,
+        tintFill: AppColors.expenseTintFill,
+        onInk: AppColors.expenseAccentDark,
+      ),
+      focusRolesOverride: ModuleColors(
+        accent: AppColors.focusAccent,
+        graphicOnTint: AppColors.focusGraphicOnTint,
+        textOnTint: AppColors.focusTextOnTint,
+        tintFill: AppColors.focusTintFill,
+        onInk: AppColors.focusAccentDark,
+      ),
+      noteRolesOverride: ModuleColors(
+        accent: AppColors.noteAccent,
+        graphicOnTint: AppColors.noteGraphicOnTint,
+        textOnTint: AppColors.noteTextOnTint,
+        tintFill: AppColors.noteTintFill,
+        onInk: AppColors.noteAccentDark,
+      ),
+      dropRolesOverride: ModuleColors(
+        accent: AppColors.dropAccent,
+        graphicOnTint: AppColors.dropGraphicOnTint,
+        textOnTint: AppColors.dropTextOnTint,
+        tintFill: AppColors.dropTintFill,
+        onInk: AppColors.dropAccentDark,
+      ),
+      successRolesOverride: ModuleColors(
+        accent: AppColors.successLight,
+        graphicOnTint: AppColors.successLight,
+        textOnTint: AppColors.successTextOnTint,
+        tintFill: AppColors.successTintFill,
+        onInk: AppColors.successDark,
+      ),
+      warningRolesOverride: ModuleColors(
+        accent: AppColors.warningLight,
+        graphicOnTint: AppColors.warningGraphicOnTint,
+        textOnTint: AppColors.warningTextOnTint,
+        tintFill: AppColors.warningTintFill,
+        onInk: AppColors.warningDark,
+      ),
+      dangerRolesOverride: ModuleColors(
+        accent: AppColors.dangerLight,
+        graphicOnTint: AppColors.dangerLight,
+        textOnTint: AppColors.dangerTextOnTint,
+        tintFill: AppColors.dangerTintFill,
+        onInk: AppColors.dangerDark,
+      ),
       tintOverride: AppColors.tints,
     ),
     dark: PaletteSpec(
+      brightness: Brightness.dark,
       primary: AppColors.primaryDark,
       onPrimary: AppColors.onCoral,
       secondary: AppColors.coralSoft,
@@ -139,7 +468,14 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       surface: AppColors.surfaceDark,
       text: AppColors.textDark,
       muted: AppColors.mutedDark,
+      subtle: AppColors.subtleDark,
+      onInk: AppColors.backgroundDark,
+      onInkMuted: AppColors.mutedDark,
+      heroSurface: AppColors.heroSurfaceDark,
       hairline: AppColors.hairlineDark,
+      track: AppColors.trackDark,
+      well: AppColors.wellDark,
+      outlineIdle: AppColors.outlineIdleDark,
       success: AppColors.successDark,
       warning: AppColors.warningDark,
       danger: AppColors.dangerDark,
@@ -154,16 +490,24 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
   ),
   AppPalette.magenta: (
     light: PaletteSpec(
+      brightness: Brightness.light,
       primary: Color(0xFFC4126A),
       onPrimary: Color(0xFFFFFFFF),
       secondary: Color(0xFF8E0B4C),
-      background: Color(0xFFFFFFFF),
+      background: Color(0xFFF4EBED),
       surface: Color(0xFFFFFFFF),
       text: Color(0xFF120A0E),
       muted: Color(0xFF665C63),
+      subtle: AppColors.subtleLight,
+      onInk: AppColors.surfaceLight,
+      onInkMuted: AppColors.onInkMuted,
+      heroSurface: Color(0xFF120A0E),
       hairline: Color(0xFFF3EFF1),
-      success: Color(0xFF2C8655),
-      warning: Color(0xFFA76808),
+      track: AppColors.trackLight,
+      well: AppColors.wellLight,
+      outlineIdle: AppColors.outlineIdleLight,
+      success: Color(0xFF1F6B45),
+      warning: Color(0xFF94540E),
       danger: Color(0xFFB32020),
       note: Color(0xFFC38131),
       habit: Color(0xFF2C8655),
@@ -173,6 +517,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       drop: Color(0xFF0284C7),
     ),
     dark: PaletteSpec(
+      brightness: Brightness.dark,
       primary: Color(0xFFFF6BAB),
       onPrimary: Color(0xFF2B0217),
       secondary: Color(0xFFFFA9CB),
@@ -180,7 +525,14 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       surface: Color(0xFF201A1D),
       text: Color(0xFFF6EFF2),
       muted: Color(0xFFA99DA4),
+      subtle: AppColors.subtleDark,
+      onInk: Color(0xFF150F12),
+      onInkMuted: Color(0xFFA99DA4),
+      heroSurface: Color(0xFF2B2327),
       hairline: Color(0xFF2E2529),
+      track: Color(0xFF2E2529),
+      well: Color(0xFF272024),
+      outlineIdle: Color(0xFF4D4248),
       success: Color(0xFF55CC8B),
       warning: Color(0xFFF5B457),
       danger: Color(0xFFFF6B6F),
@@ -194,16 +546,24 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
   ),
   AppPalette.cobalt: (
     light: PaletteSpec(
+      brightness: Brightness.light,
       primary: Color(0xFF1264D4),
       onPrimary: Color(0xFFFFFFFF),
       secondary: Color(0xFF0C4695),
-      background: Color(0xFFFFFFFF),
+      background: Color(0xFFEDEEF1),
       surface: Color(0xFFFFFFFF),
       text: Color(0xFF0A0D12),
       muted: Color(0xFF5C636E),
+      subtle: AppColors.subtleLight,
+      onInk: AppColors.surfaceLight,
+      onInkMuted: AppColors.onInkMuted,
+      heroSurface: Color(0xFF0A0D12),
       hairline: Color(0xFFEEF0F3),
-      success: Color(0xFF2C8655),
-      warning: Color(0xFFA76808),
+      track: AppColors.trackLight,
+      well: AppColors.wellLight,
+      outlineIdle: AppColors.outlineIdleLight,
+      success: Color(0xFF1F6B45),
+      warning: Color(0xFF94540E),
       danger: Color(0xFFC0271F),
       note: Color(0xFFC38131),
       habit: Color(0xFF2C8655),
@@ -213,6 +573,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       drop: Color(0xFF0284C7),
     ),
     dark: PaletteSpec(
+      brightness: Brightness.dark,
       primary: Color(0xFF6BA5FF),
       onPrimary: Color(0xFF041129),
       secondary: Color(0xFFA8CBFF),
@@ -220,7 +581,14 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       surface: Color(0xFF181D24),
       text: Color(0xFFEFF2F6),
       muted: Color(0xFF9CA6B3),
+      subtle: AppColors.subtleDark,
+      onInk: Color(0xFF0E1116),
+      onInkMuted: Color(0xFF9CA6B3),
+      heroSurface: Color(0xFF232933),
       hairline: Color(0xFF232A33),
+      track: Color(0xFF232A33),
+      well: Color(0xFF1E242C),
+      outlineIdle: Color(0xFF3E4754),
       success: Color(0xFF55CC8B),
       warning: Color(0xFFF5B457),
       danger: Color(0xFFFF6B6F),
@@ -234,16 +602,24 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
   ),
   AppPalette.aubergine: (
     light: PaletteSpec(
+      brightness: Brightness.light,
       primary: Color(0xFF5B1F5E),
       onPrimary: Color(0xFFFFFFFF),
       secondary: Color(0xFF3D0F40),
-      background: Color(0xFFFFFFFF),
+      background: Color(0xFFF0EBEC),
       surface: Color(0xFFFFFFFF),
       text: Color(0xFF1A121B),
       muted: Color(0xFF665C69),
+      subtle: AppColors.subtleLight,
+      onInk: AppColors.surfaceLight,
+      onInkMuted: AppColors.onInkMuted,
+      heroSurface: Color(0xFF1A121B),
       hairline: Color(0xFFF2EFF3),
-      success: Color(0xFF2C8655),
-      warning: Color(0xFFA76808),
+      track: AppColors.trackLight,
+      well: AppColors.wellLight,
+      outlineIdle: AppColors.outlineIdleLight,
+      success: Color(0xFF1F6B45),
+      warning: Color(0xFF94540E),
       danger: Color(0xFFB32020),
       note: Color(0xFFC38131),
       habit: Color(0xFF2C8655),
@@ -253,6 +629,7 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       drop: Color(0xFF0284C7),
     ),
     dark: PaletteSpec(
+      brightness: Brightness.dark,
       primary: Color(0xFFC88BCC),
       onPrimary: Color(0xFF24052A),
       secondary: Color(0xFFE0B8E3),
@@ -260,7 +637,14 @@ const _specs = <AppPalette, ({PaletteSpec light, PaletteSpec dark})>{
       surface: Color(0xFF221B26),
       text: Color(0xFFF3EEF4),
       muted: Color(0xFFA79BAA),
+      subtle: AppColors.subtleDark,
+      onInk: Color(0xFF17121A),
+      onInkMuted: Color(0xFFA79BAA),
+      heroSurface: Color(0xFF2D2532),
       hairline: Color(0xFF302838),
+      track: Color(0xFF302838),
+      well: Color(0xFF29212E),
+      outlineIdle: Color(0xFF4B4054),
       success: Color(0xFF55CC8B),
       warning: Color(0xFFF5B457),
       danger: Color(0xFFFF6B6F),

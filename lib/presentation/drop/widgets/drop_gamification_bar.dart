@@ -9,16 +9,15 @@ import '../providers/drop_gamification_provider.dart';
 class DropGamificationBar extends ConsumerWidget {
   final VoidCallback onTap;
 
-  const DropGamificationBar({
-    super.key,
-    required this.onTap,
-  });
+  const DropGamificationBar({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final brand = context.brand;
     final stats = ref.watch(dropGamificationProvider);
+    final dropRoles = brand.dropRoles;
+    final warningRoles = brand.warningRoles;
 
     return Material(
       color: Colors.transparent,
@@ -28,22 +27,25 @@ class DropGamificationBar extends ConsumerWidget {
           AppHaptics.tap();
           onTap();
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          margin: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.gutter,
+            vertical: 4,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: brand.hairline),
+            color: brand.surface,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: AppShadows.card(theme.brightness),
           ),
           child: Row(
             children: [
               // Streak Pill
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: brand.warning.withValues(alpha: 0.12),
+                  color: warningRoles.tintFill,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -52,7 +54,7 @@ class DropGamificationBar extends ConsumerWidget {
                     AppIcon(
                       AppIcons.streak,
                       size: 13,
-                      color: brand.warning,
+                      color: warningRoles.graphicOnTint,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -60,13 +62,13 @@ class DropGamificationBar extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: brand.warning,
+                        color: warningRoles.textOnTint,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
 
               // Level & Progress Bar
               Expanded(
@@ -81,7 +83,7 @@ class DropGamificationBar extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: brand.drop,
+                            color: dropRoles.textOnTint,
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -90,8 +92,8 @@ class DropGamificationBar extends ConsumerWidget {
                             '· ${stats.levelTitle}',
                             style: TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                              fontWeight: FontWeight.w600,
+                              color: context.muted,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -99,14 +101,16 @@ class DropGamificationBar extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(3),
                       child: LinearProgressIndicator(
                         value: stats.levelProgress,
                         minHeight: 4,
-                        backgroundColor: brand.hairline.withValues(alpha: 0.6),
-                        valueColor: AlwaysStoppedAnimation<Color>(brand.drop),
+                        backgroundColor: brand.track,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          dropRoles.graphicOnTint,
+                        ),
                       ),
                     ),
                   ],
@@ -116,9 +120,9 @@ class DropGamificationBar extends ConsumerWidget {
 
               // XP Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: brand.drop.withValues(alpha: 0.1),
+                  color: dropRoles.tintFill,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -127,7 +131,7 @@ class DropGamificationBar extends ConsumerWidget {
                     AppIcon(
                       AppIcons.star,
                       size: 12,
-                      color: brand.drop,
+                      color: dropRoles.graphicOnTint,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -135,7 +139,7 @@ class DropGamificationBar extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: brand.drop,
+                        color: dropRoles.textOnTint,
                       ),
                     ),
                   ],

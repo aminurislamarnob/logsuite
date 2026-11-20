@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,7 +45,6 @@ class _DropScreenState extends ConsumerState<DropScreen> {
   }
 
   void _showMediaPickerSheet() {
-    // Media attachment hook for Ticket 3
     brandSheet(
       context: context,
       builder: (sheetContext) => SheetScaffold(
@@ -86,7 +86,6 @@ class _DropScreenState extends ConsumerState<DropScreen> {
       final storage = await DropMediaStorage.create();
       final saved = await storage.save(sourceFile);
 
-      // Extract text via OCR
       String? ocrText;
       try {
         final ocr = ref.read(ocrServiceProvider);
@@ -97,7 +96,9 @@ class _DropScreenState extends ConsumerState<DropScreen> {
           ? ocrText.split('\n').first.trim()
           : (fromCamera ? 'Camera photo' : 'Screenshot / Photo');
 
-      await ref.read(dropRepositoryProvider).createDrop(
+      await ref
+          .read(dropRepositoryProvider)
+          .createDrop(
             content: caption,
             assetType: 'image',
             mediaPath: saved.originalPath,
@@ -116,7 +117,13 @@ class _DropScreenState extends ConsumerState<DropScreen> {
     final now = DateTime.now();
     final tonight = DateTime(now.year, now.month, now.day, 20, 0);
     final tomorrowMorning = DateTime(now.year, now.month, now.day + 1, 9, 0);
-    final weekend = DateTime(now.year, now.month, now.day + (6 - now.weekday), 10, 0);
+    final weekend = DateTime(
+      now.year,
+      now.month,
+      now.day + (6 - now.weekday),
+      10,
+      0,
+    );
 
     brandSheet(
       context: context,
@@ -129,7 +136,9 @@ class _DropScreenState extends ConsumerState<DropScreen> {
               title: const Text('Tonight at 8:00 PM'),
               onTap: () async {
                 Navigator.pop(sheetContext);
-                await ref.read(dropRepositoryProvider).setReminder(
+                await ref
+                    .read(dropRepositoryProvider)
+                    .setReminder(
                       item.id,
                       tonight,
                       notifier: ref.read(notificationServiceProvider),
@@ -144,7 +153,9 @@ class _DropScreenState extends ConsumerState<DropScreen> {
               title: const Text('Tomorrow morning (9:00 AM)'),
               onTap: () async {
                 Navigator.pop(sheetContext);
-                await ref.read(dropRepositoryProvider).setReminder(
+                await ref
+                    .read(dropRepositoryProvider)
+                    .setReminder(
                       item.id,
                       tomorrowMorning,
                       notifier: ref.read(notificationServiceProvider),
@@ -159,7 +170,9 @@ class _DropScreenState extends ConsumerState<DropScreen> {
               title: const Text('This weekend (Saturday 10:00 AM)'),
               onTap: () async {
                 Navigator.pop(sheetContext);
-                await ref.read(dropRepositoryProvider).setReminder(
+                await ref
+                    .read(dropRepositoryProvider)
+                    .setReminder(
                       item.id,
                       weekend,
                       notifier: ref.read(notificationServiceProvider),
@@ -172,10 +185,15 @@ class _DropScreenState extends ConsumerState<DropScreen> {
             if (item.reminderAt != null)
               BrandTile(
                 leading: AppIcon(AppIcons.close, color: brand.danger),
-                title: Text('Clear reminder', style: TextStyle(color: brand.danger)),
+                title: Text(
+                  'Clear reminder',
+                  style: TextStyle(color: brand.danger),
+                ),
                 onTap: () async {
                   Navigator.pop(sheetContext);
-                  await ref.read(dropRepositoryProvider).setReminder(
+                  await ref
+                      .read(dropRepositoryProvider)
+                      .setReminder(
                         item.id,
                         null,
                         notifier: ref.read(notificationServiceProvider),
@@ -189,7 +207,8 @@ class _DropScreenState extends ConsumerState<DropScreen> {
   }
 
   Future<void> _convertToTask(DropWithTags item) async {
-    final title = item.title ??
+    final title =
+        item.title ??
         (item.content.length > 60
             ? '${item.content.substring(0, 57)}...'
             : item.content);
@@ -197,11 +216,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
         item.description ?? (item.title != null ? item.content : null);
     final taskId = await TaskEditorSheet.show(
       context,
-      draft: TaskDraft(
-        title: title,
-        description: description,
-        tags: item.tags,
-      ),
+      draft: TaskDraft(title: title, description: description, tags: item.tags),
     );
     if (taskId != null && mounted) {
       final reward = await ref
@@ -213,7 +228,8 @@ class _DropScreenState extends ConsumerState<DropScreen> {
 
   Future<void> _convertToNote(DropWithTags item) async {
     final noteRepo = ref.read(noteRepositoryProvider);
-    final title = item.title ??
+    final title =
+        item.title ??
         (item.content.length > 50
             ? '${item.content.substring(0, 47)}...'
             : 'Drop Note');
@@ -245,13 +261,18 @@ class _DropScreenState extends ConsumerState<DropScreen> {
     final selectedIds = ref.watch(dropSelectedIdsProvider);
     final isSelectionMode = selectedIds.isNotEmpty;
 
+    final currentDrops = dropsAsync.valueOrNull ?? const <DropWithTags>[];
+    final inboxSubtitle = activeTriage == 'inbox' && currentDrops.isNotEmpty
+        ? '${currentDrops.length} to go through'
+        : null;
+
     final filterOptions = [
-      ('all', 'All', AppIcons.inbox),
-      ('article', 'Articles', AppIcons.link),
-      ('video', 'Videos', AppIcons.play),
-      ('clip', 'Clips', AppIcons.document),
-      ('image', 'Images', AppIcons.camera),
-      ('favorites', 'Favorites', AppIcons.star),
+      ('all', 'All'),
+      ('article', 'Articles'),
+      ('video', 'Videos'),
+      ('clip', 'Clips'),
+      ('image', 'Images'),
+      ('favorites', 'Favorites'),
     ];
 
     return BrandScaffold(
@@ -262,80 +283,118 @@ class _DropScreenState extends ConsumerState<DropScreen> {
               onLeading: () =>
                   ref.read(dropSelectedIdsProvider.notifier).state = {},
               actions: [
-                IconButton(
-                  icon: const AppIcon(AppIcons.archive),
-                  tooltip: 'Bulk Archive',
-                  onPressed: () async {
-                    final count = selectedIds.length;
-                    await ref
-                        .read(dropRepositoryProvider)
-                        .bulkSetTriageStatus(selectedIds.toList(), 'archived');
-                    ref.read(dropSelectedIdsProvider.notifier).state = {};
-                    final reward = await ref
-                        .read(dropGamificationProvider.notifier)
-                        .recordBulkTriaged(count);
-                    if (context.mounted) {
-                      DropGamificationFeedback.show(context, reward);
-                    }
-                  },
-                ),
-                IconButton(
-                  icon: AppIcon(AppIcons.delete, color: brand.danger),
-                  tooltip: 'Bulk Delete',
-                  onPressed: () async {
-                    final confirm = await brandConfirm(
-                      context,
-                      title: 'Delete selected items?',
-                      message: 'This will delete ${selectedIds.length} drops permanently.',
-                      confirmLabel: 'Delete',
-                    );
-                    if (confirm) {
+                DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: brand.surface,
+                    shape: const CircleBorder(),
+                    shadows: AppShadows.circleButton(theme.brightness),
+                  ),
+                  child: IconButton(
+                    icon: const AppIcon(AppIcons.archive, size: 20),
+                    tooltip: 'Bulk Archive',
+                    onPressed: () async {
+                      final count = selectedIds.length;
                       await ref
                           .read(dropRepositoryProvider)
-                          .deleteDrops(selectedIds.toList());
+                          .bulkSetTriageStatus(
+                            selectedIds.toList(),
+                            'archived',
+                          );
                       ref.read(dropSelectedIdsProvider.notifier).state = {};
-                    }
-                  },
+                      final reward = await ref
+                          .read(dropGamificationProvider.notifier)
+                          .recordBulkTriaged(count);
+                      if (context.mounted) {
+                        DropGamificationFeedback.show(context, reward);
+                      }
+                    },
+                  ),
+                ),
+                DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: brand.surface,
+                    shape: const CircleBorder(),
+                    shadows: AppShadows.circleButton(theme.brightness),
+                  ),
+                  child: IconButton(
+                    icon: AppIcon(
+                      AppIcons.delete,
+                      size: 20,
+                      color: brand.danger,
+                    ),
+                    tooltip: 'Bulk Delete',
+                    onPressed: () async {
+                      final confirm = await brandConfirm(
+                        context,
+                        title: 'Delete selected items?',
+                        message:
+                            'This will delete ${selectedIds.length} drops permanently.',
+                        confirmLabel: 'Delete',
+                      );
+                      if (confirm) {
+                        await ref
+                            .read(dropRepositoryProvider)
+                            .deleteDrops(selectedIds.toList());
+                        ref.read(dropSelectedIdsProvider.notifier).state = {};
+                      }
+                    },
+                  ),
                 ),
               ],
             )
           : BrandTopBar(
               title: activeTriage == 'archived' ? 'Archive' : 'Drop',
+              subtitle: inboxSubtitle,
               leadingIcon: AppIcons.back,
               actions: [
-                // Triage toggle (Inbox <-> Archive)
-                IconButton(
-                  icon: AppIcon(
-                    activeTriage == 'inbox'
-                        ? AppIcons.archive
-                        : AppIcons.inbox,
-                    color: brand.drop,
+                DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: brand.surface,
+                    shape: const CircleBorder(),
+                    shadows: AppShadows.circleButton(theme.brightness),
                   ),
-                  tooltip: activeTriage == 'inbox'
-                      ? 'View Archive'
-                      : 'View Inbox',
-                  onPressed: () {
-                    AppHaptics.selection();
-                    ref.read(dropTriageStatusProvider.notifier).state =
-                        activeTriage == 'inbox' ? 'archived' : 'inbox';
-                  },
+                  child: IconButton(
+                    icon: AppIcon(
+                      activeTriage == 'inbox'
+                          ? AppIcons.archive
+                          : AppIcons.inbox,
+                      size: 20,
+                      color: brand.ink,
+                    ),
+                    tooltip: activeTriage == 'inbox'
+                        ? 'View Archive'
+                        : 'View Inbox',
+                    onPressed: () {
+                      AppHaptics.selection();
+                      ref.read(dropTriageStatusProvider.notifier).state =
+                          activeTriage == 'inbox' ? 'archived' : 'inbox';
+                    },
+                  ),
                 ),
-                // Search toggle
-                IconButton(
-                  icon: AppIcon(
-                    _isSearchVisible ? AppIcons.close : AppIcons.search,
+                DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: brand.surface,
+                    shape: const CircleBorder(),
+                    shadows: AppShadows.circleButton(theme.brightness),
                   ),
-                  tooltip: _isSearchVisible ? 'Close search' : 'Search drops',
-                  onPressed: () {
-                    AppHaptics.tap();
-                    setState(() {
-                      _isSearchVisible = !_isSearchVisible;
-                      if (!_isSearchVisible) {
-                        _searchController.clear();
-                        ref.read(dropSearchQueryProvider.notifier).state = '';
-                      }
-                    });
-                  },
+                  child: IconButton(
+                    icon: AppIcon(
+                      _isSearchVisible ? AppIcons.close : AppIcons.search,
+                      size: 20,
+                      color: brand.ink,
+                    ),
+                    tooltip: _isSearchVisible ? 'Close search' : 'Search drops',
+                    onPressed: () {
+                      AppHaptics.tap();
+                      setState(() {
+                        _isSearchVisible = !_isSearchVisible;
+                        if (!_isSearchVisible) {
+                          _searchController.clear();
+                          ref.read(dropSearchQueryProvider.notifier).state = '';
+                        }
+                      });
+                    },
+                  ),
                 ),
               ],
             ),
@@ -343,57 +402,85 @@ class _DropScreenState extends ConsumerState<DropScreen> {
         children: [
           // Search Bar
           if (_isSearchVisible)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              color: theme.colorScheme.surface,
-              child: TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'Search titles, links, text and OCR...',
-                  prefixIcon: const AppIcon(AppIcons.search, size: 20),
-                  suffixIcon: IconButton(
-                    icon: const AppIcon(AppIcons.close, size: 18),
-                    onPressed: () {
-                      if (_searchController.text.isNotEmpty) {
-                        _searchController.clear();
-                        ref.read(dropSearchQueryProvider.notifier).state = '';
-                      } else {
-                        setState(() => _isSearchVisible = false);
-                      }
-                    },
-                  ),
-                  isDense: true,
-                  filled: true,
-                  fillColor: brand.canvas,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: brand.hairline),
-                  ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                4,
+                AppSpacing.gutter,
+                8,
+              ),
+              child: Container(
+                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: ShapeDecoration(
+                  color: brand.surface,
+                  shape: const StadiumBorder(),
+                  shadows: AppShadows.circleButton(theme.brightness),
                 ),
-                onChanged: (val) {
-                  ref.read(dropSearchQueryProvider.notifier).state = val;
-                },
+                child: Row(
+                  children: [
+                    AppIcon(AppIcons.search, size: 18, color: context.muted),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        style: TextStyle(fontSize: 15, color: brand.ink),
+                        decoration: InputDecoration(
+                          hintText: 'Search titles, links, text and OCR...',
+                          hintStyle: TextStyle(
+                            fontSize: 15,
+                            color: context.muted,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          isDense: true,
+                          filled: false,
+                        ),
+                        onChanged: (val) {
+                          ref.read(dropSearchQueryProvider.notifier).state =
+                              val;
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: AppIcon(
+                        AppIcons.close,
+                        size: 16,
+                        color: context.muted,
+                      ),
+                      onPressed: () {
+                        if (_searchController.text.isNotEmpty) {
+                          _searchController.clear();
+                          ref.read(dropSearchQueryProvider.notifier).state = '';
+                        } else {
+                          setState(() => _isSearchVisible = false);
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
 
           // Gamification Status Bar (Streak, Level, XP)
           if (!isSelectionMode && !_isSearchVisible)
-            DropGamificationBar(
-              onTap: () => DropMasterySheet.show(context),
-            ),
+            DropGamificationBar(onTap: () => DropMasterySheet.show(context)),
 
           // Top Filter Pills (All, Articles, Videos, Clips, Images, Favorites)
-          Container(
-            height: 48,
-            color: theme.colorScheme.surface,
+          SizedBox(
+            height: 46,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.gutter,
+                vertical: 4,
+              ),
               itemCount: filterOptions.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 6),
               itemBuilder: (context, i) {
-                final (key, label, icon) = filterOptions[i];
+                final (key, label) = filterOptions[i];
                 final isSelected = activeFilter == key;
 
                 return GestureDetector(
@@ -402,39 +489,24 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                     ref.read(dropFilterTypeProvider.notifier).state = key;
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? brand.drop
-                          : brand.canvas,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? brand.drop : brand.hairline,
-                      ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: ShapeDecoration(
+                      color: isSelected ? brand.ink : brand.surface,
+                      shape: const StadiumBorder(),
+                      shadows: isSelected
+                          ? const []
+                          : AppShadows.circleButton(theme.brightness),
                     ),
                     alignment: Alignment.center,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AppIcon(
-                          icon,
-                          size: 14,
-                          color: isSelected
-                              ? Colors.white
-                              : theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                            color: isSelected
-                                ? Colors.white
-                                : theme.colorScheme.onSurface.withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
+                        color: isSelected ? brand.onInk : brand.ink,
+                      ),
                     ),
                   ),
                 );
@@ -446,12 +518,14 @@ class _DropScreenState extends ConsumerState<DropScreen> {
           tagsAsync.when(
             data: (tags) {
               if (tags.isEmpty) return const SizedBox.shrink();
-              return Container(
-                height: 38,
-                color: theme.colorScheme.surface,
+              return SizedBox(
+                height: 36,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.gutter,
+                    vertical: 3,
+                  ),
                   itemCount: tags.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 6),
                   itemBuilder: (context, i) {
@@ -465,23 +539,23 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                             isSelected ? null : tag;
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: ShapeDecoration(
                           color: isSelected
-                              ? brand.task.withValues(alpha: 0.15)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected ? brand.task : brand.hairline,
-                          ),
+                              ? brand.dropRoles.tintFill
+                              : brand.surface,
+                          shape: const StadiumBorder(),
+                          shadows: AppShadows.circleButton(theme.brightness),
                         ),
                         alignment: Alignment.center,
                         child: Text(
                           '#$tag',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected ? brand.task : brand.task.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w700,
+                            color: isSelected
+                                ? brand.dropRoles.textOnTint
+                                : context.muted,
                           ),
                         ),
                       ),
@@ -494,15 +568,14 @@ class _DropScreenState extends ConsumerState<DropScreen> {
             error: (_, _) => const SizedBox.shrink(),
           ),
 
-          const Divider(height: 1, thickness: 1),
-
           // Main Feed
           Expanded(
             child: dropsAsync.when(
               data: (drops) {
                 if (drops.isEmpty) {
                   final stats = ref.watch(dropGamificationProvider);
-                  final isInboxZero = activeTriage == 'inbox' &&
+                  final isInboxZero =
+                      activeTriage == 'inbox' &&
                       activeFilter == 'all' &&
                       _searchController.text.isEmpty &&
                       activeTag == null &&
@@ -530,22 +603,22 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                         title: activeTriage == 'archived'
                             ? 'Archive is empty'
                             : (activeFilter == 'favorites'
-                                ? 'No favorites yet'
-                                : (_searchController.text.isNotEmpty
-                                    ? 'No matching drops'
-                                    : 'Your Drop is empty')),
+                                  ? 'No favorites yet'
+                                  : (_searchController.text.isNotEmpty
+                                        ? 'No matching drops'
+                                        : 'Your Drop is empty')),
                         message: activeTriage == 'archived'
                             ? 'Completed items you archive will appear here.'
                             : (_searchController.text.isNotEmpty
-                                ? 'Try searching for other keywords or tags.'
-                                : 'Paste links, videos, thoughts or photos below.'),
+                                  ? 'Try searching for other keywords or tags.'
+                                  : 'Paste links, videos, thoughts or photos below.'),
                       ),
                     ),
                   );
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.only(top: 8, bottom: 16),
+                  padding: const EdgeInsets.only(top: 6, bottom: 16),
                   itemCount: drops.length,
                   itemBuilder: (context, i) {
                     final item = drops[i];
@@ -554,6 +627,7 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                     return DropCard(
                       key: ValueKey(item.id),
                       item: item,
+                      featured: i == 0 && !isSelectionMode,
                       isSelected: isSelected,
                       isSelectionMode: isSelectionMode,
                       onToggleSelect: () {
@@ -574,23 +648,21 @@ class _DropScreenState extends ConsumerState<DropScreen> {
                 );
               },
               loading: () => const SizedBox.shrink(),
-              error: (err, stack) => Center(
-                child: Text('Error loading drops: $err'),
-              ),
+              error: (err, stack) =>
+                  Center(child: Text('Error loading drops: $err')),
             ),
           ),
 
           // Bottom Input Bar (hidden when searching or selecting)
           if (!_isSearchVisible && !isSelectionMode)
-            DropInputBar(
-              onAttachPressed: _showMediaPickerSheet,
-            ),
+            DropInputBar(onAttachPressed: _showMediaPickerSheet),
         ],
       ),
     );
   }
 
   Widget _buildInboxZeroCelebration(BuildContext context, BrandColors brand) {
+    final warningRoles = brand.warningRoles;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -599,16 +671,9 @@ class _DropScreenState extends ConsumerState<DropScreen> {
           height: 88,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                brand.task.withValues(alpha: 0.2),
-                brand.drop.withValues(alpha: 0.15),
-              ],
-            ),
+            color: brand.dropRoles.tintFill,
             border: Border.all(
-              color: brand.task.withValues(alpha: 0.35),
+              color: brand.drop.withValues(alpha: 0.35),
               width: 2,
             ),
           ),
@@ -620,9 +685,9 @@ class _DropScreenState extends ConsumerState<DropScreen> {
           'Inbox Zero!',
           style: TextStyle(
             fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface,
-            letterSpacing: -0.3,
+            fontWeight: FontWeight.w800,
+            color: brand.ink,
+            letterSpacing: -0.4,
           ),
         ),
         const SizedBox(height: 8),
@@ -631,34 +696,31 @@ class _DropScreenState extends ConsumerState<DropScreen> {
           child: Text(
             'All items triaged! Your workspace is clear and calm.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: context.muted,
-              height: 1.4,
-            ),
+            style: TextStyle(fontSize: 14, color: context.muted, height: 1.4),
           ),
         ),
         const SizedBox(height: 18),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFFF59E0B).withValues(alpha: 0.14),
+            color: warningRoles.tintFill,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
-            ),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AppIcon(AppIcons.star, size: 14, color: Color(0xFFF59E0B)),
-              SizedBox(width: 6),
+              AppIcon(
+                AppIcons.star,
+                size: 14,
+                color: warningRoles.graphicOnTint,
+              ),
+              const SizedBox(width: 6),
               Text(
                 'Inbox Zero Master • +50 XP Hero Bonus',
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFF59E0B),
+                  fontWeight: FontWeight.w700,
+                  color: warningRoles.textOnTint,
                 ),
               ),
             ],

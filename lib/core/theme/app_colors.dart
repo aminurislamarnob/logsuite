@@ -28,18 +28,25 @@ class AppColors {
   static const onCoral = Color(0xFF3A1206);
 
   // Light theme
+  static const ink = Color(0xFF1A1614);
+  static const inkDeep = backgroundDark;
   static const primaryLight = coral;
-  static const successLight = Color(0xFF2D8657);
-  static const warningLight = Color(0xFFA16B29);
-  static const dangerLight = Color(0xFFD34247);
-  static const backgroundLight = Color(0xFFFFFFFF);
+  static const successLight = Color(0xFF1F6B45);
+  static const warningLight = Color(0xFF94540E);
+  static const dangerLight = Color(0xFFB3261E);
+  static const backgroundLight = Color(0xFFF4F1EE);
   static const surfaceLight = Color(0xFFFFFFFF);
-  static const textLight = Color(0xFF0D0D0D);
-  static const mutedLight = Color(0xFF6C6C6C);
+  static const textLight = ink;
+  static const mutedLight = Color(0xFF6B625C);
+  static const subtleLight = Color(0xFF8C847F);
+  static const onInkMuted = Color(0xFFB5ADA8);
 
   /// The faintest grey in the design — chart gridlines, inactive day labels,
   /// progress tracks. Too light for body copy.
-  static const hairlineLight = Color(0xFFF1F1F1);
+  static const hairlineLight = Color(0xFFF0ECE8);
+  static const trackLight = Color(0xFFEFEAE6);
+  static const wellLight = Color(0xFFE8E3DF);
+  static const outlineIdleLight = Color(0xFFD4CEC8);
 
   // Dark theme. The reference file is light-only, so the dark side keeps the
   // same coral on a warm-neutral charcoal rather than inventing a second hue.
@@ -49,9 +56,14 @@ class AppColors {
   static const dangerDark = Color(0xFFFF6B6F);
   static const backgroundDark = Color(0xFF14100F);
   static const surfaceDark = Color(0xFF1F1A19);
+  static const heroSurfaceDark = Color(0xFF2A2422);
   static const textDark = Color(0xFFF5EFED);
   static const mutedDark = Color(0xFFA79E9B);
+  static const subtleDark = Color(0xFF736B67);
   static const hairlineDark = Color(0xFF2C2523);
+  static const trackDark = Color(0xFF2C2523);
+  static const wellDark = Color(0xFF26201E);
+  static const outlineIdleDark = Color(0xFF4A423F);
 
   // ---------------------------------------------------------------------------
   // Card tints
@@ -92,7 +104,7 @@ class AppColors {
   /// icon to a text bar cost it a fifth of its brightness for nothing.
   static const noteAccent = Color(0xFFC38131); // amber
   static const medicineAccent = coral; // the flagship module carries the brand
-  static const habitAccent = successLight; // moss green
+  static const habitAccent = Color(0xFF2D8657); // moss green
   static const taskAccent = Color(0xFF5B7CE0); // muted indigo
   static const expenseAccent = Color(0xFF9A6DD7); // warm violet
   static const focusAccent = Color(0xFF349CA5); // teal
@@ -116,4 +128,52 @@ class AppColors {
       brightness == Brightness.dark
       ? Color.alphaBlend(accent.withValues(alpha: 0.14), surfaceDark)
       : Color.alphaBlend(accent.withValues(alpha: 0.07), Colors.white);
+
+  // ---------------------------------------------------------------------------
+  // Redesign module & status roles (Coral light)
+  // ---------------------------------------------------------------------------
+
+  // Medicine / brand
+  static const medicineGraphicOnTint = coralDeep;
+  static const medicineTextOnTint = Color(0xFFB23A1F);
+  static const medicineTintFill = Color(0xFFFFE7E0);
+
+  // Tasks
+  static const taskGraphicOnTint = Color(0xFF4A67C4);
+  static const taskTextOnTint = Color(0xFF3B4F8F);
+  static const taskTintFill = Color(0xFFEAEFFD);
+
+  // Habits
+  static const habitGraphicOnTint = Color(0xFF2D8657);
+  static const habitTextOnTint = Color(0xFF1F5E3D);
+  static const habitTintFill = Color(0xFFE6F4EC);
+
+  // Expenses
+  static const expenseGraphicOnTint = Color(0xFF7E52BE);
+  static const expenseTextOnTint = Color(0xFF6A41A8);
+  static const expenseTintFill = Color(0xFFF4EEFB);
+
+  // Focus
+  static const focusGraphicOnTint = Color(0xFF2B8790);
+  static const focusTextOnTint = Color(0xFF1F6A72);
+  static const focusTintFill = Color(0xFFE6F4F5);
+
+  // Notes
+  static const noteGraphicOnTint = Color(0xFFA86C22);
+  static const noteTextOnTint = Color(0xFF8A5A1F);
+  static const noteTintFill = Color(0xFFFCF4E6);
+
+  // Drop
+  static const dropGraphicOnTint = Color(0xFF0274B0);
+  static const dropTextOnTint = Color(0xFF02598A);
+  static const dropTintFill = Color(0xFFE3F1FA);
+
+  // Status roles (light)
+  static const dangerTextOnTint = Color(0xFFB3261E);
+  static const dangerTintFill = Color(0xFFFDECEA);
+  static const warningGraphicOnTint = Color(0xFFB86E18);
+  static const warningTextOnTint = Color(0xFFA35E12);
+  static const warningTintFill = Color(0xFFFBF1E3);
+  static const successTextOnTint = Color(0xFF1F6B45);
+  static const successTintFill = Color(0xFFE6F4EC);
 }

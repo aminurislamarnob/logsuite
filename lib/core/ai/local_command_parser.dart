@@ -116,9 +116,9 @@ class LocalCommandParser {
     }
     if (_focusCue.hasMatch(lower)) return _focus(lower);
 
-    // "Remind me to walk the dog" is a task even when a habit is called
-    // Walk, so the task prefix is checked before the habit names.
-    if (_taskPrefix.hasMatch(clause) && !hasMoney) {
+    // "Remind me to walk the dog" or "remind me to buy milk at 8pm" is always
+    // a task even when it mentions a habit name or a shopping/payment verb.
+    if (_taskPrefix.hasMatch(clause)) {
       return _task(clause, lower, now);
     }
 

@@ -60,10 +60,10 @@ class _Swatch extends StatelessWidget {
         },
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
-          // A 28px dot inside a 40px target: the dot stays a dot at any text
-          // scale, while the tappable area still clears the 40px minimum.
-          width: 40,
-          height: 40,
+          // A 28px dot inside a 44px target: the dot stays a dot at any text
+          // scale, while the tappable area clears the 44px minimum.
+          width: 44,
+          height: 44,
           child: Center(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),

@@ -348,6 +348,14 @@ class Medicines extends Table {
 
   /// Comma-separated yyyy-MM-dd dates to skip (travel/holiday mode).
   TextColumn get skipDates => text().withDefault(const Constant(''))();
+
+  /// After-opening shelf life tracking for syrup, drops, and inhaler.
+  DateTimeColumn get openedDate => dateTime().nullable()();
+  IntColumn get bestUseWithinDays => integer().nullable()();
+
+  /// Advance alert lead time in days before use-by date; null disables alerts.
+  IntColumn get expiryAlertDaysBefore => integer().nullable()();
+
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -421,8 +429,11 @@ class Drops extends Table {
   TextColumn get previewImageUrl => text().nullable()();
   TextColumn get faviconUrl => text().nullable()();
   TextColumn get sourceDomain => text().nullable()();
-  TextColumn get assetType => text().withDefault(const Constant('clip'))(); // 'article', 'video', 'image', 'clip'
-  TextColumn get triageStatus => text().withDefault(const Constant('inbox'))(); // 'inbox', 'archived'
+  TextColumn get assetType => text().withDefault(
+    const Constant('clip'),
+  )(); // 'article', 'video', 'image', 'clip'
+  TextColumn get triageStatus =>
+      text().withDefault(const Constant('inbox'))(); // 'inbox', 'archived'
   BoolColumn get isPinned => boolean().withDefault(const Constant(false))();
   TextColumn get mediaPath => text().nullable()();
   TextColumn get mediaThumbnailPath => text().nullable()();
@@ -475,7 +486,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -496,6 +507,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 3) {
         await m.createTable(drops);
         await m.createTable(dropTags);
+      }
+      if (from < 4) {
+        await m.addColumn(medicines, medicines.openedDate);
+        await m.addColumn(medicines, medicines.bestUseWithinDays);
+        await m.addColumn(medicines, medicines.expiryAlertDaysBefore);
       }
     },
     beforeOpen: (details) async {

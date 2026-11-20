@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/ai/ai_drafts.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/services/notification_service.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/brand.dart';
 import '../../../core/widgets/common.dart';
 import '../providers/tasks_provider.dart';
@@ -56,6 +57,7 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
   String? _recurrence;
   int? _estimate;
   final _newSubtask = TextEditingController();
+  final List<String> _pendingSubtasks = [];
 
   bool get _isEditing => widget.task != null;
 
@@ -81,7 +83,11 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
 
   Future<void> _loadTags(int taskId) async {
     final tags = await ref.read(taskRepositoryProvider).tagsForTask(taskId);
-    if (mounted) _tags.text = tags.map((e) => e.name).join(', ');
+    if (mounted) {
+      setState(() {
+        _tags.text = tags.map((e) => e.name).join(', ');
+      });
+    }
   }
 
   @override
@@ -93,17 +99,19 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
     super.dispose();
   }
 
+  List<String> get _parsedTags => _tags.text
+      .split(',')
+      .map((e) => e.trim().replaceAll('#', ''))
+      .where((e) => e.isNotEmpty)
+      .toList();
+
   Future<void> _save() async {
     final title = _title.text.trim();
     if (title.isEmpty) return;
 
     final repo = ref.read(taskRepositoryProvider);
     final notifier = ref.read(notificationServiceProvider);
-    final tagList = _tags.text
-        .split(',')
-        .map((e) => e.trim().replaceAll('#', ''))
-        .where((e) => e.isNotEmpty)
-        .toList();
+    final tagList = _parsedTags;
 
     int id;
     if (_isEditing) {
@@ -136,6 +144,9 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
         recurrenceRule: _recurrence,
         estimateMinutes: _estimate,
       );
+      for (final sub in _pendingSubtasks) {
+        await repo.createTask(title: sub, parentTaskId: id);
+      }
     }
 
     await repo.setTaskTags(id, tagList);
@@ -155,17 +166,26 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(projectsProvider).valueOrNull ?? const [];
-    final muted = Theme.of(context).colorScheme.outline;
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final muted = theme.colorScheme.outline;
+    final projects =
+        ref.watch(projectsProvider).valueOrNull ?? const <Project>[];
+    final selectedProject = _projectId == null
+        ? null
+        : projects.where((p) => p.id == _projectId).firstOrNull;
+    final tags = _parsedTags;
 
     return SheetScaffold(
       title: _isEditing ? 'Edit task' : 'New task',
+      showClose: false,
       actions: [
         if (_isEditing)
           CircleIconButton(
             icon: AppIcons.delete,
-            tooltip: 'Delete',
-            size: 40,
+            tooltip: 'Delete task',
+            color: brand.danger,
+            size: 44,
             onPressed: () async {
               await ref
                   .read(taskRepositoryProvider)
@@ -176,178 +196,559 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
               if (context.mounted) Navigator.pop(context);
             },
           ),
-        BrandButton(
-          label: 'Save',
-          kind: BrandButtonKind.ghost,
-          expand: false,
-          onPressed: _save,
+        CircleIconButton(
+          icon: AppIcons.close,
+          tooltip: 'Close',
+          size: 44,
+          onPressed: () => Navigator.of(context).maybePop(),
         ),
       ],
+      bottomAction: BrandButton(label: 'Save', onPressed: _save),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BrandField(
-            controller: _title,
-            label: 'Title',
-            autofocus: !_isEditing,
-            textCapitalization: TextCapitalization.sentences,
-            onSubmit: (_) => _save(),
-          ),
-          const SizedBox(height: 12),
-          BrandField(
-            controller: _description,
-            label: 'Description',
-            maxLines: 3,
-            minLines: 1,
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          const SizedBox(height: 20),
-
-          Text('Priority', style: TextStyle(color: muted, fontSize: 12)),
-          const SizedBox(height: 8),
-          BrandSegmented<int>(
-            options: const {1: 'P1', 2: 'P2', 3: 'P3', 4: 'P4'},
-            selected: _priority,
-            onSelected: (v) => setState(() => _priority = v),
-          ),
-          const SizedBox(height: 20),
-
-          _row(
-            icon: AppIcons.calendar,
-            label: 'Due date',
-            value: _dueDate == null
-                ? 'None'
-                : Fmt.due(_dueDate!, withTime: _hasTime),
-            onTap: _pickDueDate,
-            onClear: _dueDate == null
-                ? null
-                : () => setState(() {
-                    _dueDate = null;
-                    _hasTime = false;
-                  }),
-          ),
-          _row(
-            icon: AppIcons.alarm,
-            label: 'Reminder',
-            value: _reminder == null
-                ? 'None'
-                : Fmt.due(_reminder!, withTime: true),
-            onTap: _pickReminder,
-            onClear: _reminder == null
-                ? null
-                : () => setState(() => _reminder = null),
-          ),
-          _row(
-            icon: AppIcons.repeat,
-            label: 'Repeat',
-            value: Recurrence.label(_recurrence),
-            onTap: _pickRecurrence,
-            onClear: _recurrence == null
-                ? null
-                : () => setState(() => _recurrence = null),
-          ),
-          _row(
-            icon: AppIcons.focus,
-            label: 'Time estimate',
-            value: _estimate == null
-                ? 'None'
-                : Fmt.durationFromMinutes(_estimate!),
-            onTap: _pickEstimate,
-            onClear: _estimate == null
-                ? null
-                : () => setState(() => _estimate = null),
-          ),
-          const SizedBox(height: 12),
-
-          Text('Project', style: TextStyle(color: muted, fontSize: 12)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              Pill(
-                label: 'None',
-                selected: _projectId == null,
-                color: Theme.of(context).colorScheme.primary,
-                onTap: () => setState(() => _projectId = null),
-              ),
-              ...projects.map(
-                (p) => Pill(
-                  label: p.name,
-                  icon: AppIcons.project(p.icon),
-                  selected: _projectId == p.id,
-                  color: Theme.of(context).colorScheme.primary,
-                  onTap: () => setState(() => _projectId = p.id),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          BrandField(
-            controller: _tags,
-            label: 'Tags',
-            hint: 'work, errands',
-            prefix: const AppIcon(AppIcons.tag),
-          ),
-
-          if (_isEditing) ...[
-            const SizedBox(height: 20),
-            BrandDivider(),
-            const SizedBox(height: 8),
-            Text('Subtasks', style: TextStyle(color: muted, fontSize: 12)),
-            _SubtaskList(parentId: widget.task!.id),
-            Row(
+          // Title + description card (`18-task-editor.html`)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: brand.surface,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: AppShadows.card(theme.brightness),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: BrandField(
-                    controller: _newSubtask,
-                    hint: 'Add a subtask',
-                    onSubmit: (_) => _addSubtask(),
+                TextField(
+                  controller: _title,
+                  autofocus: !_isEditing,
+                  textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _save(),
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.4,
+                    color: brand.ink,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Task title',
+                    hintStyle: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.4,
+                      color: muted,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                CircleIconButton(
-                  icon: AppIcons.add,
-                  size: 40,
-                  onPressed: _addSubtask,
+                const SizedBox(height: 6),
+                TextField(
+                  controller: _description,
+                  maxLines: 3,
+                  minLines: 1,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: TextStyle(fontSize: 14, color: muted),
+                  decoration: InputDecoration(
+                    hintText: 'Add notes or details…',
+                    hintStyle: TextStyle(fontSize: 14, color: brand.subtle),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
               ],
             ),
-          ],
+          ),
+          const SizedBox(height: 12),
+
+          // Due, Reminder, Repeat card (`18-task-editor.html`)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: brand.surface,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: AppShadows.card(theme.brightness),
+            ),
+            child: Column(
+              children: [
+                _scheduleRow(
+                  context: context,
+                  icon: AppIcons.calendar,
+                  label: 'Due',
+                  value: _dueDate == null
+                      ? 'None'
+                      : Fmt.due(_dueDate!, withTime: _hasTime),
+                  hasValue: _dueDate != null,
+                  showDivider: true,
+                  onTap: _pickDueDate,
+                  onClear: _dueDate == null
+                      ? null
+                      : () => setState(() {
+                          _dueDate = null;
+                          _hasTime = false;
+                        }),
+                ),
+                _scheduleRow(
+                  context: context,
+                  icon: AppIcons.notifications,
+                  label: 'Reminder',
+                  value: _reminder == null
+                      ? 'None'
+                      : (_dueDate != null &&
+                                Fmt.isSameDay(_reminder!, _dueDate!)
+                            ? Fmt.time(_reminder!)
+                            : Fmt.due(_reminder!, withTime: true)),
+                  hasValue: _reminder != null,
+                  showDivider: true,
+                  onTap: _pickReminder,
+                  onClear: _reminder == null
+                      ? null
+                      : () => setState(() => _reminder = null),
+                ),
+                _scheduleRow(
+                  context: context,
+                  icon: AppIcons.repeat,
+                  label: 'Repeat',
+                  value: Recurrence.label(_recurrence),
+                  hasValue: _recurrence != null,
+                  showDivider: false,
+                  onTap: _pickRecurrence,
+                  onClear: _recurrence == null
+                      ? null
+                      : () => setState(() => _recurrence = null),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Priority pills (`P1`..`P4`) (`18-task-editor.html`)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              'PRIORITY',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: muted,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              for (final p in const [1, 2, 3, 4]) ...[
+                if (p > 1) const SizedBox(width: 8),
+                Expanded(child: _buildPriorityPill(context, p)),
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Project, tags, estimate pills row (`18-task-editor.html`)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _metaPill(
+                  context: context,
+                  onTap: () => _pickProject(projects),
+                  leading: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: selectedProject != null
+                          ? Color(selectedProject.color)
+                          : brand.habit,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  label: selectedProject?.name ?? 'Project',
+                ),
+                const SizedBox(width: 8),
+                for (final tag in tags) ...[
+                  _metaPill(
+                    context: context,
+                    onTap: _editTagsDialog,
+                    label: '#$tag',
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                _metaPill(
+                  context: context,
+                  onTap: _pickEstimate,
+                  leading: AppIcon(AppIcons.clock, size: 16, color: muted),
+                  label: _estimate == null
+                      ? 'Estimate'
+                      : Fmt.durationFromMinutes(_estimate!),
+                ),
+                const SizedBox(width: 8),
+                BrandTappable(
+                  onPressed: _editTagsDialog,
+                  semanticsLabel: 'Add a tag',
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: brand.outlineIdle, width: 1.5),
+                    ),
+                    child: AppIcon(AppIcons.add, size: 16, color: muted),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Subtasks card (`18-task-editor.html`)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            decoration: BoxDecoration(
+              color: brand.surface,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: AppShadows.card(theme.brightness),
+            ),
+            child: Column(
+              children: [
+                if (_isEditing)
+                  _SubtaskList(parentId: widget.task!.id)
+                else
+                  for (final (idx, title) in _pendingSubtasks.indexed)
+                    Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: brand.hairline),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 22,
+                            height: 22,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: brand.outlineIdle,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: brand.ink,
+                              ),
+                            ),
+                          ),
+                          BrandTappable(
+                            onPressed: () =>
+                                setState(() => _pendingSubtasks.removeAt(idx)),
+                            semanticsLabel: 'Remove subtask',
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: AppIcon(
+                                AppIcons.close,
+                                size: 16,
+                                color: muted,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                SizedBox(
+                  height: 44,
+                  child: Row(
+                    children: [
+                      BrandTappable(
+                        onPressed: _addSubtask,
+                        semanticsLabel: 'Add subtask',
+                        child: AppIcon(AppIcons.add, size: 22, color: muted),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _newSubtask,
+                          textCapitalization: TextCapitalization.sentences,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _addSubtask(),
+                          style: TextStyle(fontSize: 14, color: brand.ink),
+                          decoration: InputDecoration(
+                            hintText: 'Add a subtask',
+                            hintStyle: TextStyle(fontSize: 14, color: muted),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            filled: false,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPriorityPill(BuildContext context, int p) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final muted = theme.colorScheme.outline;
+    final selected = _priority == p;
+
+    final (dotColor, textColor) = switch (p) {
+      1 => (
+        selected ? brand.dangerRoles.onInk : brand.danger,
+        selected ? brand.onInk : brand.dangerRoles.textOnTint,
+      ),
+      2 => (
+        selected ? brand.noteRoles.onInk : brand.warning,
+        selected ? brand.onInk : brand.warningRoles.textOnTint,
+      ),
+      3 => (
+        selected ? brand.taskRoles.onInk : brand.taskRoles.graphicOnTint,
+        selected ? brand.onInk : brand.taskRoles.textOnTint,
+      ),
+      _ => (
+        selected ? brand.onInkMuted : brand.subtle,
+        selected ? brand.onInk : muted,
+      ),
+    };
+
+    return BrandTappable(
+      onPressed: () {
+        AppHaptics.selection();
+        setState(() => _priority = p);
+      },
+      semanticsLabel: 'P$p',
+      child: Container(
+        height: 44,
+        decoration: BoxDecoration(
+          color: selected ? brand.ink : brand.surface,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: selected
+              ? const []
+              : AppShadows.circleButton(theme.brightness),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'P$p',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _metaPill({
+    required BuildContext context,
+    required VoidCallback onTap,
+    required String label,
+    Widget? leading,
+  }) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    return BrandTappable(
+      onPressed: onTap,
+      semanticsLabel: label,
+      child: Container(
+        height: 44,
+        padding: EdgeInsets.only(left: leading == null ? 14 : 12, right: 14),
+        decoration: BoxDecoration(
+          color: brand.surface,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: AppShadows.circleButton(theme.brightness),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (leading != null) ...[leading, const SizedBox(width: 8)],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: brand.ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _scheduleRow({
+    required BuildContext context,
+    required HugeIconData icon,
+    required String label,
+    required String value,
+    required bool hasValue,
+    required bool showDivider,
+    required VoidCallback onTap,
+    VoidCallback? onClear,
+  }) {
+    final brand = context.brand;
+    final muted = Theme.of(context).colorScheme.outline;
+    return BrandTappable(
+      onPressed: onTap,
+      onLongPress: onClear,
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          border: showDivider
+              ? Border(bottom: BorderSide(color: brand.hairline))
+              : null,
+        ),
+        child: Row(
+          children: [
+            AppIcon(icon, size: 20, color: brand.taskRoles.graphicOnTint),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: brand.ink,
+                ),
+              ),
+            ),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: hasValue ? FontWeight.w700 : FontWeight.w400,
+                color: hasValue ? brand.ink : muted,
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (onClear != null)
+              BrandTappable(
+                onPressed: onClear,
+                semanticsLabel: 'Clear $label',
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: AppIcon(AppIcons.close, size: 15, color: brand.subtle),
+                ),
+              )
+            else
+              AppIcon(AppIcons.chevronRight, size: 16, color: brand.subtle),
+          ],
+        ),
       ),
     );
   }
 
   Future<void> _addSubtask() async {
     final text = _newSubtask.text.trim();
-    if (text.isEmpty || widget.task == null) return;
-    await ref
-        .read(taskRepositoryProvider)
-        .createTask(title: text, parentTaskId: widget.task!.id);
+    if (text.isEmpty) return;
+    if (widget.task != null) {
+      await ref
+          .read(taskRepositoryProvider)
+          .createTask(title: text, parentTaskId: widget.task!.id);
+    } else {
+      setState(() => _pendingSubtasks.add(text));
+    }
     _newSubtask.clear();
   }
 
-  Widget _row({
-    required HugeIconData icon,
-    required String label,
-    required String value,
-    required VoidCallback onTap,
-    VoidCallback? onClear,
-  }) {
-    return BrandTile(
-      leading: AppIcon(icon, size: 20),
-      title: Text(label),
-      subtitle: Text(value),
-      trailing: onClear == null
-          ? const AppIcon(AppIcons.chevronRight)
-          : CircleIconButton(
-              icon: AppIcons.close,
-              size: 40,
-              onPressed: onClear,
+  Future<void> _pickProject(List<Project> projects) async {
+    final picked = await brandSheet<int?>(
+      context: context,
+      builder: (sheetContext) => SheetScaffold(
+        title: 'Project',
+        child: TileColumn(
+          children: [
+            BrandTile(
+              leading: const AppIcon(AppIcons.inbox),
+              title: const Text('None'),
+              selected: _projectId == null,
+              onTap: () => Navigator.pop(sheetContext, -1),
             ),
-      onTap: onTap,
+            ...projects.map(
+              (p) => BrandTile(
+                leading: AppIcon(
+                  AppIcons.project(p.icon),
+                  color: Color(p.color),
+                ),
+                title: Text(p.name),
+                selected: _projectId == p.id,
+                onTap: () => Navigator.pop(sheetContext, p.id),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+    if (picked == null) return;
+    setState(() => _projectId = picked == -1 ? null : picked);
+  }
+
+  Future<void> _editTagsDialog() async {
+    final controller = TextEditingController(text: _tags.text);
+    final saved = await brandDialog<String>(
+      context,
+      title: 'Tags',
+      builder: (dialogContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          BrandField(
+            controller: controller,
+            autofocus: true,
+            hint: 'doctor, health, urgent',
+            prefix: const AppIcon(AppIcons.tag),
+            onSubmit: (v) => Navigator.pop(dialogContext, v),
+          ),
+          const SizedBox(height: 20),
+          BrandButton(
+            label: 'Done',
+            onPressed: () => Navigator.pop(dialogContext, controller.text),
+          ),
+        ],
+      ),
+    );
+    if (saved != null && mounted) {
+      setState(() => _tags.text = saved);
+    }
   }
 
   Future<void> _pickDueDate() async {
@@ -456,20 +857,27 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
       builder: (_) => SheetScaffold(
         title: 'Time estimate',
         child: TileColumn(
-          children: [15, 25, 30, 45, 60, 90, 120]
-              .map(
-                (m) => BrandTile(
-                  leading: const AppIcon(AppIcons.focus),
-                  title: Text(Fmt.durationFromMinutes(m)),
-                  selected: _estimate == m,
-                  onTap: () => Navigator.pop(context, m),
-                ),
-              )
-              .toList(),
+          children: [
+            BrandTile(
+              title: const Text('None'),
+              selected: _estimate == null,
+              onTap: () => Navigator.pop(context, 0),
+            ),
+            ...[15, 25, 30, 45, 60, 90, 120].map(
+              (m) => BrandTile(
+                leading: const AppIcon(AppIcons.focus),
+                title: Text(Fmt.durationFromMinutes(m)),
+                selected: _estimate == m,
+                onTap: () => Navigator.pop(context, m),
+              ),
+            ),
+          ],
         ),
       ),
     );
-    if (picked != null) setState(() => _estimate = picked);
+    if (picked != null) {
+      setState(() => _estimate = picked == 0 ? null : picked);
+    }
   }
 }
 
@@ -480,32 +888,55 @@ class _SubtaskList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subtasks = ref.watch(subtasksProvider(parentId));
+    final brand = context.brand;
+    final muted = Theme.of(context).colorScheme.outline;
+
     return subtasks.maybeWhen(
-      data: (list) => TileColumn(
+      data: (list) => Column(
         children: list
             .map(
-              (s) => BrandTile(
-                leading: BrandCheckbox(
-                  value: s.isCompleted,
-                  color: context.brand.task,
-                  semanticsLabel: s.title,
-                  onChanged: (v) =>
-                      ref.read(taskRepositoryProvider).setCompleted(s.id, v),
+              (s) => Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: brand.hairline)),
                 ),
-                title: Text(
-                  s.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    decoration: s.isCompleted
-                        ? TextDecoration.lineThrough
-                        : null,
-                  ),
-                ),
-                trailing: CircleIconButton(
-                  icon: AppIcons.close,
-                  size: 40,
-                  onPressed: () =>
-                      ref.read(taskRepositoryProvider).deleteTask(s.id),
+                child: Row(
+                  children: [
+                    BrandCheckbox(
+                      value: s.isCompleted,
+                      semanticsLabel: s.title,
+                      onChanged: (v) => ref
+                          .read(taskRepositoryProvider)
+                          .setCompleted(s.id, v),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        s.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: s.isCompleted
+                              ? FontWeight.w400
+                              : FontWeight.w600,
+                          color: s.isCompleted ? muted : brand.ink,
+                          decoration: s.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                    ),
+                    BrandTappable(
+                      onPressed: () =>
+                          ref.read(taskRepositoryProvider).deleteTask(s.id),
+                      semanticsLabel: 'Delete ${s.title}',
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: AppIcon(AppIcons.close, size: 16, color: muted),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             )

@@ -24,26 +24,26 @@ void main() {
 
   Future<void> returnToModules(WidgetTester tester) async {
     for (var i = 0; i < 3; i++) {
-      if (find.text('Modules').evaluate().isNotEmpty) {
+      if (find.byKey(const ValueKey('module-medicine')).evaluate().isNotEmpty) {
         break;
       }
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
     }
     await tapNav(tester, 'Modules');
-    expect(find.text('Modules'), findsOneWidget);
+    expect(find.text('Modules'), findsWidgets);
   }
 
   testWidgets('onboarding and core module workflows', (tester) async {
     app.main();
     await tester.pumpAndSettle();
 
-    if (find.text('Your day, in one place.').evaluate().isNotEmpty) {
+    if (find.text('Skip').evaluate().isNotEmpty) {
       await tester.tap(find.text('Skip'));
       await tester.pumpAndSettle();
     }
 
-    expect(find.text('My plans'), findsOneWidget);
+    expect(find.text('TODAY'), findsOneWidget);
 
     await tapNav(tester, 'Modules');
     expect(find.text('Notes'), findsWidgets);
@@ -93,14 +93,36 @@ void main() {
     expect(find.text('Medicine'), findsWidgets);
     await tester.tap(find.byKey(const ValueKey('fab-add-medicine')));
     await tester.pumpAndSettle();
-    expect(find.text('Add medicine'), findsOneWidget);
+    expect(find.text('Add medicine'), findsWidgets);
+    // Dynamic after-opening fields appear only for syrup, drops, and inhaler.
+    final afterOpeningCard = find.byKey(const ValueKey('after-opening-card'));
+    expect(afterOpeningCard, findsNothing);
+    await tester.tap(find.text('Syrup'));
+    await tester.pumpAndSettle();
+    expect(afterOpeningCard, findsOneWidget);
+    await tester.enterText(find.byType(EditableText).first, 'Napa Syrup');
+    await tester.tap(
+      find.descendant(of: afterOpeningCard, matching: find.text('Today')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: afterOpeningCard, matching: find.text('14d')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Use by '), findsOneWidget);
+    await tester.tap(find.text('Save medicine'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Medicines'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Napa Syrup'), findsWidgets);
+    expect(find.textContaining('use by'), findsWidgets);
     await returnToModules(tester);
 
     await openModule(tester, 'expenses');
     expect(find.text('Expenses'), findsWidgets);
     await tester.tap(find.byKey(const ValueKey('fab-add-transaction')));
     await tester.pumpAndSettle();
-    expect(find.text('Add expense'), findsOneWidget);
+    expect(find.text('Add expense'), findsWidgets);
     await returnToModules(tester);
 
     await openModule(tester, 'focus');
@@ -109,8 +131,8 @@ void main() {
     await returnToModules(tester);
 
     await tapNav(tester, 'Insights');
-    expect(find.text('Insights'), findsOneWidget);
+    expect(find.text('Insights'), findsWidgets);
     await tapNav(tester, 'Settings');
-    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Settings'), findsWidgets);
   });
 }

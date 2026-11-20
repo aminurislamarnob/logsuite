@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
-import '../theme/app_colors.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../utils/haptics.dart';
@@ -71,7 +70,7 @@ class TintCard extends StatelessWidget {
         fill ??
         (accent == null
             ? brand.tint(tintIndex)
-            : AppColors.wash(accent!, brightness: theme.brightness));
+            : brand.roleFor(accent!).tintFill);
 
     final corners = BorderRadius.circular(radius);
     final body = CardScope(
@@ -87,6 +86,7 @@ class TintCard extends StatelessWidget {
           color: background,
           borderRadius: corners,
           border: const Border(),
+          boxShadow: AppShadows.card(theme.brightness),
         ),
         padding: .value(EdgeInsets.zero),
       ),
@@ -128,6 +128,14 @@ class CircleIconButton extends StatelessWidget {
   /// action in a bar.
   final bool filled;
 
+  /// Translucent white fill (`rgba(255,255,255,.08)`) with white icon, for
+  /// buttons sitting on an ink hero card or dark surface.
+  final bool onInk;
+
+  /// Count drawn as a small accent badge, for the reminders button. Hidden
+  /// when null or below 1.
+  final int? badgeCount;
+
   const CircleIconButton({
     super.key,
     required this.icon,
@@ -136,12 +144,32 @@ class CircleIconButton extends StatelessWidget {
     this.size = 44,
     this.color,
     this.filled = false,
+    this.onInk = false,
+    this.badgeCount,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final tone = color ?? theme.colorScheme.onSurface;
+    final brand = context.brand;
+    final tone = color ?? brand.ink;
+
+    final Color bg;
+    final Color fg;
+    final List<BoxShadow> shadows;
+    if (onInk) {
+      bg = Colors.white.withValues(alpha: 0.08);
+      fg = Colors.white;
+      shadows = const [];
+    } else if (filled) {
+      bg = tone;
+      fg = brand.onAccent(tone);
+      shadows = AppShadows.circleButton(theme.brightness);
+    } else {
+      bg = brand.surface;
+      fg = tone;
+      shadows = AppShadows.circleButton(theme.brightness);
+    }
 
     final button = FTappable(
       key: tooltip == null
@@ -156,22 +184,49 @@ class CircleIconButton extends StatelessWidget {
       semanticsLabel: tooltip,
       child: DecoratedBox(
         decoration: ShapeDecoration(
-          color: filled ? tone : Colors.transparent,
-          shape: CircleBorder(
-            side: filled
-                ? BorderSide.none
-                : BorderSide(color: context.brand.hairline, width: 1.4),
-          ),
+          color: bg,
+          shape: const CircleBorder(),
+          shadows: shadows,
         ),
         child: SizedBox(
           width: size,
           height: size,
-          // AppIcon centres the glyph inside these tight constraints rather than
-          // letting the SVG stretch to fill them.
-          child: AppIcon(
-            icon,
-            size: size * 0.45,
-            color: filled ? context.brand.onAccent(tone) : tone,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // AppIcon centres the glyph inside these tight constraints rather
+              // than letting the SVG stretch to fill them.
+              Center(
+                child: AppIcon(icon, size: size * 0.45, color: fg),
+              ),
+              if (badgeCount != null && badgeCount! > 0)
+                Positioned(
+                  top: 4,
+                  right: 2,
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: brand.medicine,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: brand.surface, width: 2),
+                    ),
+                    child: Text(
+                      badgeCount! > 9 ? '9+' : '$badgeCount',
+                      style: TextStyle(
+                        color: brand.onAccent(brand.medicine),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -271,10 +326,11 @@ class GutterBleed extends StatelessWidget {
 /// left corners cut off.
 const double drawerGutter = 12;
 
-/// The centred title bar used on the detail screens: a close/back circle, a
-/// bold centred title and an optional trailing circle.
+/// The top bar used on pushed screens: a back/close circle, a 28/800
+/// left-aligned title (with optional subtitle), and trailing action circles.
 class BrandTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final String? subtitle;
 
   /// Pass null on a root page, which has nothing to pop back to.
   final HugeIconData? leadingIcon;
@@ -295,6 +351,7 @@ class BrandTopBar extends StatelessWidget implements PreferredSizeWidget {
   const BrandTopBar({
     super.key,
     required this.title,
+    this.subtitle,
     this.leadingIcon = AppIcons.close,
     this.onLeading,
     this.leadingTooltip,
@@ -306,65 +363,92 @@ class BrandTopBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(68);
+  Size get preferredSize => Size.fromHeight(subtitle == null ? 68 : 86);
 
   @override
   Widget build(BuildContext context) {
-    final pop = onLeading ??
+    final pop =
+        onLeading ??
         () async {
           final popped = await Navigator.maybePop(context);
           if (!popped && context.mounted) {
             context.go('/dashboard');
           }
         };
-    final titleStyle = Theme.of(
-      context,
-    ).textTheme.titleMedium?.copyWith(fontSize: 17);
+    final theme = Theme.of(context);
+    // A bar with no leading control is a tab root (Settings). Those titles
+    // are 30/800/−0.9; a pushed screen keeps 28/800/−0.8.
+    final isRoot = leadingIcon == null && leadingActions.isEmpty;
+    final titleStyle = theme.textTheme.displaySmall?.copyWith(
+      fontSize: isRoot ? 30 : 28,
+      fontWeight: FontWeight.w800,
+      letterSpacing: isRoot ? -0.9 : -0.8,
+      height: 1.15,
+    );
 
-    // FHeader.nested supplies the SafeArea, the header semantics and the
-    // prefix/suffix layout. The brand keeps its own outlined circles as the
-    // actions, a transparent background (these bars sit directly on the page)
-    // and the padding the reference screens use.
-    return FHeader.nested(
-      style: .delta(
-        padding: .value(const EdgeInsets.fromLTRB(20, 8, 20, 8)),
-        decoration: .boxDelta(color: Colors.transparent),
-        constraints: const BoxConstraints(minHeight: 40),
-        titleTextStyle: .value(titleStyle ?? const TextStyle()),
-        // forui butts its actions together. The brand's are outlined circles,
-        // which need air between them to read as separate targets.
-        actionSpacing: actionGap,
-      ),
-      prefixes: [
-        if (leadingIcon != null)
-          CircleIconButton(
-            icon: leadingIcon!,
-            onPressed: pop,
-            tooltip: leadingTooltip ?? 'Back',
-            size: 40,
-          ),
-        ...leadingActions,
-      ],
-      suffixes: [
-        if (trailingIcon != null)
-          CircleIconButton(
-            icon: trailingIcon!,
-            onPressed: onTrailing,
-            tooltip: trailingTooltip,
-            size: 40,
-          ),
-        ...actions,
-        if (trailingIcon == null &&
-            actions.isEmpty &&
-            leadingIcon != null &&
-            leadingActions.isEmpty)
-          // Balances the leading circle so the title stays optically centred.
-          const SizedBox(width: 40),
-      ],
-      title: Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.gutter,
+          8,
+          AppSpacing.gutter,
+          8,
+        ),
+        child: Row(
+          children: [
+            if (leadingIcon != null) ...[
+              CircleIconButton(
+                icon: leadingIcon!,
+                onPressed: pop,
+                tooltip: leadingTooltip ?? 'Back',
+              ),
+              const SizedBox(width: 12),
+            ],
+            for (final leadingAction in leadingActions) ...[
+              leadingAction,
+              const SizedBox(width: actionGap),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: titleStyle,
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: context.muted,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (trailingIcon != null) ...[
+              const SizedBox(width: actionGap),
+              CircleIconButton(
+                icon: trailingIcon!,
+                onPressed: onTrailing,
+                tooltip: trailingTooltip,
+              ),
+            ],
+            for (final action in actions) ...[
+              const SizedBox(width: actionGap),
+              action,
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -402,34 +486,19 @@ class GreetingHeader extends StatelessWidget {
     this.onAvatarTap,
   });
 
-  /// The brand-coloured circle standing in for a photo that is absent or
-  /// unreadable.
-  Widget _gradient(BuildContext context) {
-    final primary = color ?? Theme.of(context).colorScheme.primary;
+  /// The ink circle standing in for a photo that is absent or unreadable.
+  Widget _avatarFallback(BuildContext context) {
+    final brand = context.brand;
+    final bg = color ?? brand.ink;
+    final fg = color == null ? brand.onInk : brand.onAccent(bg);
     return Container(
-      width: 50,
-      height: 50,
+      width: 48,
+      height: 48,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          // A lighter tint of the brand into the brand itself, so the fallback
-          // avatar follows the palette instead of staying coral.
-          colors: [
-            Color.alphaBlend(primary.withValues(alpha: 0.55), Colors.white),
-            primary,
-          ],
-        ),
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: bg),
       child: Text(
         initials.isEmpty ? 'mS' : initials,
-        style: TextStyle(
-          color: context.brand.onAccent(primary),
-          fontWeight: FontWeight.w700,
-          fontSize: 18,
-        ),
+        style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 17),
       ),
     );
   }
@@ -450,37 +519,46 @@ class GreetingHeader extends StatelessWidget {
                   AppHaptics.tap();
                   onAvatarTap!();
                 },
-          // The photo is drawn edge to edge; without one the gradient stays,
-          // carrying the initials or the app's mark.
           child: photo != null
               ? ClipOval(
                   child: Image.file(
                     photo,
-                    width: 50,
-                    height: 50,
+                    width: 48,
+                    height: 48,
                     fit: BoxFit.cover,
-                    cacheWidth: (50 * MediaQuery.devicePixelRatioOf(context))
+                    cacheWidth: (48 * MediaQuery.devicePixelRatioOf(context))
                         .round(),
-                    errorBuilder: (context, _, _) => _gradient(context),
+                    errorBuilder: (context, _, _) => _avatarFallback(context),
                   ),
                 )
-              : _gradient(context),
+              : _avatarFallback(context),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                greeting,
-                style: theme.textTheme.titleMedium?.copyWith(fontSize: 15),
+                subtitle.toUpperCase(),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: context.muted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: 2),
               Text(
-                subtitle,
-                style: theme.textTheme.titleMedium?.copyWith(fontSize: 17),
+                greeting,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
+                  height: 1.15,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -496,91 +574,186 @@ class GreetingHeader extends StatelessWidget {
   }
 }
 
-/// The wide feature card at the top of the home screen: a pill label, a bold
-/// two-line headline, a muted footnote and a decorative accent glyph.
+/// The ink hero card: eyebrow, large numeral or headline, supporting line,
+/// optional trailing ring/widget, and optional row of translucent sub-tiles.
 class HeroBanner extends StatelessWidget {
   final String label;
   final String headline;
   final String footnote;
-  final HugeIconData icon;
+  final HugeIconData? icon;
   final Color accent;
   final VoidCallback? onTap;
+
+  /// Optional large hero numeral (e.g. "7 of 14" or "৳18,450"). When provided,
+  /// renders at 44/800/-2 above [footnote].
+  final String? metric;
+
+  /// Optional trailing widget (e.g. a [ProgressRing] with `onInk: true`).
+  final Widget? trailing;
+
+  /// Optional sub-tiles rendered in a row at the bottom of the hero card.
+  final List<Widget> subTiles;
 
   const HeroBanner({
     super.key,
     required this.label,
     required this.headline,
     required this.footnote,
-    required this.icon,
+    this.icon,
     required this.accent,
     this.onTap,
+    this.metric,
+    this.trailing,
+    this.subTiles = const [],
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return TintCard(
-      accent: accent,
-      radius: AppRadii.card,
-      onTap: onTap,
-      padding: const EdgeInsets.fromLTRB(20, 20, 0, 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Pill(label: label, color: accent),
-                const SizedBox(height: 12),
-                Text(
-                  headline,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontSize: 20,
-                    height: 1.25,
-                    letterSpacing: -0.4,
+    final brand = context.brand;
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryText = isDark ? brand.ink : brand.onInk;
+    final eyebrowColor = brand.roleFor(accent).onInk;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: brand.heroSurface,
+        borderRadius: BorderRadius.circular(AppRadii.hero),
+        boxShadow: AppShadows.hero(theme.brightness),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: FTappable(
+        onPress: onTap == null
+            ? null
+            : () {
+                AppHaptics.tap();
+                onTap!();
+              },
+        semanticsButton: onTap != null,
+        child: Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: eyebrowColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (metric != null)
+                          Text(
+                            metric!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.displayLarge?.copyWith(
+                              color: primaryText,
+                              fontSize: 44,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -2,
+                              height: 1.05,
+                            ),
+                          )
+                        else
+                          Text(
+                            headline,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: primaryText,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              height: 1.2,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        const SizedBox(height: 6),
+                        Text(
+                          footnote,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: brand.onInkMuted,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  footnote,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: context.muted,
-                    fontSize: 13,
-                  ),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 14),
+                    trailing!,
+                  ] else if (icon != null) ...[
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 76,
+                      height: 76,
+                      child: AppIcon(
+                        icon!,
+                        size: 54,
+                        color: eyebrowColor.withValues(alpha: 0.35),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              if (subTiles.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    for (final (i, tile) in subTiles.indexed) ...[
+                      if (i > 0) const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.07),
+                            borderRadius: BorderRadius.circular(AppRadii.field),
+                          ),
+                          child: tile,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
-            ),
+            ],
           ),
-          // The reference art is a photo bleeding off the card edge; a large
-          // low-contrast glyph fills the same role without shipping assets.
-          SizedBox(
-            width: 108,
-            height: 108,
-            child: AppIcon(
-              icon,
-              size: 76,
-              color: accent.withValues(alpha: 0.28),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-/// A rounded label chip. Used for the hero banner category and for filters.
+/// A rounded label chip. Used for filters and tags.
+///
+/// Selected = ink fill with white/onInk text; unselected = white/surface with
+/// a soft shadow.
 class Pill extends StatelessWidget {
   final String label;
   final Color color;
   final bool selected;
   final HugeIconData? icon;
   final VoidCallback? onTap;
+  final bool onWell;
 
   const Pill({
     super.key,
@@ -589,12 +762,23 @@ class Pill extends StatelessWidget {
     this.selected = false,
     this.icon,
     this.onTap,
+    this.onWell = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final background = selected ? color : context.brand.canvas;
-    final foreground = selected ? Colors.white : color;
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final background = selected
+        ? brand.ink
+        : onWell
+        ? Colors.transparent
+        : brand.surface;
+    final foreground = selected
+        ? brand.onInk
+        : onWell
+        ? context.muted
+        : brand.ink;
     return FTappable(
       onPress: onTap == null
           ? null
@@ -604,33 +788,35 @@ class Pill extends StatelessWidget {
             },
       semanticsLabel: label,
       semanticsChecked: onTap == null ? null : selected,
-      child: DecoratedBox(
-        decoration: ShapeDecoration(
-          color: background,
-          shape: StadiumBorder(
-            side: selected
-                ? BorderSide.none
-                : BorderSide(color: context.brand.hairline),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 38),
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            color: background,
+            shape: const StadiumBorder(),
+            shadows: (selected || onWell)
+                ? const []
+                : AppShadows.circleButton(theme.brightness),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                AppIcon(icon!, size: 15, color: foreground),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                label,
-                style: TextStyle(
-                  color: foreground,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[
+                  AppIcon(icon!, size: 15, color: foreground),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: foreground,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -716,23 +902,30 @@ class ProgressRing extends StatelessWidget {
   /// Draws the dashed inner circle from the reference design.
   final bool dashedGuide;
 
+  /// Uses `rgba(255,255,255,.10)` as the track colour when rendered on an ink
+  /// hero card.
+  final bool onInk;
+
   const ProgressRing({
     super.key,
     required this.value,
-    this.size = 180,
-    this.thickness = 22,
+    this.size = 92,
+    this.thickness = 10,
     this.color,
     this.center,
-    this.dashedGuide = true,
+    this.dashedGuide = false,
+    this.onInk = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brand = context.brand;
     final over = value > 1.0;
     final tone = over
         ? theme.colorScheme.error
         : (color ?? theme.colorScheme.primary);
+    final track = onInk ? Colors.white.withValues(alpha: 0.10) : brand.track;
 
     return SizedBox(
       width: size,
@@ -746,7 +939,7 @@ class ProgressRing extends StatelessWidget {
             painter: _RingPainter(
               value: animated,
               color: tone,
-              track: context.brand.hairline,
+              track: track,
               thickness: thickness,
               dashedGuide: dashedGuide,
             ),
@@ -757,8 +950,8 @@ class ProgressRing extends StatelessWidget {
             ? null
             : Center(
                 child: Padding(
-                  padding: EdgeInsets.all(thickness + 12),
-                  child: center,
+                  padding: EdgeInsets.all(thickness + 10),
+                  child: FittedBox(fit: BoxFit.scaleDown, child: center),
                 ),
               ),
       ),
@@ -1256,14 +1449,15 @@ class MetricColumn extends StatelessWidget {
 // Navigation
 // ---------------------------------------------------------------------------
 
-/// The bottom bar from the reference screens: a white surface whose top edge
-/// sweeps up at the sides and dips around the centre action button.
+/// The floating ink pill navigation bar: active tab shows icon + label inside
+/// a translucent pill, inactive tabs show icon only, and [centerAction] sits
+/// inline in the middle.
 class CurvedNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onSelected;
   final List<CurvedNavItem> items;
 
-  /// The circular action that overlaps the notch.
+  /// The circular `+` action in the centre of the pill.
   final Widget centerAction;
 
   const CurvedNavBar({
@@ -1274,57 +1468,52 @@ class CurvedNavBar extends StatelessWidget {
     required this.centerAction,
   });
 
-  /// How far the action button sits above the bar's nominal top edge.
-  static const overlap = 26.0;
-  static const barHeight = 72.0;
+  /// Vertical clearance above the bottom safe-area inset.
+  static const overlap = 24.0;
+  static const barHeight = 68.0;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brand = context.brand;
     final bottomInset = MediaQuery.of(context).padding.bottom;
     final split = (items.length / 2).ceil();
 
-    return SizedBox(
-      height: barHeight + overlap + bottomInset,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.bottomCenter,
-        children: [
-          Positioned.fill(
-            top: overlap,
-            child: CustomPaint(
-              painter: _NavBarPainter(
-                color: theme.scaffoldBackgroundColor,
-                edge: context.brand.hairline,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: bottomInset,
-            height: barHeight,
-            child: Row(
-              children: [
-                for (var i = 0; i < items.length; i++) ...[
-                  // A gap in the middle of the row keeps the two halves clear
-                  // of the centre action.
-                  if (i == split) const SizedBox(width: 76),
-                  Expanded(
-                    child: _NavButton(
-                      item: items[i],
-                      index: i,
-                      length: items.length,
-                      selected: i == currentIndex,
-                      onSelected: onSelected,
-                    ),
-                  ),
-                ],
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
+        0,
+        AppSpacing.gutter,
+        overlap + bottomInset,
+      ),
+      child: Container(
+        height: barHeight,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: ShapeDecoration(
+          color: brand.heroSurface,
+          shape: const StadiumBorder(),
+          shadows: AppShadows.navBar(theme.brightness),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            for (var i = 0; i < items.length; i++) ...[
+              if (i == split) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: centerAction,
+                ),
               ],
-            ),
-          ),
-          Positioned(bottom: bottomInset + barHeight - 24, child: centerAction),
-        ],
+              _NavButton(
+                item: items[i],
+                index: i,
+                length: items.length,
+                selected: i == currentIndex,
+                onSelected: onSelected,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -1344,13 +1533,6 @@ class CurvedNavItem {
   });
 }
 
-/// One destination, laid out by forui but coloured and shaped by the brand.
-///
-/// [FBottomNavigationBarItem] supplies the tap handling, the selected state and
-/// the positional semantics a screen reader announces ("Tab 3 of 4"). The brand
-/// keeps two things forui has no notion of: the glyph colours, passed explicitly
-/// so they win over the item style's [IconTheme], and the sliding dot, which
-/// occupies the item's label slot in place of text.
 class _NavButton extends StatelessWidget {
   final CurvedNavItem item;
   final int index;
@@ -1368,8 +1550,8 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tone = selected ? theme.colorScheme.primary : context.muted;
+    const activeFg = Colors.white;
+    final inactiveFg = Colors.white.withValues(alpha: 0.55);
 
     return FBottomNavigationBarData(
       key: ValueKey('nav-${item.label.toLowerCase()}'),
@@ -1381,89 +1563,50 @@ class _NavButton extends StatelessWidget {
         AppHaptics.selection();
         onSelected(idx);
       },
-      child: FBottomNavigationBarItem(
-        semanticsLabel: item.label,
-        style: .delta(spacing: 4, padding: .value(EdgeInsets.zero)),
-        icon: AppIcon(
-          selected ? (item.selectedIcon ?? item.icon) : item.icon,
-          color: tone,
-          size: 24,
-        ),
-        // A dot rather than a label keeps the bar as sparse as the reference
-        // while still marking the active tab.
-        label: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          width: selected ? 16 : 0,
-          height: 3,
-          decoration: BoxDecoration(
-            color: tone,
-            borderRadius: BorderRadius.circular(2),
+      child: Semantics(
+        label: '${item.label}, Tab ${index + 1} of $length',
+        selected: selected,
+        button: true,
+        child: FTappable(
+          onPress: () {
+            AppHaptics.selection();
+            onSelected(index);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            height: 46,
+            padding: EdgeInsets.symmetric(horizontal: selected ? 14 : 12),
+            decoration: ShapeDecoration(
+              color: selected
+                  ? Colors.white.withValues(alpha: 0.14)
+                  : Colors.transparent,
+              shape: const StadiumBorder(),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppIcon(
+                  selected ? (item.selectedIcon ?? item.icon) : item.icon,
+                  color: selected ? activeFg : inactiveFg,
+                  size: 21,
+                ),
+                if (selected) ...[
+                  const SizedBox(width: 7),
+                  Text(
+                    item.label,
+                    style: const TextStyle(
+                      color: activeFg,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-}
-
-class _NavBarPainter extends CustomPainter {
-  final Color color;
-  final Color edge;
-
-  const _NavBarPainter({required this.color, required this.edge});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final centre = size.width / 2;
-    // Half-width of the notch, plus the height of the side sweep.
-    const notch = 42.0;
-    const lift = 18.0;
-
-    // Only the top edge is ever stroked, so it is built on its own and the
-    // filled shape closes off it. Stroking the closed path instead would draw
-    // a hairline down the screen sides and along the bottom.
-    final top = Path()
-      ..moveTo(0, lift)
-      // The edge rises from the corners towards the notch shoulders.
-      ..quadraticBezierTo(centre * 0.5, 0, centre - notch - 12, 0)
-      // Then dips under the action button.
-      ..cubicTo(
-        centre - notch + 6,
-        0,
-        centre - notch + 4,
-        notch * 0.72,
-        centre,
-        notch * 0.72,
-      )
-      ..cubicTo(
-        centre + notch - 4,
-        notch * 0.72,
-        centre + notch - 6,
-        0,
-        centre + notch + 12,
-        0,
-      )
-      ..quadraticBezierTo(size.width - centre * 0.5, 0, size.width, lift);
-
-    final fill = Path.from(top)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-
-    // A soft lift rather than a drop shadow: the hairline already draws the
-    // edge, so the shadow only has to separate the bar from a busy list.
-    canvas.drawShadow(fill, Colors.black.withValues(alpha: 0.14), 8, false);
-    canvas.drawPath(fill, Paint()..color = color);
-    canvas.drawPath(
-      top,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1
-        ..color = edge,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_NavBarPainter old) =>
-      old.color != color || old.edge != edge;
 }

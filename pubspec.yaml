@@ -83,6 +83,7 @@ dependencies:
   image: ^4.3.0
   html: ^0.15.4
   webview_flutter: ^4.14.1
+  flutter_skill: ^0.9.37
 
 dev_dependencies:
   flutter_test:
