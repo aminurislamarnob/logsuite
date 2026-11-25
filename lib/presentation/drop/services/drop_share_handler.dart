@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../../core/services/ocr_service.dart';
 import '../repository/drop_repository.dart';
 import 'drop_media_storage.dart';
@@ -15,17 +16,19 @@ final dropShareHandlerProvider = Provider<DropShareHandler>((ref) {
 class DropShareHandler {
   final Ref _ref;
   StreamSubscription? _intentSub;
+  bool _initialized = false;
 
   DropShareHandler(this._ref);
 
   void initialize() {
-    if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
+    if (_initialized || kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
       return;
     }
+    _initialized = true;
 
     // Listen to media sharing when app is running in background/foreground
     _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen(
-      _handleSharedMedia,
+      (files) => _handleSharedMedia(files),
       onError: (err) {
         debugPrint('Error receiving share stream: $err');
       },
@@ -44,6 +47,7 @@ class DropShareHandler {
     if (files.isEmpty) return;
 
     final repo = _ref.read(dropRepositoryProvider);
+    var createdAny = false;
 
     for (final file in files) {
       if (file.type == SharedMediaType.text || file.type == SharedMediaType.url) {
@@ -55,6 +59,7 @@ class DropShareHandler {
                 ? 'article'
                 : 'clip',
           );
+          createdAny = true;
         }
       } else if (file.type == SharedMediaType.image) {
         try {
@@ -78,9 +83,18 @@ class DropShareHandler {
             mediaThumbnailPath: saved.thumbnailPath,
             ocrText: ocrText,
           );
+          createdAny = true;
         } catch (e) {
           debugPrint('Failed to save shared image: $e');
         }
+      }
+    }
+
+    if (createdAny) {
+      final router = _ref.read(appRouterProvider);
+      final currentPath = router.routerDelegate.currentConfiguration.uri.path;
+      if (currentPath != '/drop') {
+        router.push('/drop');
       }
     }
   }

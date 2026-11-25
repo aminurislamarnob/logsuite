@@ -148,6 +148,15 @@ class _TodayHeroCard extends ConsumerWidget {
     final focusStats = settings.isEnabled(AppModule.focus)
         ? ref.watch(focusStatsProvider).valueOrNull
         : null;
+    final recentExpenses = settings.isEnabled(AppModule.expenses)
+        ? (ref.watch(recentExpensesProvider).valueOrNull ?? const <Expense>[])
+        : const <Expense>[];
+    final noteCount = settings.isEnabled(AppModule.notes)
+        ? (ref.watch(activeNoteCountProvider).valueOrNull ?? 0)
+        : 0;
+    final unreadDrops = settings.isEnabled(AppModule.drop)
+        ? (ref.watch(unreadDropsCountProvider).valueOrNull ?? 0)
+        : 0;
 
     final tasksDone = tasks.where((t) => t.isCompleted).length;
     final dosesDone = doses.where((d) => d.status == DoseStatus.taken).length;
@@ -216,6 +225,10 @@ class _TodayHeroCard extends ConsumerWidget {
           ),
     ];
 
+    final spentToday = recentExpenses
+        .where((e) => e.kind == 0 && Fmt.isSameDay(e.date, now))
+        .fold<double>(0, (a, e) => a + e.amount);
+
     final subTiles = <Widget>[
       if (settings.isEnabled(AppModule.tasks))
         _HeroSubTile(
@@ -248,6 +261,30 @@ class _TodayHeroCard extends ConsumerWidget {
           done: '${(focusStats?.today ?? Duration.zero).inMinutes}',
           total: 'm',
           onTap: () => context.push('/focus'),
+        ),
+      if (settings.isEnabled(AppModule.expenses))
+        _HeroSubTile(
+          dot: brand.expenseRoles.onInk,
+          label: 'Expenses',
+          done: Fmt.compactMoney(spentToday, settings.currencySymbol),
+          total: '',
+          onTap: () => context.push('/expenses'),
+        ),
+      if (settings.isEnabled(AppModule.notes))
+        _HeroSubTile(
+          dot: brand.noteRoles.onInk,
+          label: 'Notes',
+          done: '$noteCount',
+          total: '',
+          onTap: () => context.push('/notes'),
+        ),
+      if (settings.isEnabled(AppModule.drop))
+        _HeroSubTile(
+          dot: brand.dropRoles.onInk,
+          label: 'Drop',
+          done: '$unreadDrops',
+          total: '',
+          onTap: () => context.push('/drop'),
         ),
     ];
 
@@ -340,14 +377,33 @@ class _TodayHeroCard extends ConsumerWidget {
           _DayTimeline(events: events, now: now),
           if (subTiles.isNotEmpty) ...[
             const SizedBox(height: 18),
-            Row(
-              children: [
-                for (final (i, tile) in subTiles.take(4).indexed) ...[
-                  if (i > 0) const SizedBox(width: 8),
-                  Expanded(child: tile),
+            if (subTiles.length <= 4)
+              Row(
+                children: [
+                  for (final (i, tile) in subTiles.indexed) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    Expanded(child: tile),
+                  ],
                 ],
-              ],
-            ),
+              )
+            else
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final tileWidth = (constraints.maxWidth - 24) / 4;
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        for (final (i, tile) in subTiles.indexed) ...[
+                          if (i > 0) const SizedBox(width: 8),
+                          SizedBox(width: tileWidth, child: tile),
+                        ],
+                      ],
+                    ),
+                  );
+                },
+              ),
           ],
         ],
       ),
@@ -410,27 +466,31 @@ class _HeroSubTile extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  done,
-                  style: TextStyle(
-                    color: primaryText,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    done,
+                    style: TextStyle(
+                      color: primaryText,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                Text(
-                  total,
-                  style: TextStyle(
-                    color: brand.onInkMuted,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                  Text(
+                    total,
+                    style: TextStyle(
+                      color: brand.onInkMuted,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

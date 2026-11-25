@@ -122,7 +122,7 @@ class DropCard extends ConsumerWidget {
       context: context,
       builder: (sheetContext) => SheetScaffold(
         title: item.title ?? (item.isClip ? 'Text Drop' : 'Drop Actions'),
-        child: Column(
+        child: TileColumn(
           children: [
             if (extractedUrl != null) ...[
               BrandTile(
@@ -226,7 +226,10 @@ class DropCard extends ConsumerWidget {
             ),
             BrandTile(
               leading: AppIcon(AppIcons.delete, color: brand.danger),
-              title: Text('Delete Drop', style: TextStyle(color: brand.danger)),
+              title: Text(
+                'Delete Drop',
+                style: TextStyle(color: brand.danger),
+              ),
               onTap: () async {
                 Navigator.pop(sheetContext);
                 final confirm = await brandConfirm(
@@ -693,28 +696,80 @@ class DropCard extends ConsumerWidget {
                       ),
                     ),
                     const Spacer(),
-                    if (item.isPinned) ...[
-                      AppIcon(
-                        AppIcons.star,
-                        size: 14,
-                        color: brand.warningRoles.graphicOnTint,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
                       ),
-                      const SizedBox(width: 4),
-                    ],
-                    IconButton(
-                      icon: AppIcon(
-                        AppIcons.moreHorizontal,
-                        size: 18,
-                        color: context.muted,
+                      decoration: BoxDecoration(
+                        color: brand.canvas,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: brand.hairline),
                       ),
-                      tooltip: 'More actions',
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () {
-                        AppHaptics.tap();
-                        _showMoreActions(context, ref);
-                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _QuickActionIcon(
+                            icon: AppIcons.star,
+                            tooltip: item.isPinned ? 'Unpin' : 'Pin',
+                            color: item.isPinned
+                                ? brand.warningRoles.graphicOnTint
+                                : context.muted,
+                            onTap: () => _togglePin(context, ref),
+                          ),
+                          if (onRemindTap != null)
+                            _QuickActionIcon(
+                              icon: AppIcons.clock,
+                              tooltip: 'Remind me later',
+                              color: item.reminderAt != null
+                                  ? dropRoles.textOnTint
+                                  : context.muted,
+                              onTap: () {
+                                AppHaptics.tap();
+                                onRemindTap?.call();
+                              },
+                            ),
+                          _QuickActionIcon(
+                            icon: AppIcons.share,
+                            tooltip: 'Copy for sharing',
+                            color: context.muted,
+                            onTap: () {
+                              AppHaptics.tap();
+                              Clipboard.setData(
+                                ClipboardData(text: item.content),
+                              );
+                              brandToast(context, 'Content copied for sharing');
+                            },
+                          ),
+                          Tooltip(
+                            message: item.isArchived
+                                ? 'Move to Inbox'
+                                : 'Mark Done / Archive',
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Transform.scale(
+                                scale: 0.72,
+                                child: BrandCheckbox(
+                                  value: item.isArchived,
+                                  semanticsLabel: item.isArchived
+                                      ? 'Move to Inbox'
+                                      : 'Mark Done / Archive',
+                                  onChanged: (_) => _toggleArchive(context, ref),
+                                ),
+                              ),
+                            ),
+                          ),
+                          _QuickActionIcon(
+                            icon: AppIcons.moreHorizontal,
+                            tooltip: 'More actions',
+                            color: context.muted,
+                            onTap: () {
+                              AppHaptics.tap();
+                              _showMoreActions(context, ref);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -770,33 +825,36 @@ class DropCard extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          Tooltip(
-            message: item.isArchived ? 'Move to Inbox' : 'Mark Done / Archive',
-            child: GestureDetector(
-              onTap: () => _toggleArchive(context, ref),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: item.isArchived ? brand.success : brand.surface,
-                  shape: BoxShape.circle,
-                  border: item.isArchived
-                      ? null
-                      : Border.all(color: brand.outlineIdle, width: 2),
-                ),
-                alignment: Alignment.center,
-                child: item.isArchived
-                    ? const AppIcon(
-                        AppIcons.check,
-                        size: 18,
-                        color: Colors.white,
-                      )
-                    : null,
-              ),
-            ),
-          ),
         ],
+      ),
+    );
+  }
+}
+
+class _QuickActionIcon extends StatelessWidget {
+  final HugeIconData icon;
+  final String tooltip;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionIcon({
+    required this.icon,
+    required this.tooltip,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: AppIcon(icon, size: 15, color: color),
+        ),
       ),
     );
   }
