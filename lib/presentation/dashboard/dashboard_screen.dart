@@ -34,12 +34,20 @@ import '../tasks/widgets/task_tile.dart';
 /// Today (`01-today.png`): greeting header, ink hero card with day timeline and
 /// module sub-tiles, AI add bar, "Up next", then per-module sections in
 /// [AppSettings.dashboardOrder].
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  String? _selectedModule;
+
+  @override
+  Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
+    final brand = context.brand;
     final self = ref.watch(selfProvider);
     final reminders = ref.watch(remindersProvider).valueOrNull ?? const [];
     final today = Fmt.dateOnly(DateTime.now());
@@ -61,6 +69,9 @@ class DashboardScreen extends ConsumerWidget {
         .where((key) => builders.containsKey(key))
         .where((key) => settings.enabledModules.any((m) => m.name == key))
         .toList();
+
+    final activeKey =
+        ordered.contains(_selectedModule) ? _selectedModule : ordered.firstOrNull;
 
     return BrandScaffold(
       child: SafeArea(
@@ -97,26 +108,63 @@ class DashboardScreen extends ConsumerWidget {
             const _TodayHeroCard(),
             const SizedBox(height: 14),
             const _TodayAddBar(),
-            const SizedBox(height: 18),
-            const _UpNextSection(),
-            const SizedBox(height: 18),
-            const _ActivityChart(),
+            const SizedBox(height: 16),
             if (ordered.isEmpty)
               const Padding(
-                padding: EdgeInsets.only(top: 24),
+                padding: EdgeInsets.only(top: 8),
                 child: EmptyState(
                   icon: AppIcons.modules,
                   title: 'No modules enabled',
                   message: 'Turn some on in Settings to fill your dashboard.',
                 ),
+              )
+            else if (activeKey != null) ...[
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    for (final (i, key) in ordered.indexed) ...[
+                      if (i > 0) const SizedBox(width: 8),
+                      _buildModuleTab(brand, key, key == activeKey),
+                    ],
+                  ],
+                ),
               ),
-            for (final key in ordered) ...[
-              const SizedBox(height: 18),
-              builders[key]!(),
+              const SizedBox(height: 14),
+              builders[activeKey]!(),
             ],
+            const SizedBox(height: 18),
+            const _UpNextSection(),
+            const SizedBox(height: 18),
+            const _ActivityChart(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildModuleTab(BrandColors brand, String key, bool selected) {
+    final module = AppModule.values.firstWhere((m) => m.name == key);
+    final (icon, color) = switch (module) {
+      AppModule.medicine => (AppIcons.medicine, brand.medicine),
+      AppModule.tasks => (AppIcons.tasks, brand.task),
+      AppModule.habits => (AppIcons.habits, brand.habit),
+      AppModule.expenses => (AppIcons.expenses, brand.expense),
+      AppModule.focus => (AppIcons.focus, brand.focus),
+      AppModule.notes => (AppIcons.notes, brand.note),
+      AppModule.drop => (AppIcons.inbox, brand.drop),
+    };
+    return Pill(
+      label: module.label,
+      icon: icon,
+      color: color,
+      selected: selected,
+      onTap: () {
+        AppHaptics.selection();
+        setState(() => _selectedModule = key);
+      },
     );
   }
 }
