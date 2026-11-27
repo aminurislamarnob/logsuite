@@ -224,64 +224,15 @@ Build only what the data supports.
 | People "linked to" counts (`40`) | Show only counts that are cheap to query; otherwise show relation only. |
 | Settings colour swatches (`16`) | Use the real four palettes. |
 | Badge icons (`24`) | Names and levels come from `drop_gamification.dart`. |
-| Streak badge row in Habit detail (`23`) | Milestones 7, 14, 30, 60, 100, 365 days. Compute from the current streak; there is no badge table, so do not add one. |
-| Insight in Habit detail (`23`) | Only show "X are your weak spot" when the weakest weekday is under 75% and at least 15 points behind the best; otherwise show the "steady" text with no action button. The action opens the habit editor at the reminder field. |
 
 When you omit something, the layout must still look finished: close the gap,
 do not leave a placeholder.
 
-### Screen 23 · Habit detail — behaviour
+### Screen 23 · Habit detail
 
-This screen is a pushed page (not a sheet), opened by tapping a habit card.
-Everything below can be built from `Habits`, `HabitLogs` and `HabitStats`.
-
-- **Today card first.** For habits with a target amount it shows today's
-  amount against the target, quick-add buttons (`+5`, `+10`, derived from the
-  target: about a quarter and a half of it) and **Mark done**, which logs the
-  full target. Once the target is met it shows the streak, `+5 more` and
-  `+10 more`. For a plain yes/no habit (target 1, no unit) show only
-  Mark done / Undo. For a *reduce* habit invert the copy ("Stay under 2").
-- **Changing today's value** (see `screens/23b-habit-detail-editing.png`):
-  1. *Undo the last tap.* After a quick-add or Mark done, a status line says
-     "Added 5 pages" with **Undo**, which subtracts exactly that amount. It
-     clears when the user edits or leaves the screen.
-  2. *Edit the number.* Tapping the ring (it carries a pencil badge) or the
-     **Edit** button turns the card into an editor: − and + (step 1), a
-     numeric field the user can type in, shortcut chips (Clear, half the
-     target, the target, target × 1.5) and Cancel / Save. The headline and
-     ring preview the draft ("5 pages to go") and the subtitle shows the old
-     value ("Was 12 pages"). Nothing is written until Save; Cancel discards.
-  3. Save writes the day's total to that day's `HabitLogs.amount` (one row per
-     habit per day, as today). Saving 0 deletes the row.
-- **Today is not a miss until it is over.** An unfinished today does not
-  break the streak and is not counted in Completion or the trend.
-- **Range tabs drive every section below them**: 30 days, 90 days, All time.
-  Hide ranges longer than the habit has existed. 30 days renders a calendar
-  with dates; longer ranges render week columns (rows Mon–Sun).
-- **Three day states plus not tracked**: Done (target met), Partly (logged but
-  under target — matches `HabitStats.intensityOn`), Missed. Days before the
-  habit existed, and days not in its schedule, are drawn empty and are never
-  counted as missed.
-- **Tap a day** to show its detail in the bar under the grid. The bar is two
-  rows: the date (or "Today") and its status on one line that never wraps
-  (ellipsis if needed), then two equal labelled buttons, **Edit pages** and
-  **Mark done** / **Undo**. No icon-only buttons here. Edit pages opens the
-  same − / field / + editor inline in the bar, with Cancel / Save on their own
-  row; for today it opens the editor in the Today card instead. Edited past days show
-  "· edited" in their detail line. Mark done writes the full target, Undo
-  writes 0. No floating tooltip.
-- **Stats**: Completion with the change versus the previous range of equal
-  length (hidden when that range predates the habit), Best streak with when it
-  ended, and the total of the habit's unit for unit habits (for a yes/no habit
-  show "Days done x / y" instead).
-- **Trend**: 7-day rolling completion with the habit's 80% target line, and a
-  one-line verdict comparing the first and second half of the range.
-- **Delete** lives only in the ⋯ menu, with a confirmation. Pause and Archive
-  are the visible actions.
-
-The canvas also holds three explored alternatives (Analytics, Scheduled
-sheet, Counted habit). They are reference only; the official screen is the
-one in `screens/23-habit-detail.png`.
+Screen 23 has its own, complete handoff: **`docs/redesign/HABIT_DETAIL_HANDOFF.md`**.
+It replaces the habit detail bottom sheet with a full page and overrides
+anything this file says about screen 23.
 
 ## 9. Shared widgets: what to change
 
@@ -321,7 +272,7 @@ Change the kit first. Most screens then update with little per-screen work.
 | 03 | Add expense | `expenses/widgets/expense_entry_sheet.dart` |
 | 04, 19, 20, 21 | Tasks: list, board, calendar, matrix | `tasks/tasks_screen.dart`, `tasks/widgets/task_tile.dart` |
 | 18 | Task editor | `tasks/widgets/task_editor_sheet.dart` |
-| 05, 22, 23 | Habits, editor, detail (23 is a full page; see "Screen 23" in section 8) | `habits/habits_screen.dart` (`_HabitDetailSheet` becomes a pushed screen) |
+| 05, 22, 23 | Habits, editor, detail (23: see `HABIT_DETAIL_HANDOFF.md`) | `habits/habits_screen.dart` |
 | 06, 26, 27 | Medicine: today, calendar, medicines | `medicine/medicine_screen.dart` |
 | 25 | Medicine editor | `medicine/widgets/medicine_editor_sheet.dart` |
 | 07 | Modules | `modules/modules_screen.dart` |
