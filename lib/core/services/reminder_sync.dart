@@ -74,7 +74,8 @@ class ReminderSync {
 
   Future<void> syncDrops() async {
     for (final d in await drops.dropsWithReminders()) {
-      final title = d.title ??
+      final title =
+          d.title ??
           (d.content.length > 50
               ? '${d.content.substring(0, 50)}...'
               : d.content);
@@ -118,7 +119,10 @@ class ReminderSync {
 
   Future<void> syncMedicine() async {
     for (final m in await medicine.medicines()) {
-      if (!m.isActive) continue;
+      if (!m.isActive) {
+        await notifier.cancelMedicineExpiryAlerts(m.id);
+        continue;
+      }
       await scheduleDoseReminders(
         repo: medicine,
         notifier: notifier,
@@ -127,6 +131,7 @@ class ReminderSync {
         dosageLabel: '${DoseView.trimAmount(m.dosage)} ${m.dosageUnit}',
         mealHint: MealRelationX.fromToken(m.mealRelation).label,
       );
+      await syncMedicineExpiryAlerts(notifier: notifier, medicine: m);
     }
   }
 

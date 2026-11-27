@@ -10,13 +10,7 @@ import '../../core/widgets/common.dart';
 import '../modules/modules_screen.dart';
 import 'how_to_content.dart';
 
-/// The short guides to the app, reached from Settings.
-///
-/// One collapsible card per guide keeps the page scannable: the header names
-/// an area and says what it is for, the body lists the handful of steps that
-/// cover most of what people do there. The strip at the top jumps to a card
-/// and opens it, and a module's card ends with a way into that module — or a
-/// way to switch it on, when it is off.
+/// The short guides to the app, reached from Settings (`44-how-to.html`).
 class HowToScreen extends ConsumerStatefulWidget {
   /// The [HowToGuide.id] to open on arrival. Unknown ids are ignored and the
   /// quick-start guide opens instead.
@@ -39,7 +33,6 @@ class _HowToScreenState extends ConsumerState<HowToScreen> {
     final known = initial != null && _keys.containsKey(initial);
     _open.add(known ? initial : howToGuides.first.id);
     if (known) {
-      // The card can only be scrolled to once it has been laid out.
       WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(initial));
     }
   }
@@ -55,8 +48,6 @@ class _HowToScreenState extends ConsumerState<HowToScreen> {
   /// Opens [id] and brings it to the top of the page.
   void _jump(String id) {
     setState(() => _open.add(id));
-    // After the frame: the scroll target is the card's laid-out size, and the
-    // body that was just opened is not part of it until then.
     WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(id));
   }
 
@@ -74,41 +65,28 @@ class _HowToScreenState extends ConsumerState<HowToScreen> {
 
     return BrandScaffold(
       header: const BrandTopBar(
-        title: 'How to use logSuite',
+        title: 'How to',
+        subtitle: 'Short guides for every part of the app',
         leadingIcon: AppIcons.back,
       ),
       child: SingleChildScrollView(
-        padding: pageInsets(context, gutter: 0, end: PageEnd.navBar),
+        padding: pageInsets(context, gutter: 0, end: PageEnd.none),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Short guides for every part of the app. Tap a card to open '
-                'it, or jump straight to one.',
-                style: TextStyle(
-                  color: context.muted,
-                  fontSize: 13,
-                  height: 1.4,
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            // Full-bleed so the strip scrolls out under the page edge rather
-            // than being cut off at the padding.
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
                   for (final (i, guide) in howToGuides.indexed) ...[
-                    if (i > 0) const SizedBox(width: 8),
-                    Pill(
+                    if (i > 0) const SizedBox(width: 6),
+                    _JumpPill(
                       key: Key('howto-jump-${guide.id}'),
                       label: guide.label,
-                      icon: guide.icon,
-                      color: _accentFor(context, guide),
+                      dotColor: guide.module == null
+                          ? null
+                          : _accentFor(context, guide),
                       selected: _open.contains(guide.id),
                       onTap: () => _jump(guide.id),
                     ),
@@ -116,7 +94,7 @@ class _HowToScreenState extends ConsumerState<HowToScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
@@ -124,8 +102,6 @@ class _HowToScreenState extends ConsumerState<HowToScreen> {
                 children: [
                   for (final guide in howToGuides)
                     Padding(
-                      // The scroll target, so a jump lands the card at the
-                      // top of the page.
                       key: _keys[guide.id],
                       padding: const EdgeInsets.only(bottom: 12),
                       child: _GuideCard(
@@ -164,6 +140,61 @@ class _HowToScreenState extends ConsumerState<HowToScreen> {
   }
 }
 
+class _JumpPill extends StatelessWidget {
+  final String label;
+  final Color? dotColor;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _JumpPill({
+    super.key,
+    required this.label,
+    required this.dotColor,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = context.brand;
+    return BrandTappable(
+      onPressed: onTap,
+      child: Container(
+        height: 38,
+        padding: EdgeInsets.symmetric(horizontal: selected ? 14 : 12),
+        decoration: BoxDecoration(
+          color: selected ? brand.ink : brand.surface,
+          borderRadius: BorderRadius.circular(19),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (dotColor != null && !selected) ...[
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                color: selected ? brand.onInk : context.muted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _GuideCard extends StatelessWidget {
   final HowToGuide guide;
   final Color accent;
@@ -192,12 +223,30 @@ class _GuideCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = context.brand;
+    final theme = Theme.of(context);
     final muted = context.muted;
-    final onAccent = context.brand.onAccent(accent);
+    final isQuickStart = guide.id == 'start';
+    final isModule = guide.module != null;
+    final roles = brand.roleFor(accent);
 
-    return TintCard(
-      accent: accent,
-      padding: EdgeInsets.zero,
+    final chipBg = isQuickStart
+        ? brand.ink
+        : isModule
+        ? roles.tintFill
+        : brand.hairline;
+    final chipIconColor = isQuickStart
+        ? brand.medicineRoles.onInk
+        : isModule
+        ? roles.graphicOnTint
+        : brand.ink;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: enabled ? brand.surface : brand.well,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        boxShadow: enabled ? AppShadows.card(theme.brightness) : null,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -209,16 +258,20 @@ class _GuideCard extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 42,
-                    height: 42,
+                    width: 40,
+                    height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: accent,
-                      shape: BoxShape.circle,
+                      color: enabled ? chipBg : brand.surface,
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    child: AppIcon(guide.icon, color: onAccent, size: 21),
+                    child: AppIcon(
+                      guide.icon,
+                      color: enabled ? chipIconColor : context.subtle,
+                      size: 20,
+                    ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,8 +283,8 @@ class _GuideCard extends StatelessWidget {
                               child: Text(
                                 guide.title,
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
                                 ),
                               ),
                             ),
@@ -241,6 +294,7 @@ class _GuideCard extends StatelessWidget {
                             ],
                           ],
                         ),
+                        const SizedBox(height: 1),
                         Text(
                           guide.tagline,
                           style: TextStyle(fontSize: 12.5, color: muted),
@@ -254,7 +308,7 @@ class _GuideCard extends StatelessWidget {
                     duration: motion,
                     child: AppIcon(
                       AppIcons.chevronDown,
-                      size: 20,
+                      size: 18,
                       color: muted,
                     ),
                   ),
@@ -299,8 +353,8 @@ class _GuideBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = context.brand;
     final muted = context.muted;
-    final onAccent = context.brand.onAccent(accent);
     final module = guide.module;
 
     return Padding(
@@ -311,25 +365,25 @@ class _GuideBody extends StatelessWidget {
           for (final (i, step) in guide.steps.indexed)
             Padding(
               padding: EdgeInsets.only(
-                bottom: i == guide.steps.length - 1 ? 0 : 12,
+                bottom: i == guide.steps.length - 1 ? 0 : 14,
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 24,
-                    height: 24,
+                    width: 28,
+                    height: 28,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: accent,
+                      color: brand.hairline,
                       shape: BoxShape.circle,
                     ),
                     child: Text(
                       '${i + 1}',
                       style: TextStyle(
-                        color: onAccent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                        color: brand.ink,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
@@ -342,16 +396,16 @@ class _GuideBody extends StatelessWidget {
                         Text(
                           step.action,
                           style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           step.detail,
                           style: TextStyle(
-                            fontSize: 12.5,
-                            height: 1.35,
+                            fontSize: 13,
+                            height: 1.4,
                             color: muted,
                           ),
                         ),
@@ -362,47 +416,63 @@ class _GuideBody extends StatelessWidget {
               ),
             ),
           if (guide.tips.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Text(
-              'GOOD TO KNOW',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.6,
-                color: muted,
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: brand.noteRoles.tintFill,
+                borderRadius: BorderRadius.circular(18),
               ),
-            ),
-            const SizedBox(height: 8),
-            for (final (i, tip) in guide.tips.indexed)
-              Padding(
-                padding: EdgeInsets.only(
-                  bottom: i == guide.tips.length - 1 ? 0 : 6,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 1),
-                      child: AppIcon(AppIcons.idea, size: 15, color: accent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'GOOD TO KNOW',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                      color: brand.noteRoles.textOnTint,
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        tip,
-                        style: const TextStyle(fontSize: 12.5, height: 1.35),
+                  ),
+                  const SizedBox(height: 8),
+                  for (final (i, tip) in guide.tips.indexed)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: i == guide.tips.length - 1 ? 0 : 8,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 5,
+                            height: 5,
+                            margin: const EdgeInsets.only(top: 7),
+                            decoration: BoxDecoration(
+                              color: brand.noteRoles.graphicOnTint,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              tip,
+                              style: TextStyle(
+                                fontSize: 13,
+                                height: 1.4,
+                                color: brand.ink,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
+            ),
           ],
           if (module != null) ...[
             const SizedBox(height: 14),
-            // forui lays a button's label out in a plain Row, so a label
-            // cannot wrap or shrink on its own. The FittedBox only ever
-            // scales the pill down, and only once the card is narrower than
-            // the label — a large text size on a small phone — so at every
-            // ordinary size it draws at 1:1.
             if (enabled)
               Align(
                 alignment: Alignment.centerLeft,
@@ -419,8 +489,6 @@ class _GuideBody extends StatelessWidget {
                 ),
               )
             else
-              // A Wrap rather than a Row: when the two do not fit on one
-              // line the button drops below the text instead of clipping.
               Wrap(
                 alignment: WrapAlignment.spaceBetween,
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -435,7 +503,7 @@ class _GuideBody extends StatelessWidget {
                     fit: BoxFit.scaleDown,
                     child: BrandButton(
                       label: 'Turn on',
-                      kind: BrandButtonKind.ghost,
+                      kind: BrandButtonKind.primary,
                       expand: false,
                       small: true,
                       onPressed: onTurnOn,

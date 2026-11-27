@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,7 @@ import '../utils/drop_gamification_feedback.dart';
 
 class DropCard extends ConsumerWidget {
   final DropWithTags item;
+  final bool featured;
   final bool isSelected;
   final bool isSelectionMode;
   final VoidCallback? onToggleSelect;
@@ -28,6 +30,7 @@ class DropCard extends ConsumerWidget {
   const DropCard({
     super.key,
     required this.item,
+    this.featured = false,
     this.isSelected = false,
     this.isSelectionMode = false,
     this.onToggleSelect,
@@ -80,6 +83,35 @@ class DropCard extends ConsumerWidget {
     }
   }
 
+  Future<void> _toggleArchive(BuildContext context, WidgetRef ref) async {
+    final repo = ref.read(dropRepositoryProvider);
+    AppHaptics.success();
+    await repo.setTriageStatus(item.id, item.isArchived ? 'inbox' : 'archived');
+    if (!item.isArchived) {
+      final remaining = await repo.getDrops(triageStatus: 'inbox');
+      final reward = await ref
+          .read(dropGamificationProvider.notifier)
+          .recordDropTriaged(reachedInboxZero: remaining.isEmpty);
+      if (context.mounted) {
+        DropGamificationFeedback.show(context, reward);
+      }
+    }
+  }
+
+  Future<void> _togglePin(BuildContext context, WidgetRef ref) async {
+    final repo = ref.read(dropRepositoryProvider);
+    AppHaptics.selection();
+    await repo.togglePinned(item.id);
+    if (!item.isPinned) {
+      final reward = await ref
+          .read(dropGamificationProvider.notifier)
+          .recordDropFavorited();
+      if (context.mounted) {
+        DropGamificationFeedback.show(context, reward);
+      }
+    }
+  }
+
   void _showMoreActions(BuildContext context, WidgetRef ref) {
     final brand = context.brand;
     final repo = ref.read(dropRepositoryProvider);
@@ -118,34 +150,21 @@ class DropCard extends ConsumerWidget {
               ),
             ],
             BrandTile(
-              leading: AppIcon(item.isPinned ? AppIcons.pin : AppIcons.pin),
+              leading: const AppIcon(AppIcons.pin),
               title: Text(item.isPinned ? 'Unpin' : 'Pin to top'),
               onTap: () async {
                 Navigator.pop(sheetContext);
-                await repo.togglePinned(item.id);
-                if (!item.isPinned) {
-                  final reward = await ref
-                      .read(dropGamificationProvider.notifier)
-                      .recordDropFavorited();
-                  if (context.mounted) DropGamificationFeedback.show(context, reward);
-                }
+                await _togglePin(context, ref);
               },
             ),
             BrandTile(
-              leading: AppIcon(isArchived ? AppIcons.unarchive : AppIcons.archive),
+              leading: AppIcon(
+                isArchived ? AppIcons.unarchive : AppIcons.archive,
+              ),
               title: Text(isArchived ? 'Move to Inbox' : 'Archive'),
               onTap: () async {
                 Navigator.pop(sheetContext);
-                await repo.setTriageStatus(
-                  item.id,
-                  isArchived ? 'inbox' : 'archived',
-                );
-                if (!isArchived) {
-                  final reward = await ref
-                      .read(dropGamificationProvider.notifier)
-                      .recordDropTriaged();
-                  if (context.mounted) DropGamificationFeedback.show(context, reward);
-                }
+                await _toggleArchive(context, ref);
               },
             ),
             BrandTile(
@@ -231,52 +250,47 @@ class DropCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final brand = context.brand;
-    final repo = ref.read(dropRepositoryProvider);
+    final dropRoles = brand.dropRoles;
 
     HugeIconData typeIcon = AppIcons.document;
-    String typeLabel = 'Clip';
-    Color typeColor = brand.note;
+    String typeLabel = 'CLIP';
 
     if (item.isArticle) {
-      typeIcon = AppIcons.link;
-      typeLabel = 'Article';
-      typeColor = brand.task;
+      typeIcon = AppIcons.document;
+      typeLabel = 'ARTICLE';
     } else if (item.isVideo) {
       typeIcon = AppIcons.play;
-      typeLabel = 'Video';
-      typeColor = brand.danger;
+      typeLabel = 'VIDEO';
     } else if (item.isImage) {
       typeIcon = AppIcons.camera;
-      typeLabel = 'Image';
-      typeColor = brand.drop;
+      typeLabel = 'IMAGE';
     }
 
+    final metaParts = <String>[
+      if (item.sourceDomain != null) item.sourceDomain!,
+      Fmt.relativeDay(item.createdAt),
+      if (item.reminderAt != null)
+        'reminder ${Fmt.relativeDay(item.reminderAt!)}',
+    ];
+
+    final radius = featured ? 24.0 : 22.0;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.gutter,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
-        color: isSelected
-            ? brand.drop.withValues(alpha: 0.08)
-            : theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSelected ? brand.drop : brand.hairline,
-          width: isSelected ? 1.5 : 1.0,
-        ),
-        boxShadow: theme.brightness == Brightness.light
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
+        color: brand.surface,
+        borderRadius: BorderRadius.circular(radius),
+        border: isSelected ? Border.all(color: brand.drop, width: 2.0) : null,
+        boxShadow: AppShadows.card(theme.brightness),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(radius),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radius),
           onTap: () {
             AppHaptics.tap();
             _handlePrimaryTap(context);
@@ -289,84 +303,410 @@ class DropCard extends ConsumerWidget {
               _showMoreActions(context, ref);
             }
           },
-          child: Padding(
-            padding: const EdgeInsets.all(14),
+          child: featured
+              ? _buildFeaturedContent(
+                  context,
+                  ref,
+                  brand: brand,
+                  dropRoles: dropRoles,
+                  typeIcon: typeIcon,
+                  typeLabel: typeLabel,
+                  metaText: metaParts.join(' · '),
+                )
+              : _buildCompactContent(
+                  context,
+                  ref,
+                  brand: brand,
+                  dropRoles: dropRoles,
+                  typeIcon: typeIcon,
+                  typeLabel: typeLabel,
+                  metaText: metaParts.join(' · '),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeaturedContent(
+    BuildContext context,
+    WidgetRef ref, {
+    required BrandColors brand,
+    required dynamic dropRoles,
+    required HugeIconData typeIcon,
+    required String typeLabel,
+    required String metaText,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top dropRoles.tintFill banner (11-drop.html)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              height: 132,
+              width: double.infinity,
+              color: dropRoles.tintFill,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (item.isImage && item.mediaPath != null)
+                    Image.file(
+                      File(item.mediaThumbnailPath ?? item.mediaPath!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Center(
+                        child: AppIcon(
+                          typeIcon,
+                          size: 44,
+                          color: dropRoles.graphicOnTint,
+                        ),
+                      ),
+                    )
+                  else if (item.previewImageUrl != null &&
+                      item.previewImageUrl!.isNotEmpty)
+                    Image.network(
+                      item.previewImageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Center(
+                        child: AppIcon(
+                          typeIcon,
+                          size: 44,
+                          color: dropRoles.graphicOnTint,
+                        ),
+                      ),
+                    )
+                  else
+                    Center(
+                      child: AppIcon(
+                        typeIcon,
+                        size: 44,
+                        color: dropRoles.graphicOnTint,
+                      ),
+                    ),
+                  Positioned(
+                    left: 10,
+                    top: 10,
+                    child: Container(
+                      height: 26,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: brand.surface,
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: Text(
+                        typeLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                          color: dropRoles.textOnTint,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: brand.surface.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: AppIcon(
+                          AppIcons.moreHorizontal,
+                          size: 18,
+                          color: brand.ink,
+                        ),
+                        tooltip: 'More actions',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {
+                          AppHaptics.tap();
+                          _showMoreActions(context, ref);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header: Type Chip, Domain/Time, Pin, Checkbox / Actions
+                if (item.title != null && item.title!.isNotEmpty) ...[
+                  Text(
+                    item.title!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                      height: 1.25,
+                      color: brand.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+                Text(
+                  item.description ?? item.content,
+                  maxLines: item.isClip ? 6 : 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: item.title != null ? 13 : 15,
+                    fontWeight: item.title != null
+                        ? FontWeight.w400
+                        : FontWeight.w600,
+                    height: 1.4,
+                    color: item.title != null ? context.muted : brand.ink,
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Row(
                   children: [
-                    if (isSelectionMode) ...[
-                      Checkbox(
-                        value: isSelected,
-                        activeColor: brand.drop,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        onChanged: (_) => onToggleSelect?.call(),
+                    Expanded(
+                      child: Text(
+                        metaText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: context.muted),
                       ),
-                      const SizedBox(width: 4),
-                    ],
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                    ),
+                    if (item.tags.isNotEmpty)
+                      Wrap(
+                        spacing: 6,
+                        children: item.tags.map((tag) {
+                          return Text(
+                            '#$tag',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: dropRoles.textOnTint,
+                            ),
+                          );
+                        }).toList(),
                       ),
-                      decoration: BoxDecoration(
-                        color: typeColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Action row: Done ink pill + Tonight snooze pill + Star circle (11-drop.html)
+          Row(
+            children: [
+              Expanded(
+                child: Tooltip(
+                  message: item.isArchived
+                      ? 'Move to Inbox'
+                      : 'Mark Done / Archive',
+                  child: GestureDetector(
+                    onTap: () => _toggleArchive(context, ref),
+                    child: Container(
+                      height: 44,
+                      decoration: ShapeDecoration(
+                        color: brand.ink,
+                        shape: const StadiumBorder(),
                       ),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          AppIcon(typeIcon, size: 13, color: typeColor),
-                          const SizedBox(width: 4),
+                          AppIcon(
+                            item.isArchived
+                                ? AppIcons.unarchive
+                                : AppIcons.check,
+                            size: 16,
+                            color: brand.onInk,
+                          ),
+                          const SizedBox(width: 6),
                           Text(
-                            typeLabel,
+                            item.isArchived ? 'Inbox' : 'Done',
                             style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: typeColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: brand.onInk,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    if (item.sourceDomain != null) ...[
-                      Expanded(
-                        child: Text(
-                          item.sourceDomain!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    AppHaptics.tap();
+                    onRemindTap?.call();
+                  },
+                  child: Container(
+                    height: 44,
+                    decoration: ShapeDecoration(
+                      color: brand.canvas,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AppIcon(AppIcons.clock, size: 16, color: brand.ink),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Tonight',
                           style: TextStyle(
-                            fontSize: 12,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: brand.ink,
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: item.isPinned ? 'Unstar' : 'Star / Favorite',
+                child: GestureDetector(
+                  onTap: () => _togglePin(context, ref),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: brand.canvas,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: AppIcon(
+                      AppIcons.star,
+                      size: 18,
+                      color: item.isPinned
+                          ? brand.warningRoles.graphicOnTint
+                          : brand.ink,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactContent(
+    BuildContext context,
+    WidgetRef ref, {
+    required BrandColors brand,
+    required dynamic dropRoles,
+    required HugeIconData typeIcon,
+    required String typeLabel,
+    required String metaText,
+  }) {
+    final hasThumb = item.isVideo || item.isImage;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(hasThumb ? 12 : 16, 12, 12, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (isSelectionMode) ...[
+            Checkbox(
+              value: isSelected,
+              activeColor: brand.drop,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              onChanged: (_) => onToggleSelect?.call(),
+            ),
+            const SizedBox(width: 4),
+          ],
+          if (hasThumb) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                width: 96,
+                height: 72,
+                color: item.isVideo ? brand.heroSurface : dropRoles.tintFill,
+                child: Stack(
+                  alignment: Alignment.center,
+                  fit: StackFit.expand,
+                  children: [
+                    if (item.isImage && item.mediaPath != null)
+                      Image.file(
+                        File(item.mediaThumbnailPath ?? item.mediaPath!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const SizedBox(),
+                      )
+                    else if (item.previewImageUrl != null &&
+                        item.previewImageUrl!.isNotEmpty)
+                      Image.network(
+                        item.previewImageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const SizedBox(),
                       ),
-                    ] else ...[
-                      Expanded(
-                        child: Text(
-                          Fmt.relativeDay(item.createdAt),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
-                          ),
+                    Center(
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: AppIcon(
+                          item.isVideo ? AppIcons.play : AppIcons.camera,
+                          size: 16,
+                          color: item.isVideo
+                              ? Colors.white
+                              : dropRoles.graphicOnTint,
                         ),
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      typeLabel,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                        color: dropRoles.textOnTint,
+                      ),
+                    ),
+                    const Spacer(),
                     if (item.isPinned) ...[
-                      AppIcon(AppIcons.pin, size: 14, color: brand.warning),
-                      const SizedBox(width: 6),
-                    ],
-                    if (item.reminderAt != null) ...[
-                      AppIcon(AppIcons.clock, size: 14, color: brand.task),
-                      const SizedBox(width: 6),
+                      AppIcon(
+                        AppIcons.star,
+                        size: 14,
+                        color: brand.warningRoles.graphicOnTint,
+                      ),
+                      const SizedBox(width: 4),
                     ],
                     IconButton(
-                      icon: const AppIcon(AppIcons.moreHorizontal, size: 18),
+                      icon: AppIcon(
+                        AppIcons.moreHorizontal,
+                        size: 18,
+                        color: context.muted,
+                      ),
                       tooltip: 'More actions',
                       visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,
@@ -378,202 +718,85 @@ class DropCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 10),
-
-                // Visual content (Article/Video Cover or Local Image)
-                if (item.isImage && item.mediaPath != null) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      height: 180,
-                      width: double.infinity,
-                      color: brand.canvas,
-                      child: Image.file(
-                        File(item.mediaThumbnailPath ?? item.mediaPath!),
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Center(
-                          child: AppIcon(AppIcons.camera, size: 36),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ] else if (item.previewImageUrl != null &&
-                    item.previewImageUrl!.isNotEmpty) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          height: 160,
-                          width: double.infinity,
-                          color: brand.canvas,
-                          child: Image.network(
-                            item.previewImageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const SizedBox(),
-                          ),
-                        ),
-                        if (item.isVideo)
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: const ShapeDecoration(
-                              color: Colors.black54,
-                              shape: CircleBorder(),
-                            ),
-                            child: const AppIcon(
-                              AppIcons.play,
-                              color: Colors.white,
-                              size: 26,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-
-                // Title
+                const SizedBox(height: 3),
                 if (item.title != null && item.title!.isNotEmpty) ...[
                   Text(
                     item.title!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       height: 1.25,
+                      color: brand.ink,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                 ],
-
-                // Body content / Description
                 Text(
                   item.description ?? item.content,
-                  maxLines: item.isClip ? 8 : 3,
+                  maxLines: item.isClip ? 4 : 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: item.title != null ? 13 : 15,
+                    fontWeight: item.title != null
+                        ? FontWeight.w400
+                        : FontWeight.w600,
                     height: 1.35,
-                    color: (item.isArticle || item.isVideo)
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.7)
-                        : theme.colorScheme.onSurface,
+                    color: item.title != null ? context.muted : brand.ink,
                   ),
                 ),
-
-                // Tags row
-                if (item.tags.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: item.tags.map((tag) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: brand.hairline.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '#$tag',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: brand.task,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-
-                const SizedBox(height: 8),
-
-                // Action Footer: Quick Checkmark (Inbox <-> Archive), Quick Pin, 1-Tap Copy
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    IconButton(
-                      icon: AppIcon(
-                        AppIcons.copy,
-                        size: 16,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                      tooltip: 'Copy text to clipboard',
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: item.content));
-                        if (context.mounted) {
-                          AppHaptics.tap();
-                          brandToast(context, 'Copied to clipboard');
-                        }
-                      },
+                    Text(
+                      metaText,
+                      style: TextStyle(fontSize: 12, color: context.muted),
                     ),
-                    IconButton(
-                      icon: AppIcon(
-                        item.isPinned ? AppIcons.star : AppIcons.star,
-                        size: 17,
-                        color: item.isPinned
-                            ? brand.warning
-                            : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    for (final tag in item.tags)
+                      Text(
+                        '#$tag',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: dropRoles.textOnTint,
+                        ),
                       ),
-                      tooltip: item.isPinned ? 'Unstar' : 'Star / Favorite',
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () async {
-                        AppHaptics.selection();
-                        await repo.togglePinned(item.id);
-                        if (!item.isPinned) {
-                          final reward = await ref
-                              .read(dropGamificationProvider.notifier)
-                              .recordDropFavorited();
-                          if (context.mounted) {
-                            DropGamificationFeedback.show(context, reward);
-                          }
-                        }
-                      },
-                    ),
-                    IconButton(
-                      icon: AppIcon(
-                        item.isArchived
-                            ? AppIcons.unarchive
-                            : AppIcons.checkCircle,
-                        size: 18,
-                        color: item.isArchived
-                            ? brand.warning
-                            : brand.success,
-                      ),
-                      tooltip: item.isArchived
-                          ? 'Move to Inbox'
-                          : 'Mark Done / Archive',
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () async {
-                        AppHaptics.success();
-                        await repo.setTriageStatus(
-                          item.id,
-                          item.isArchived ? 'inbox' : 'archived',
-                        );
-                        if (!item.isArchived) {
-                          final reward = await ref
-                              .read(dropGamificationProvider.notifier)
-                              .recordDropTriaged();
-                          if (context.mounted) {
-                            DropGamificationFeedback.show(context, reward);
-                          }
-                        }
-                      },
-                    ),
                   ],
                 ),
               ],
             ),
           ),
-        ),
+          const SizedBox(width: 10),
+          Tooltip(
+            message: item.isArchived ? 'Move to Inbox' : 'Mark Done / Archive',
+            child: GestureDetector(
+              onTap: () => _toggleArchive(context, ref),
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: item.isArchived ? brand.success : brand.surface,
+                  shape: BoxShape.circle,
+                  border: item.isArchived
+                      ? null
+                      : Border.all(color: brand.outlineIdle, width: 2),
+                ),
+                alignment: Alignment.center,
+                child: item.isArchived
+                    ? const AppIcon(
+                        AppIcons.check,
+                        size: 18,
+                        color: Colors.white,
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

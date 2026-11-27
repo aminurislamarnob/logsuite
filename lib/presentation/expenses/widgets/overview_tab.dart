@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/people/people_repository.dart';
 import '../../../core/settings/app_settings.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/brand.dart';
@@ -24,138 +24,304 @@ class OverviewTab extends ConsumerWidget {
     final currency = ref.watch(settingsProvider).currencySymbol;
     final recent = ref.watch(recentExpensesProvider);
     final overall = ref.watch(currentOverallBudgetProvider).valueOrNull;
+    final accounts = ref.watch(accountsProvider).valueOrNull ?? const [];
+    final recurring = ref.watch(recurringProvider).valueOrNull ?? const [];
+    final dueBill = recurring.where((b) {
+      final days = Fmt.dateOnly(
+        b.nextDueDate,
+      ).difference(Fmt.dateOnly(DateTime.now())).inDays;
+      return days <= 7;
+    }).firstOrNull;
 
     return ListView(
-      padding: pageInsets(context, top: 16, end: PageEnd.fab),
+      padding: pageInsets(context, top: 14, end: PageEnd.fab),
       children: [
-        const _SummaryCard(),
-        if (overall != null) ...[
-          const SizedBox(height: 20),
-          LabeledProgress(
-            label: 'Monthly budget',
-            trailing:
-                '${Fmt.money(overall.spent, currency)} / ${Fmt.money(overall.budget.amount, currency)}',
-            value: overall.fraction,
-            color: overall.alertTier >= 80
-                ? context.brand.warning
-                : context.brand.success,
-          ),
-        ],
-        const SizedBox(height: 24),
-        const SectionHeader('Recent transactions'),
+        _SummaryCard(overall: overall),
+        const SizedBox(height: 14),
+        _AccountsStrip(accounts: accounts, currency: currency),
+        const SizedBox(height: 18),
         recent.when(
-          data: (rows) => rows.isEmpty
-              ? const EmptyState(
+          data: (rows) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SectionHeader(
+                'Recent',
+                actionLabel: rows.isEmpty ? null : 'All ${rows.length}',
+                padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              ),
+              if (rows.isEmpty)
+                const EmptyState(
                   icon: AppIcons.bills,
                   title: 'No transactions yet',
                   message: 'Tap Add to record your first one.',
                 )
-              : Column(children: rows.map((e) => _TxTile(tx: e)).toList()),
-          loading: () => const Center(child: BrandSpinner()),
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.brand.surface,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: AppShadows.card(Theme.of(context).brightness),
+                  ),
+                  child: Column(
+                    children: [
+                      for (final (i, tx) in rows.indexed) ...[
+                        if (i > 0)
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: context.brand.hairline,
+                          ),
+                        _TxTile(tx: tx),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          loading: () => const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: BrandSpinner()),
+          ),
           error: (e, _) => Text('$e'),
         ),
+        if (dueBill != null) ...[
+          const SizedBox(height: 14),
+          _DueBillBanner(bill: dueBill, currency: currency),
+        ],
       ],
     );
   }
 }
 
-/// Balance, the month's in and out, and a way into the accounts — one card
-/// instead of a card and a row of tiles, so the transactions start above
-/// the fold.
+/// Ink hero card showing spent this month, optional budget pace bar, and
+/// three translucent sub-tiles (Income, Left to spend / Net, Per day).
 class _SummaryCard extends ConsumerWidget {
-  const _SummaryCard();
+  final BudgetProgress? overall;
+
+  const _SummaryCard({required this.overall});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currency = ref.watch(settingsProvider).currencySymbol;
-    final balance = ref.watch(totalBalanceProvider);
-    final accounts = ref.watch(accountsProvider).valueOrNull ?? const [];
-    final report = ref.watch(currentMonthReportProvider).valueOrNull;
-    final muted = Theme.of(context).colorScheme.outline;
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final isDark = theme.brightness == Brightness.dark;
+    final onHero = isDark ? brand.ink : brand.onInk;
 
+    final currency = ref.watch(settingsProvider).currencySymbol;
+    final report = ref.watch(currentMonthReportProvider).valueOrNull;
+    final spent = report?.expense ?? 0;
+
+    final now = DateTime.now();
+    final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
+    final dayFraction = (now.day / daysInMonth).clamp(0.0, 1.0);
+    final elapsedDays = now.day.clamp(1, daysInMonth);
+    final remainingDays = (daysInMonth - now.day + 1).clamp(1, daysInMonth);
+
+    final budget = overall;
     final change = report?.changeVsPrevious;
     final changeLabel = change == null
         ? null
-        : '${change >= 0 ? '+' : ''}${(change * 100).toStringAsFixed(0)}% vs last month';
+        : '${change >= 0 ? '+' : ''}${(change * 100).toStringAsFixed(0)}% vs last mo';
 
-    return TintCard(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+    final (String statusLabel, Color statusFg) = budget == null
+        ? ('', brand.successRoles.onInk)
+        : budget.fraction > 1.0
+        ? ('Over budget', brand.dangerRoles.onInk)
+        : (budget.alertTier >= 80 || budget.fraction > dayFraction + 0.15)
+        ? ('Watch pace', brand.warningRoles.onInk)
+        : ('On track', brand.successRoles.onInk);
+
+    final barColor = budget == null
+        ? brand.expenseRoles.onInk
+        : budget.alertTier >= 100
+        ? brand.dangerRoles.onInk
+        : budget.alertTier >= 80
+        ? brand.warningRoles.onInk
+        : brand.expenseRoles.onInk;
+
+    final middleLabel = budget != null ? 'Left to spend' : 'Net';
+    final middleValue = budget != null
+        ? Fmt.compactMoney(budget.remaining, currency)
+        : (report == null ? '—' : Fmt.compactMoney(report.net, currency));
+
+    final perDayValue = budget != null
+        ? Fmt.compactMoney(
+            budget.remaining > 0 ? budget.remaining / remainingDays : 0,
+            currency,
+          )
+        : (report == null
+              ? '—'
+              : Fmt.compactMoney(spent / elapsedDays, currency));
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+      decoration: BoxDecoration(
+        color: brand.heroSurface,
+        borderRadius: BorderRadius.circular(AppRadii.hero),
+        boxShadow: AppShadows.hero(theme.brightness),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                'Total balance',
-                style: TextStyle(fontSize: 13, color: muted),
-              ),
-              const Spacer(),
-              Text(
-                Fmt.money(balance, currency),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _Flow(
-                  icon: AppIcons.arrowDown,
-                  color: context.brand.success,
-                  label: 'In',
-                  value: report == null
-                      ? '—'
-                      : Fmt.compactMoney(report.income, currency),
-                ),
-              ),
-              Expanded(
-                child: _Flow(
-                  icon: AppIcons.arrowUp,
-                  color: context.brand.danger,
-                  label: 'Out',
-                  value: report == null
-                      ? '—'
-                      : Fmt.compactMoney(report.expense, currency),
-                  sublabel: changeLabel,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          BrandTile(
-            dense: true,
-            leading: SizedBox(
-              width: 24,
-              child: Wrap(
-                spacing: 2,
-                runSpacing: 2,
-                children: [
-                  for (final a in accounts.take(4))
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        color: Color(a.color),
-                        shape: BoxShape.circle,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'SPENT THIS MONTH',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: brand.expenseRoles.onInk,
+                        letterSpacing: 1.0,
                       ),
                     ),
+                    const SizedBox(height: 6),
+                    Text(
+                      Fmt.money(spent, currency),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        fontSize: 44,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -2.0,
+                        height: 1.0,
+                        color: onHero,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (budget != null)
+                Container(
+                  height: 28,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: statusFg.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: statusFg,
+                    ),
+                  ),
+                )
+              else if (changeLabel != null)
+                Container(
+                  height: 28,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    changeLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: brand.onInkMuted,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (budget != null) ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 16,
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  Container(
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  FractionallySizedBox(
+                    widthFactor: budget.fraction.clamp(0.0, 1.0),
+                    child: Container(
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: barColor,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment(dayFraction * 2 - 1, 0),
+                    child: Container(
+                      width: 2,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: onHero,
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            title: Text(
-              accounts.length == 1
-                  ? '1 account'
-                  : '${accounts.length} accounts',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${Fmt.percent(budget.fraction)} of ${Fmt.money(budget.budget.amount, currency)} budget',
+                  style: TextStyle(fontSize: 12, color: brand.onInkMuted),
+                ),
+                Text(
+                  'Day ${now.day} of $daysInMonth',
+                  style: TextStyle(fontSize: 12, color: brand.onInkMuted),
+                ),
+              ],
             ),
-            trailing: const AppIcon(AppIcons.chevronRight),
-            onTap: () => AccountsSheet.show(context),
+          ],
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _HeroSubTile(
+                  label: 'Income',
+                  value: report == null
+                      ? '—'
+                      : Fmt.compactMoney(report.income, currency),
+                  onHero: onHero,
+                  muted: brand.onInkMuted,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _HeroSubTile(
+                  label: middleLabel,
+                  value: middleValue,
+                  onHero: onHero,
+                  muted: brand.onInkMuted,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _HeroSubTile(
+                  label: 'Per day',
+                  value: perDayValue,
+                  onHero: onHero,
+                  muted: brand.onInkMuted,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -163,64 +329,242 @@ class _SummaryCard extends ConsumerWidget {
   }
 }
 
-/// One of the month's two figures inside the summary card.
-class _Flow extends StatelessWidget {
-  final HugeIconData icon;
-  final Color color;
+class _HeroSubTile extends StatelessWidget {
   final String label;
   final String value;
-  final String? sublabel;
+  final Color onHero;
+  final Color muted;
 
-  const _Flow({
-    required this.icon,
-    required this.color,
+  const _HeroSubTile({
     required this.label,
     required this.value,
-    this.sublabel,
+    required this.onHero,
+    required this.muted,
   });
 
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(context).colorScheme.outline;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 2),
-          padding: const EdgeInsets.all(5),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.14),
-            shape: BoxShape.circle,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(AppRadii.field),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11, color: muted),
           ),
-          child: AppIcon(icon, color: color, size: 12),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 2),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: onHero,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Horizontal row of white account mini-cards; tapping opens [AccountsSheet].
+class _AccountsStrip extends StatelessWidget {
+  final List<Account> accounts;
+  final String currency;
+
+  const _AccountsStrip({required this.accounts, required this.currency});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final muted = theme.colorScheme.outline;
+
+    if (accounts.isEmpty) {
+      return BrandTappable(
+        onPressed: () => AccountsSheet.show(context),
+        semanticsLabel: 'Accounts',
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: brand.surface,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: AppShadows.card(theme.brightness),
+          ),
+          child: Row(
             children: [
-              Text(
-                '$label this month',
-                style: TextStyle(fontSize: 11, color: muted),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+              AppIcon(AppIcons.expenses, size: 18, color: brand.ink),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Manage accounts',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: brand.ink,
+                  ),
                 ),
               ),
-              if (sublabel != null)
-                Text(
-                  sublabel!,
-                  style: TextStyle(fontSize: 10, color: muted),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              AppIcon(AppIcons.chevronRight, size: 18, color: muted),
             ],
           ),
         ),
-      ],
+      );
+    }
+
+    Widget buildCard(Account a) {
+      return BrandTappable(
+        onPressed: () => AccountsSheet.show(context),
+        semanticsLabel: '${a.name} ${Fmt.money(a.balance, currency)}',
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: brand.surface,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: AppShadows.card(theme.brightness),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                a.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: muted,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                Fmt.compactMoney(a.balance, currency),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: brand.ink,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (accounts.length <= 4) {
+      return Row(
+        children: [
+          for (final (i, a) in accounts.indexed) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Expanded(child: buildCard(a)),
+          ],
+        ],
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final (i, a) in accounts.indexed) ...[
+            if (i > 0) const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 86),
+              child: buildCard(a),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DueBillBanner extends ConsumerWidget {
+  final RecurringExpense bill;
+  final String currency;
+
+  const _DueBillBanner({required this.bill, required this.currency});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final brand = context.brand;
+    final roles = brand.warningRoles;
+    final repo = ref.read(expenseRepositoryProvider);
+    final reminders = ref.read(expenseRemindersProvider);
+
+    final days = Fmt.dateOnly(
+      bill.nextDueDate,
+    ).difference(Fmt.dateOnly(DateTime.now())).inDays;
+    final dueLabel = days < 0
+        ? 'overdue'
+        : days == 0
+        ? 'due today'
+        : days == 1
+        ? 'due tomorrow'
+        : 'due in $days days';
+
+    return BrandTappable(
+      onPressed: () async {
+        final next = await repo.payRecurring(bill);
+        await reminders.syncBill(next);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: roles.tintFill,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            AppIcon(AppIcons.bills, size: 20, color: roles.textOnTint),
+            const SizedBox(width: 12),
+            Expanded(
+              child: RichText(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: brand.ink,
+                  ),
+                  children: [
+                    TextSpan(text: '${bill.name} $dueLabel '),
+                    TextSpan(
+                      text: '· ${Fmt.money(bill.amount, currency)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: roles.textOnTint,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Pay',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: roles.textOnTint,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -231,6 +575,7 @@ class _TxTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final brand = context.brand;
     final currency = ref.watch(settingsProvider).currencySymbol;
     final categories = ref.watch(categoriesProvider).valueOrNull ?? const [];
     final accounts = ref.watch(allAccountsProvider).valueOrNull ?? const [];
@@ -250,22 +595,23 @@ class _TxTile extends ConsumerWidget {
     };
     final isLoan = TxKind.isLoan(tx.kind);
 
-    final color = switch (tx.kind) {
-      TxKind.income => context.brand.success,
-      TxKind.transfer => Theme.of(context).colorScheme.primary,
-      _ when isLoan => Theme.of(context).colorScheme.primary,
-      _ => Color(cat?.color ?? 0xFF6C6C6C),
+    final roles = switch (tx.kind) {
+      TxKind.income => brand.habitRoles,
+      TxKind.transfer => brand.taskRoles,
+      _ when isLoan => brand.taskRoles,
+      _ => brand.expenseRoles,
     };
     final icon = switch (tx.kind) {
-      TxKind.income => AppIcons.arrowDown,
+      TxKind.income => AppIcons.arrowUp,
       TxKind.transfer => AppIcons.transfer,
       TxKind.lend => AppIcons.arrowUp,
       TxKind.borrow => AppIcons.arrowDown,
       TxKind.repayment => inbound ? AppIcons.arrowDown : AppIcons.arrowUp,
       _ => AppIcons.category(cat?.icon ?? 'other'),
     };
-    final sign = tx.kind == TxKind.transfer ? '' : (inbound ? '+' : '-');
+    final sign = tx.kind == TxKind.transfer ? '' : (inbound ? '+ ' : '− ');
     final fallbackTitle = switch (tx.kind) {
+      TxKind.income => cat?.name ?? 'Income',
       TxKind.transfer => 'Transfer',
       TxKind.lend => 'Lent',
       TxKind.borrow => 'Borrowed',
@@ -273,68 +619,87 @@ class _TxTile extends ConsumerWidget {
       _ => cat?.name ?? 'Expense',
     };
 
-    // A loan's principal is the loan; removing it here would leave the loan
-    // with no money behind it, so that lives in the Loans tab. Repayments can
-    // still be swiped away — the loan reopens itself — but neither can be
-    // edited here, since the sheet only knows how to write the three ordinary
-    // kinds and would turn a repayment into an expense still tied to a loan.
+    final subtitleParts = <String>[
+      if (cat != null && !isLoan && tx.kind != TxKind.transfer) cat.name,
+      if (account != null) account.name,
+      Fmt.relativeDay(tx.date),
+      if (person != null && !person.isSelf) person.name,
+    ];
+
     final isLoanPrincipal = TxKind.isLoanPrincipal(tx.kind);
     final isLoanRow = tx.loanId != null;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Dismissible(
-        key: ValueKey('tx-${tx.id}'),
-        direction: isLoanPrincipal
-            ? DismissDirection.none
-            : DismissDirection.endToStart,
-        background: Container(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 20),
-          decoration: BoxDecoration(
-            color: context.brand.danger,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: AppIcon(
-            AppIcons.delete,
-            color: context.brand.onAccent(context.brand.danger),
-          ),
+    return Dismissible(
+      key: ValueKey('tx-${tx.id}'),
+      direction: isLoanPrincipal
+          ? DismissDirection.none
+          : DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: brand.danger,
+          borderRadius: BorderRadius.circular(16),
         ),
-        onDismissed: (_) {
-          AppHaptics.heavy();
-          _delete(context, ref);
-        },
-        child: BrandTile(
-          dense: true,
-          onTap: isLoanRow ? null : () => ExpenseEntrySheet.edit(context, tx),
-          leading: Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.14),
-              shape: BoxShape.circle,
-            ),
-            child: AppIcon(icon, color: color, size: 18),
-          ),
-          // A loan row's note is the loan's own, so the row says what it is
-          // and leaves the note to the Loans tab.
-          title: Text(
-            tx.note?.isNotEmpty == true && !isLoan ? tx.note! : fallbackTitle,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          ),
-          subtitle: Text(
-            '${Fmt.relativeDay(tx.date)}'
-            '${account == null ? '' : ' · ${account.name}'}'
-            // Self is the default, so saying so on every row is noise.
-            '${person == null || person.isSelf ? '' : ' · ${person.name}'}',
-            style: TextStyle(fontSize: 11, color: muted),
-          ),
-          trailing: Text(
-            '$sign${Fmt.money(tx.amount, currency)}',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-              color: inbound ? context.brand.success : null,
-            ),
+        child: AppIcon(AppIcons.delete, color: brand.onAccent(brand.danger)),
+      ),
+      onDismissed: (_) {
+        AppHaptics.heavy();
+        _delete(context, ref);
+      },
+      child: BrandTappable(
+        onPressed: isLoanRow ? null : () => ExpenseEntrySheet.edit(context, tx),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: roles.tintFill,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: AppIcon(icon, color: roles.graphicOnTint, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tx.note?.isNotEmpty == true && !isLoan
+                          ? tx.note!
+                          : fallbackTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: brand.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitleParts.join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: muted),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '$sign${Fmt.money(tx.amount, currency)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: inbound ? brand.successRoles.textOnTint : brand.ink,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -348,8 +713,6 @@ class _TxTile extends ConsumerWidget {
     final reminders = ref.read(expenseRemindersProvider);
     final deleted = await repo.deleteTransaction(tx.id);
     if (deleted == null) return;
-    // Removing a repayment can reopen its loan, and removing the principal
-    // takes the loan with it; either way the reminder follows the row.
     final loanId = deleted.loanId;
     if (loanId != null) await reminders.syncLoan(loanId);
     if (!context.mounted) return;

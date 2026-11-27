@@ -461,9 +461,7 @@ class _InAppBrowserScreenState extends State<InAppBrowserScreen> {
                 const SizedBox(height: 2.5),
 
               // Main WebView or Error/Fallback View
-              Expanded(
-                child: _buildBody(context, brand),
-              ),
+              Expanded(child: _buildBody(context, brand)),
 
               // Bottom navigation & action bar (like Facebook / LinkedIn in-app browser)
               Container(
@@ -566,9 +564,9 @@ class _InAppBrowserScreenState extends State<InAppBrowserScreen> {
               const SizedBox(height: 16),
               Text(
                 'Unable to load page',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
               Text(
@@ -615,9 +613,9 @@ class _InAppBrowserScreenState extends State<InAppBrowserScreen> {
               Text(
                 _displayTitle,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
               Text(

@@ -57,8 +57,9 @@ FThemeData brandForuiThemeFrom(BrandTokens t, {bool haptics = true}) {
   final colors = _colors(t);
   var typography = _typography(t);
   var sizes = FSizes.inherit(touch: true);
-  final hapticFeedback =
-      haptics ? const FHapticFeedback() : const FHapticFeedback.none();
+  final hapticFeedback = haptics
+      ? const FHapticFeedback()
+      : const FHapticFeedback.none();
 
   // Material expresses density as VisualDensity.compact, which forui has no
   // equivalent for. VisualDensity.compact trims 8px off a 48px target, so the
@@ -175,16 +176,14 @@ FTabsStyle _tabsStyle(
   FStyle style,
   BrandTokens t,
 ) => FTabsStyle(
-  decoration: const BoxDecoration(),
-  // The first pill starts where the page content does.
-  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
-  // `.label` would shrink-wrap the text — forui's `_Tab` centres the label with
-  // `widthFactor: 1`, so there is no padding hook to widen it. `.tab` fills the
-  // tab's equal share of the strip instead, and only one is ever selected so
-  // pills never abut.
+  decoration: BoxDecoration(
+    color: t.brand.well,
+    borderRadius: BorderRadius.circular(999),
+  ),
+  padding: const EdgeInsets.all(4),
   indicatorSize: FTabBarIndicatorSize.tab,
   indicatorDecoration: ShapeDecoration(
-    color: t.primary,
+    color: t.brand.ink,
     shape: const StadiumBorder(),
   ),
   labelTextStyle: FVariants.from(
@@ -193,7 +192,7 @@ FTabsStyle _tabsStyle(
       color: colors.mutedForeground,
     ),
     variants: {
-      const [FTabVariant.selected]: TextStyleDelta.delta(color: t.onPrimary),
+      const [FTabVariant.selected]: TextStyleDelta.delta(color: t.brand.onInk),
     },
   ),
   focusedOutlineStyle: style.focusedOutlineStyle,
@@ -275,11 +274,12 @@ FTypography _typography(BrandTokens t) {
     letterSpacing: tracking,
   );
 
-  // Tighter tracking the larger the type, mirroring app_theme.dart's -1 → -0.4.
+  // Tighter tracking the larger the type, matching the redesign type scale.
   double tracking(double size) => switch (size) {
-    >= 48 => -1,
-    >= 36 => -0.8,
-    >= 30 => -0.6,
+    >= 60 => -3,
+    >= 48 => -2,
+    >= 36 => -1,
+    >= 30 => -0.9,
     >= 22 => -0.5,
     >= 18 => -0.4,
     _ => -0.2,
@@ -312,44 +312,44 @@ FTypography _typography(BrandTokens t) {
     xl2: s(
       30,
       2.25,
-      weight: heading ? FontWeight.w700 : null,
+      weight: heading ? FontWeight.w800 : null,
       tracking: heading ? tracking(30) : null,
     ),
     xl3: s(
       36,
       2.5,
-      weight: heading ? FontWeight.w700 : null,
+      weight: heading ? FontWeight.w800 : null,
       tracking: heading ? tracking(36) : null,
     ),
     xl4: s(
       48,
       1,
-      weight: heading ? FontWeight.w700 : null,
+      weight: heading ? FontWeight.w800 : null,
       tracking: heading ? tracking(48) : null,
     ),
     xl5: s(
       60,
       1,
-      weight: heading ? FontWeight.w700 : null,
+      weight: heading ? FontWeight.w800 : null,
       tracking: heading ? tracking(60) : null,
     ),
     xl6: s(
       72,
       1,
-      weight: heading ? FontWeight.w700 : null,
-      tracking: heading ? -1 : null,
+      weight: heading ? FontWeight.w800 : null,
+      tracking: heading ? -3 : null,
     ),
     xl7: s(
       96,
       1,
-      weight: heading ? FontWeight.w700 : null,
-      tracking: heading ? -1 : null,
+      weight: heading ? FontWeight.w800 : null,
+      tracking: heading ? -3 : null,
     ),
     xl8: s(
       108,
       1,
-      weight: heading ? FontWeight.w700 : null,
-      tracking: heading ? -1 : null,
+      weight: heading ? FontWeight.w800 : null,
+      tracking: heading ? -3 : null,
     ),
   );
 

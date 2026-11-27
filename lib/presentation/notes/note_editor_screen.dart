@@ -9,13 +9,15 @@ import '../../core/database/app_database.dart';
 import '../../core/services/export_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/security_service.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_icons.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import '../../core/widgets/in_app_browser.dart';
 import '../tasks/repository/task_repository.dart';
+import 'providers/notes_provider.dart';
 import 'repository/note_repository.dart';
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
@@ -36,6 +38,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   bool _unlocked = false;
   bool _listening = false;
   bool _dirty = false;
+  bool _isPinned = false;
+  bool _isLocked = false;
   List<String> _tags = [];
   int? _folderId;
   DateTime? _reminderAt;
@@ -56,6 +60,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         _titleController.text = _note!.title;
         _folderId = _note!.folderId;
         _reminderAt = _note!.reminderAt;
+        _isPinned = _note!.isPinned;
+        _isLocked = _note!.isLocked;
         _tags = (await repo.tagsForNote(_note!.id)).map((t) => t.name).toList();
         document = _parseDelta(_note!.content);
         _unlocked = !_note!.isLocked;
@@ -72,7 +78,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           document: document,
           selection: const TextSelection.collapsed(offset: 0),
         )..addListener(() {
-          if (!_dirty && mounted) setState(() => _dirty = true);
+          if (mounted) setState(() => _dirty = true);
         });
 
     if (mounted) setState(() => _loading = false);
@@ -115,7 +121,6 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       if (pinOk) {
         setState(() => _unlocked = true);
       }
-      // A cancelled prompt leaves the locked placeholder up for a retry.
       return;
     }
 
@@ -134,6 +139,33 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   String get _contentJson =>
       jsonEncode(_controller!.document.toDelta().toJson());
 
+  List<String> _uncheckedItems() {
+    if (_controller == null) return const [];
+    final ops = _controller!.document.toDelta().toJson();
+    final items = <String>[];
+    final buffer = StringBuffer();
+
+    for (final op in ops) {
+      final insert = op['insert'];
+      if (insert is! String) continue;
+      final attrs = op['attributes'] as Map?;
+
+      for (var i = 0; i < insert.length; i++) {
+        final ch = insert[i];
+        if (ch == '\n') {
+          if (attrs != null && attrs['list'] == 'unchecked') {
+            final text = buffer.toString().trim();
+            if (text.isNotEmpty) items.add(text);
+          }
+          buffer.clear();
+        } else {
+          buffer.write(ch);
+        }
+      }
+    }
+    return items;
+  }
+
   Future<void> _save({bool pop = true}) async {
     final repo = ref.read(noteRepositoryProvider);
     final title = _titleController.text.trim().isEmpty
@@ -147,6 +179,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         contentJson: _contentJson,
         folderId: _folderId,
       );
+      await repo.updateNote(
+        id,
+        isPinned: _isPinned,
+        isLocked: _isLocked,
+        reminderAt: _reminderAt,
+      );
       _note = await repo.getNote(id);
     } else {
       id = _note!.id;
@@ -156,6 +194,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         contentJson: _contentJson,
         folderId: _folderId,
         clearFolder: _folderId == null,
+        isPinned: _isPinned,
+        isLocked: _isLocked,
         reminderAt: _reminderAt,
         clearReminder: _reminderAt == null,
       );
@@ -178,34 +218,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   }
 
   /// Pulls unchecked checklist lines out of the note and creates tasks.
-  ///
-  /// Quill stores list formatting on the newline op that *terminates* a line,
-  /// so the text of the item is whatever preceded that newline.
   Future<void> _convertChecklistToTasks() async {
-    final ops = _controller!.document.toDelta().toJson();
-    final items = <String>[];
-    final buffer = StringBuffer();
-
-    for (final op in ops) {
-      final insert = op['insert'];
-      if (insert is! String) continue;
-      final attrs = op['attributes'] as Map?;
-
-      for (var i = 0; i < insert.length; i++) {
-        final ch = insert[i];
-        if (ch == '\n') {
-          // A newline carrying an `unchecked` list attribute closes a to-do.
-          if (attrs != null && attrs['list'] == 'unchecked') {
-            final text = buffer.toString().trim();
-            if (text.isNotEmpty) items.add(text);
-          }
-          buffer.clear();
-        } else {
-          buffer.write(ch);
-        }
-      }
-    }
-
+    final items = _uncheckedItems();
     if (items.isEmpty) {
       _toast('No unchecked checklist items found in this note.');
       return;
@@ -253,14 +267,37 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     brandToast(context, message);
   }
 
+  void _toggleInlineAttribute(quill.Attribute attr) {
+    final controller = _controller;
+    if (controller == null) return;
+    AppHaptics.selection();
+    final isApplied = controller.getSelectionStyle().attributes.containsKey(
+      attr.key,
+    );
+    controller.formatSelection(
+      isApplied ? quill.Attribute.clone(attr, null) : attr,
+    );
+  }
+
+  void _toggleBlockAttribute(quill.Attribute attr) {
+    final controller = _controller;
+    if (controller == null) return;
+    AppHaptics.selection();
+    final current = controller.getSelectionStyle().attributes[attr.key];
+    final isSame = current?.value == attr.value;
+    controller.formatSelection(
+      isSame ? quill.Attribute.clone(attr, null) : attr,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading || _controller == null) {
-      return BrandScaffold(child: Center(child: BrandSpinner()));
+      return const BrandScaffold(child: Center(child: BrandSpinner()));
     }
     if (_note?.isLocked == true && !_unlocked) {
       return BrandScaffold(
-        header: BrandTopBar(title: '', leadingIcon: AppIcons.back),
+        header: const BrandTopBar(title: '', leadingIcon: AppIcons.back),
         child: EmptyState(
           icon: AppIcons.lock,
           title: 'Note locked',
@@ -271,6 +308,15 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       );
     }
 
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final folders = ref.watch(foldersProvider).valueOrNull ?? const [];
+    final folderName = folders
+        .where((f) => f.id == _folderId)
+        .firstOrNull
+        ?.name;
+    final uncheckedCount = _uncheckedItems().length;
+
     return PopScope(
       canPop: !_dirty,
       onPopInvokedWithResult: (didPop, _) async {
@@ -278,108 +324,491 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         await _save();
       },
       child: BrandScaffold(
-        header: BrandTopBar(
-          title: _note == null ? 'New note' : 'Edit note',
-          leadingIcon: AppIcons.back,
-          actions: [
-            CircleIconButton(
-              icon: _listening ? AppIcons.micOff : AppIcons.mic,
-              tooltip: _listening ? 'Stop dictation' : 'Dictate',
-              color: _listening ? context.brand.danger : null,
-              size: 40,
-              onPressed: _toggleDictation,
+        header: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.gutter,
+              8,
+              AppSpacing.gutter,
+              8,
             ),
-            CircleIconButton(
-              icon: AppIcons.moreVertical,
-              tooltip: 'More',
-              size: 40,
-              onPressed: _showMoreSheet,
-            ),
-            CircleIconButton(
-              icon: AppIcons.check,
-              tooltip: 'Save',
-              size: 40,
-              onPressed: _save,
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.gutter,
-                8,
-                AppSpacing.gutter,
-                0,
-              ),
-              child: BrandField(
-                controller: _titleController,
-                hint: 'Title',
-                bare: true,
-                onChanged: (_) => _dirty = true,
-                textStyle: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
+            child: Row(
+              children: [
+                CircleIconButton(
+                  icon: AppIcons.back,
+                  tooltip: 'Back',
+                  size: 44,
+                  onPressed: () async {
+                    if (_dirty) {
+                      await _save();
+                    } else {
+                      Navigator.of(context).maybePop();
+                    }
+                  },
                 ),
-              ),
-            ),
-            if (_tags.isNotEmpty || _reminderAt != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.gutter,
-                  4,
-                  AppSpacing.gutter,
-                  0,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _note == null
+                        ? 'New note'
+                        : _dirty
+                        ? 'Unsaved'
+                        : 'Saved · ${Fmt.relativeDay(_note!.updatedAt)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, color: context.muted),
+                  ),
                 ),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: [
-                    if (_reminderAt != null)
-                      BrandChip(
-                        icon: AppIcons.alarm,
-                        label: Fmt.due(_reminderAt!, withTime: true),
-                        onRemove: () => setState(() => _reminderAt = null),
+                const SizedBox(width: 8),
+                BrandTooltip(
+                  message: _isLocked ? 'Unlock note' : 'Lock note',
+                  child: BrandTappable(
+                    onPressed: () {
+                      AppHaptics.selection();
+                      setState(() {
+                        _isLocked = !_isLocked;
+                        _dirty = true;
+                      });
+                    },
+                    semanticsLabel: _isLocked ? 'Unlock note' : 'Lock note',
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: _isLocked
+                            ? brand.noteRoles.tintFill
+                            : brand.surface,
+                        shape: BoxShape.circle,
+                        boxShadow: AppShadows.circleButton(theme.brightness),
                       ),
-                    ..._tags.map(
-                      (t) => BrandChip(
-                        label: '#$t',
-                        onRemove: () => setState(() => _tags.remove(t)),
+                      alignment: Alignment.center,
+                      child: AppIcon(
+                        _isLocked ? AppIcons.lock : AppIcons.unlock,
+                        size: 18,
+                        color: _isLocked
+                            ? brand.noteRoles.graphicOnTint
+                            : brand.ink,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                BrandTooltip(
+                  message: _isPinned ? 'Unpin' : 'Pin note',
+                  child: BrandTappable(
+                    onPressed: () {
+                      AppHaptics.selection();
+                      setState(() {
+                        _isPinned = !_isPinned;
+                        _dirty = true;
+                      });
+                    },
+                    semanticsLabel: _isPinned ? 'Unpin' : 'Pin note',
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: _isPinned
+                            ? brand.noteRoles.tintFill
+                            : brand.surface,
+                        shape: BoxShape.circle,
+                        boxShadow: AppShadows.circleButton(theme.brightness),
+                      ),
+                      alignment: Alignment.center,
+                      child: AppIcon(
+                        AppIcons.pin,
+                        size: 18,
+                        color: _isPinned
+                            ? brand.noteRoles.graphicOnTint
+                            : brand.ink,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                CircleIconButton(
+                  icon: AppIcons.moreHorizontal,
+                  tooltip: 'More',
+                  size: 44,
+                  onPressed: _showMoreSheet,
+                ),
+                const SizedBox(width: 8),
+                CircleIconButton(
+                  icon: AppIcons.check,
+                  tooltip: 'Save',
+                  size: 44,
+                  filled: true,
+                  color: brand.ink,
+                  onPressed: _save,
+                ),
+              ],
+            ),
+          ),
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.gutter,
+                    4,
+                    AppSpacing.gutter,
+                    0,
+                  ),
+                  child: BrandField(
+                    controller: _titleController,
+                    hint: 'Title',
+                    bare: true,
+                    onChanged: (_) => _dirty = true,
+                    textStyle: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1.0,
+                      color: brand.ink,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.gutter,
+                    4,
+                    AppSpacing.gutter,
+                    10,
+                  ),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      if (folderName != null)
+                        BrandTappable(
+                          onPressed: _pickFolder,
+                          child: Container(
+                            height: 36,
+                            padding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
+                            decoration: ShapeDecoration(
+                              color: brand.noteRoles.tintFill,
+                              shape: const StadiumBorder(),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AppIcon(
+                                  AppIcons.folder,
+                                  size: 15,
+                                  color: brand.noteRoles.textOnTint,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  folderName,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: brand.noteRoles.textOnTint,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      for (final t in _tags)
+                        BrandTappable(
+                          onPressed: _editTags,
+                          child: Container(
+                            height: 36,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: ShapeDecoration(
+                              color: brand.surface,
+                              shape: const StadiumBorder(),
+                              shadows: AppShadows.circleButton(
+                                theme.brightness,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '#$t',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: brand.ink,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (_reminderAt != null)
+                        BrandTappable(
+                          onPressed: _pickReminder,
+                          child: Container(
+                            height: 36,
+                            padding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
+                            decoration: ShapeDecoration(
+                              color: brand.surface,
+                              shape: const StadiumBorder(),
+                              shadows: AppShadows.circleButton(
+                                theme.brightness,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AppIcon(
+                                  AppIcons.notifications,
+                                  size: 15,
+                                  color: brand.ink,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  Fmt.due(_reminderAt!, withTime: true),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: brand.ink,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      BrandTappable(
+                        onPressed: _editTags,
+                        child: Container(
+                          height: 36,
+                          padding: const EdgeInsets.fromLTRB(8, 0, 12, 0),
+                          decoration: ShapeDecoration(
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: brand.outlineIdle,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppIcon(
+                                AppIcons.add,
+                                size: 14,
+                                color: context.muted,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Tag',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: context.muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (uncheckedCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.gutter,
+                      0,
+                      AppSpacing.gutter,
+                      10,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: BrandTappable(
+                        onPressed: _convertChecklistToTasks,
+                        child: Container(
+                          height: 40,
+                          padding: const EdgeInsets.fromLTRB(12, 0, 16, 0),
+                          decoration: ShapeDecoration(
+                            color: brand.taskRoles.tintFill,
+                            shape: const StadiumBorder(),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppIcon(
+                                AppIcons.tasks,
+                                size: 18,
+                                color: brand.taskRoles.textOnTint,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Convert $uncheckedCount ${uncheckedCount == 1 ? 'item' : 'items'} to tasks',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: brand.taskRoles.textOnTint,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: quill.QuillEditor.basic(
+                    controller: _controller!,
+                    focusNode: _editorFocus,
+                    config: quill.QuillEditorConfig(
+                      placeholder: 'Keep writing…',
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.gutter,
+                        12,
+                        AppSpacing.gutter,
+                        110,
+                      ),
+                      expands: true,
+                      onLaunchUrl: (url) =>
+                          InAppBrowserScreen.open(context, url),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // Bottom floating dark toolbar pill (28-note-editor.html)
+            Positioned(
+              left: AppSpacing.gutter,
+              right: AppSpacing.gutter,
+              bottom: 16 + MediaQuery.paddingOf(context).bottom,
+              child: Container(
+                height: 62,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: ShapeDecoration(
+                  color: brand.heroSurface,
+                  shape: const StadiumBorder(),
+                  shadows: AppShadows.navBar(theme.brightness),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _ToolbarButton(
+                      tooltip: 'Bold',
+                      active: _controller!
+                          .getSelectionStyle()
+                          .attributes
+                          .containsKey(quill.Attribute.bold.key),
+                      onPressed: () =>
+                          _toggleInlineAttribute(quill.Attribute.bold),
+                      child: const Text(
+                        'B',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    _ToolbarButton(
+                      tooltip: 'Italic',
+                      active: _controller!
+                          .getSelectionStyle()
+                          .attributes
+                          .containsKey(quill.Attribute.italic.key),
+                      onPressed: () =>
+                          _toggleInlineAttribute(quill.Attribute.italic),
+                      child: const Text(
+                        'I',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                    _ToolbarButton(
+                      tooltip: 'Heading',
+                      active: _controller!
+                          .getSelectionStyle()
+                          .attributes
+                          .containsKey(quill.Attribute.header.key),
+                      onPressed: () =>
+                          _toggleBlockAttribute(quill.Attribute.h2),
+                      child: const Text(
+                        'H',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    _ToolbarButton(
+                      tooltip: 'Checklist',
+                      active:
+                          _controller!
+                                  .getSelectionStyle()
+                                  .attributes[quill.Attribute.list.key]
+                                  ?.value ==
+                              'unchecked' ||
+                          _controller!
+                                  .getSelectionStyle()
+                                  .attributes[quill.Attribute.list.key]
+                                  ?.value ==
+                              'checked',
+                      onPressed: () =>
+                          _toggleBlockAttribute(quill.Attribute.unchecked),
+                      child: const AppIcon(
+                        AppIcons.checklist,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    _ToolbarButton(
+                      tooltip: 'Bullet list',
+                      active:
+                          _controller!
+                              .getSelectionStyle()
+                              .attributes[quill.Attribute.list.key]
+                              ?.value ==
+                          'bullet',
+                      onPressed: () =>
+                          _toggleBlockAttribute(quill.Attribute.ul),
+                      child: const AppIcon(
+                        AppIcons.compact,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 24,
+                      color: Colors.white.withValues(alpha: 0.18),
+                    ),
+                    BrandTooltip(
+                      message: _listening ? 'Stop dictation' : 'Dictate',
+                      child: BrandTappable(
+                        onPressed: _toggleDictation,
+                        semanticsLabel: _listening
+                            ? 'Stop dictation'
+                            : 'Dictate',
+                        child: Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: _listening ? brand.danger : Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: AppIcon(
+                            _listening ? AppIcons.micOff : AppIcons.mic,
+                            size: 20,
+                            color: _listening ? Colors.white : brand.inkDeep,
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-            BrandDivider(),
-            quill.QuillSimpleToolbar(
-              controller: _controller!,
-              config: const quill.QuillSimpleToolbarConfig(
-                multiRowsDisplay: false,
-                showFontFamily: false,
-                showFontSize: false,
-                showSearchButton: false,
-                showSubscript: false,
-                showSuperscript: false,
-                showAlignmentButtons: true,
-                showCodeBlock: true,
-                showInlineCode: true,
-                showListCheck: true,
-                showQuote: true,
-                showIndent: true,
-                showDividers: true,
-                showLink: true,
-              ),
-            ),
-            BrandDivider(),
-            Expanded(
-              child: quill.QuillEditor.basic(
-                controller: _controller!,
-                focusNode: _editorFocus,
-                config: quill.QuillEditorConfig(
-                  placeholder: 'Start writing…',
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                  expands: true,
-                  onLaunchUrl: (url) => InAppBrowserScreen.open(context, url),
                 ),
               ),
             ),
@@ -424,7 +853,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                 _pickReminder();
               },
             ),
-            BrandDivider(),
+            const BrandDivider(),
             BrandTile(
               leading: const AppIcon(AppIcons.checklist),
               title: const Text('Convert checklist to tasks'),
@@ -561,5 +990,42 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       );
       _dirty = true;
     });
+  }
+}
+
+class _ToolbarButton extends StatelessWidget {
+  final String tooltip;
+  final bool active;
+  final VoidCallback onPressed;
+  final Widget child;
+
+  const _ToolbarButton({
+    required this.tooltip,
+    required this.active,
+    required this.onPressed,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BrandTooltip(
+      message: tooltip,
+      child: BrandTappable(
+        onPressed: onPressed,
+        semanticsLabel: tooltip,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: active
+                ? Colors.white.withValues(alpha: 0.14)
+                : Colors.transparent,
+            shape: BoxShape.circle,
+          ),
+          alignment: Alignment.center,
+          child: child,
+        ),
+      ),
+    );
   }
 }

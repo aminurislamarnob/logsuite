@@ -383,6 +383,16 @@ void main() {
       for (final c in [
         mid.hairline,
         mid.canvas,
+        mid.surface,
+        mid.ink,
+        mid.inkDeep,
+        mid.subtle,
+        mid.onInk,
+        mid.onInkMuted,
+        mid.heroSurface,
+        mid.track,
+        mid.well,
+        mid.outlineIdle,
         mid.success,
         mid.warning,
         mid.danger,
@@ -392,9 +402,12 @@ void main() {
         mid.task,
         mid.expense,
         mid.focus,
+        mid.drop,
       ]) {
         expect(c, Colors.white);
       }
+      expect(mid.medicineRoles.textOnTint, Colors.white);
+      expect(mid.dangerRoles.tintFill, Colors.white);
     });
 
     // Building a theme resolves the Google font, which needs a live binding —
@@ -691,7 +704,7 @@ void main() {
           .widgetList<TextField>(find.byType(TextField))
           .toList();
       expect(fields, hasLength(2));
-      expect(fields.first.decoration!.fillColor, AppColors.tintPeach);
+      expect(fields.first.decoration!.fillColor, AppColors.surfaceLight);
       expect(fields.last.decoration!.fillColor, Colors.transparent);
       // forui resolves the border into a WidgetStateInputBorder; resolve it back
       // to the concrete border to confirm the bare field carries none.
@@ -765,18 +778,47 @@ void _noop() {}
 /// A [BrandColors] with every slot set to [c], for the structural tests above.
 /// Naming each field rather than spreading a default keeps the analyzer honest:
 /// a new slot breaks this helper, which is the reminder to cover it.
-BrandColors _brandOf(Color c, {List<Color>? tints}) => BrandColors(
-  tints: tints ?? [c, c, c],
-  hairline: c,
-  canvas: c,
-  success: c,
-  warning: c,
-  danger: c,
-  note: c,
-  medicine: c,
-  habit: c,
-  task: c,
-  expense: c,
-  focus: c,
-  drop: c,
-);
+BrandColors _brandOf(Color c, {List<Color>? tints}) {
+  final roles = ModuleColors(
+    accent: c,
+    graphicOnTint: c,
+    textOnTint: c,
+    tintFill: c,
+    onInk: c,
+  );
+  return BrandColors(
+    tints: tints ?? [c, c, c],
+    hairline: c,
+    canvas: c,
+    surface: c,
+    ink: c,
+    inkDeep: c,
+    subtle: c,
+    onInk: c,
+    onInkMuted: c,
+    heroSurface: c,
+    track: c,
+    well: c,
+    outlineIdle: c,
+    success: c,
+    warning: c,
+    danger: c,
+    note: c,
+    medicine: c,
+    habit: c,
+    task: c,
+    expense: c,
+    focus: c,
+    drop: c,
+    medicineRoles: roles,
+    taskRoles: roles,
+    habitRoles: roles,
+    expenseRoles: roles,
+    focusRoles: roles,
+    noteRoles: roles,
+    dropRoles: roles,
+    successRoles: roles,
+    warningRoles: roles,
+    dangerRoles: roles,
+  );
+}

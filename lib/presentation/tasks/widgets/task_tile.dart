@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/services/notification_service.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/brand.dart';
@@ -49,7 +49,7 @@ Widget _slideAction({
         Text(
           label,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: foreground),
+          style: const TextStyle(color: foreground),
         ),
       ],
     ),
@@ -72,19 +72,36 @@ class TaskTile extends ConsumerWidget {
   final bool showDue;
   final bool dense;
 
+  /// When true, renders as a flush row inside a grouped surface (e.g. Calendar
+  /// day card) rather than an independent shadowed card.
+  final bool inGroup;
+
+  /// Whether to draw a bottom hairline divider when [inGroup] is true.
+  final bool showDivider;
+
   const TaskTile({
     super.key,
     required this.task,
     this.showDue = true,
     this.dense = false,
+    this.inGroup = false,
+    this.showDivider = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repo = ref.read(taskRepositoryProvider);
-    final muted = Theme.of(context).colorScheme.outline;
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final muted = theme.colorScheme.outline;
     final subtasks =
-        ref.watch(subtasksProvider(task.id)).valueOrNull ?? const [];
+        ref.watch(subtasksProvider(task.id)).valueOrNull ?? const <Task>[];
+    final projects =
+        ref.watch(projectsProvider).valueOrNull ?? const <Project>[];
+    final project = task.projectId == null
+        ? null
+        : projects.where((p) => p.id == task.projectId).firstOrNull;
+
     // A task due at 5pm is late at 5:01. One due 'today' with no time is
     // late tomorrow — comparing its midnight against now made every all-day
     // task light up red from the first minute of its own due date.
@@ -97,6 +114,100 @@ class TaskTile extends ConsumerWidget {
             ? due.isBefore(now)
             : Fmt.dateOnly(due).isBefore(Fmt.dateOnly(now)));
 
+    final ringColor = task.isCompleted
+        ? null
+        : (overdue
+              ? brand.danger
+              : (task.priority <= 3
+                    ? priorityColor(brand, muted, task.priority)
+                    : null));
+
+    final subtitle = _buildSubtitle(
+      context: context,
+      brand: brand,
+      muted: muted,
+      overdue: overdue,
+      subtasks: subtasks,
+      projectName: project?.name,
+    );
+
+    final trailing = _buildTrailing(
+      context: context,
+      brand: brand,
+      muted: muted,
+      project: project,
+    );
+
+    final rowContent = Row(
+      children: [
+        BrandCheckbox(
+          value: task.isCompleted,
+          color: ringColor,
+          semanticsLabel: 'Complete ${task.title}',
+          onChanged: (v) async {
+            final spawned = await repo.setCompleted(task.id, v);
+            if (spawned != null && context.mounted) {
+              brandToast(context, 'Next occurrence scheduled');
+            }
+          },
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                task.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: (dense || inGroup) ? 15 : 16,
+                  fontWeight: FontWeight.w600,
+                  decoration: task.isCompleted
+                      ? TextDecoration.lineThrough
+                      : null,
+                  color: task.isCompleted ? brand.subtle : brand.ink,
+                ),
+              ),
+              if (subtitle != null) ...[const SizedBox(height: 4), subtitle],
+            ],
+          ),
+        ),
+        if (trailing != null) ...[const SizedBox(width: 10), trailing],
+      ],
+    );
+
+    final Widget surface;
+    if (inGroup) {
+      surface = BrandTappable(
+        onPressed: () => TaskEditorSheet.show(context, task: task),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          decoration: BoxDecoration(
+            border: showDivider
+                ? Border(bottom: BorderSide(color: brand.hairline))
+                : null,
+          ),
+          child: rowContent,
+        ),
+      );
+    } else {
+      surface = Padding(
+        padding: EdgeInsets.only(bottom: dense ? 6 : 8),
+        child: TintCard(
+          fill: brand.surface,
+          radius: AppRadii.tile,
+          padding: EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: dense ? 10 : 12,
+          ),
+          onTap: () => TaskEditorSheet.show(context, task: task),
+          child: rowContent,
+        ),
+      );
+    }
+
     return Slidable(
       key: ValueKey(task.id),
       startActionPane: ActionPane(
@@ -105,7 +216,7 @@ class TaskTile extends ConsumerWidget {
         children: [
           _slideAction(
             onPressed: (_) => context.push('/focus', extra: task.id),
-            background: context.brand.focus,
+            background: brand.focus,
             icon: AppIcons.play,
             label: 'Focus',
           ),
@@ -117,7 +228,7 @@ class TaskTile extends ConsumerWidget {
         children: [
           _slideAction(
             onPressed: (_) => TaskEditorSheet.show(context, task: task),
-            background: Theme.of(context).colorScheme.primary,
+            background: theme.colorScheme.primary,
             icon: AppIcons.edit,
             label: 'Edit',
           ),
@@ -128,121 +239,228 @@ class TaskTile extends ConsumerWidget {
                   .read(notificationServiceProvider)
                   .cancelTaskReminder(task.id);
             },
-            background: context.brand.danger,
+            background: brand.danger,
             icon: AppIcons.delete,
             label: 'Delete',
           ),
         ],
       ),
-      child: Padding(
-        padding: EdgeInsets.only(bottom: dense ? 4 : 8),
-        child: TintCard(
-          padding: EdgeInsets.zero,
-          child: BrandTile(
-            onTap: () => TaskEditorSheet.show(context, task: task),
-            leading: BrandCheckbox(
-              value: task.isCompleted,
-              semanticsLabel: task.title,
-              onChanged: (v) async {
-                final spawned = await repo.setCompleted(task.id, v);
-                if (spawned != null && context.mounted) {
-                  brandToast(context, 'Next occurrence scheduled');
-                }
-              },
-            ),
-            title: Text(
-              task.title,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                decoration: task.isCompleted
-                    ? TextDecoration.lineThrough
-                    : null,
-                color: task.isCompleted ? muted : null,
-              ),
-            ),
-            subtitle: _buildSubtitle(context, muted, overdue, subtasks),
-            trailing: Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: priorityColor(
-                  context.brand,
-                  context.muted,
-                  task.priority,
-                ),
-                shape: BoxShape.circle,
-              ),
+      child: surface,
+    );
+  }
+
+  Widget? _buildTrailing({
+    required BuildContext context,
+    required BrandColors brand,
+    required Color muted,
+    required Project? project,
+  }) {
+    if (task.priority <= 3) {
+      final tone = priorityColor(brand, muted, task.priority);
+      final roles = brand.roleFor(tone);
+      return Semantics(
+        label: 'Priority ${task.priority}',
+        child: Container(
+          height: 24,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: roles.tintFill,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'P${task.priority}',
+            style: TextStyle(
+              color: roles.textOnTint,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    if (!inGroup && project != null && project.name.trim().isNotEmpty) {
+      final projectRoles = brand.roleFor(Color(project.color));
+      return Container(
+        width: 28,
+        height: 28,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: projectRoles.tintFill,
+          shape: BoxShape.circle,
+        ),
+        child: Text(
+          project.name.trim()[0].toUpperCase(),
+          style: TextStyle(
+            color: projectRoles.graphicOnTint,
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+    }
+
+    return null;
   }
 
-  Widget? _buildSubtitle(
-    BuildContext context,
-    Color muted,
-    bool overdue,
-    List<Task> subtasks,
-  ) {
-    final bits = <Widget>[];
-
-    if (showDue && task.dueDate != null) {
-      bits.add(
-        _chip(
-          icon: AppIcons.calendar,
-          label: Fmt.due(task.dueDate!, withTime: task.hasDueTime),
-          color: overdue ? context.brand.danger : muted,
-        ),
-      );
-    }
-    if (task.recurrenceRule != null) {
-      bits.add(
-        _chip(
-          icon: AppIcons.repeat,
-          label: Recurrence.label(task.recurrenceRule),
-          color: muted,
-        ),
-      );
-    }
-    if (subtasks.isNotEmpty) {
-      final done = subtasks.where((s) => s.isCompleted).length;
-      bits.add(
-        _chip(
-          icon: AppIcons.checklist,
-          label: '$done/${subtasks.length}',
-          color: muted,
-        ),
-      );
-    }
-    if (task.loggedMinutes > 0) {
-      bits.add(
-        _chip(
-          icon: AppIcons.focus,
-          label: Fmt.durationFromMinutes(task.loggedMinutes),
-          color: context.brand.focus,
-        ),
-      );
-    }
-
-    if (bits.isEmpty) return null;
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Wrap(spacing: 10, runSpacing: 2, children: bits),
-    );
-  }
-
-  Widget _chip({
-    required HugeIconData icon,
-    required String label,
-    required Color color,
+  Widget? _buildSubtitle({
+    required BuildContext context,
+    required BrandColors brand,
+    required Color muted,
+    required bool overdue,
+    required List<Task> subtasks,
+    required String? projectName,
   }) {
+    final hasProject = projectName != null && projectName.isNotEmpty;
+
+    // Subtask progress bar row (`Finish design review` in `04-tasks.html`).
+    if (subtasks.isNotEmpty && !inGroup) {
+      final done = subtasks.where((s) => s.isCompleted).length;
+      final total = subtasks.length;
+      final ratio = total == 0 ? 0.0 : (done / total).clamp(0.0, 1.0);
+      return Row(
+        children: [
+          Container(
+            width: 72,
+            height: 5,
+            decoration: BoxDecoration(
+              color: brand.track,
+              borderRadius: BorderRadius.circular(3),
+            ),
+            alignment: Alignment.centerLeft,
+            child: FractionallySizedBox(
+              widthFactor: ratio,
+              child: Container(
+                height: 5,
+                decoration: BoxDecoration(
+                  color: brand.taskRoles.graphicOnTint,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              '$done/$total${hasProject ? ' · $projectName' : ''}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12, color: muted),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final spans = <InlineSpan>[];
+    var showBell = false;
+
+    if (inGroup && subtasks.isNotEmpty) {
+      final done = subtasks.where((s) => s.isCompleted).length;
+      spans.add(
+        TextSpan(
+          text: '$done of ${subtasks.length} subtasks',
+          style: TextStyle(fontSize: 12, color: muted),
+        ),
+      );
+    } else if (showDue && task.dueDate != null) {
+      final due = task.dueDate!;
+      final isToday = Fmt.isSameDay(due, DateTime.now());
+      final label = isToday
+          ? (task.hasDueTime ? Fmt.time(due) : 'Anytime')
+          : Fmt.due(due, withTime: task.hasDueTime);
+
+      if (overdue) {
+        spans.add(
+          TextSpan(
+            text: Fmt.due(due, withTime: task.hasDueTime),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: brand.dangerRoles.textOnTint,
+            ),
+          ),
+        );
+      } else {
+        showBell = task.hasDueTime || task.reminderTime != null;
+        spans.add(
+          TextSpan(
+            text: label,
+            style: TextStyle(fontSize: 12, color: muted),
+          ),
+        );
+      }
+    } else if (!showDue && task.dueDate != null) {
+      final due = task.dueDate!;
+      final label = task.hasDueTime ? Fmt.time(due) : 'Anytime';
+      spans.add(
+        TextSpan(
+          text: label,
+          style: TextStyle(fontSize: 12, color: muted),
+        ),
+      );
+    } else if (hasProject) {
+      spans.add(
+        TextSpan(
+          text: 'Anytime',
+          style: TextStyle(fontSize: 12, color: muted),
+        ),
+      );
+    }
+
+    if (hasProject) {
+      spans.add(
+        TextSpan(
+          text: spans.isEmpty ? projectName : ' · $projectName',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: muted,
+          ),
+        ),
+      );
+    }
+
+    if (task.recurrenceRule != null) {
+      final rec = Recurrence.label(task.recurrenceRule);
+      spans.add(
+        TextSpan(
+          text: spans.isEmpty ? rec : ' · $rec',
+          style: TextStyle(fontSize: 12, color: muted),
+        ),
+      );
+    }
+
+    if (task.loggedMinutes > 0) {
+      final logged = Fmt.durationFromMinutes(task.loggedMinutes);
+      spans.add(
+        TextSpan(
+          text: spans.isEmpty ? logged : ' · $logged',
+          style: TextStyle(
+            fontSize: 12,
+            color: brand.focusRoles.textOnTint,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    if (spans.isEmpty) return null;
+
+    final textWidget = Text.rich(
+      TextSpan(children: spans),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+
+    if (!showBell) return textWidget;
+
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        AppIcon(icon, size: 12, color: color),
-        const SizedBox(width: 3),
-        Text(label, style: TextStyle(fontSize: 11, color: color)),
+        AppIcon(AppIcons.notifications, size: 12, color: muted),
+        const SizedBox(width: 5),
+        Expanded(child: textWidget),
       ],
     );
   }

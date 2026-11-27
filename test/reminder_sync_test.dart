@@ -31,6 +31,9 @@ class _RecordingNotifications extends NotificationService {
   final bills = <int>[];
   final loans = <int>[];
   final drops = <int>[];
+  final expiryWarnings = <int>[];
+  final expiryDays = <int>[];
+  final cancelledExpiry = <int>[];
   final dosageLabels = <String>{};
 
   @override
@@ -100,6 +103,26 @@ class _RecordingNotifications extends NotificationService {
 
   @override
   Future<void> cancelDropReminder(int id) async {}
+
+  @override
+  Future<void> scheduleMedicineExpiryWarning({
+    required int medicineId,
+    required String medicineName,
+    required DateTime useByDate,
+    required int daysBefore,
+    required DateTime when,
+  }) async => expiryWarnings.add(medicineId);
+
+  @override
+  Future<void> scheduleMedicineExpiryDay({
+    required int medicineId,
+    required String medicineName,
+    required DateTime when,
+  }) async => expiryDays.add(medicineId);
+
+  @override
+  Future<void> cancelMedicineExpiryAlerts(int medicineId) async =>
+      cancelledExpiry.add(medicineId);
 }
 
 void main() {
@@ -235,4 +258,58 @@ void main() {
     expect(notifications.tasks, isEmpty);
     expect(notifications.doses, hasLength(1));
   });
+
+  test(
+    'syncMedicine re-arms syrup expiry alerts even after dose course ended',
+    () async {
+      final repo = container.read(medicineRepositoryProvider);
+      final today = DateTime.now();
+      final pastStart = DateTime(today.year, today.month, today.day - 6);
+      final pastEnd = DateTime(today.year, today.month, today.day - 2);
+      final opened = DateTime(today.year, today.month, today.day - 1);
+
+      final syrupId = await repo.createMedicineWithSchedule(
+        medicine: MedicinesCompanion(
+          name: const Value('Cough Syrup'),
+          form: const Value('syrup'),
+          dosage: const Value(5),
+          dosageUnit: const Value('ml'),
+          startDate: Value(pastStart),
+          endDate: Value(pastEnd),
+          openedDate: Value(opened),
+          bestUseWithinDays: const Value(30),
+          expiryAlertDaysBefore: const Value(3),
+        ),
+        spec: ScheduleSpec(
+          start: pastStart,
+          end: pastEnd,
+          doseMinutes: const [480],
+        ),
+      );
+
+      final inactiveId = await repo.createMedicineWithSchedule(
+        medicine: MedicinesCompanion(
+          name: const Value('Old Drops'),
+          form: const Value('drops'),
+          startDate: Value(pastStart),
+          endDate: Value(pastEnd),
+          openedDate: Value(opened),
+          bestUseWithinDays: const Value(28),
+          expiryAlertDaysBefore: const Value(3),
+          isActive: const Value(false),
+        ),
+        spec: ScheduleSpec(
+          start: pastStart,
+          end: pastEnd,
+          doseMinutes: const [480],
+        ),
+      );
+
+      await container.read(reminderSyncProvider).syncAll();
+
+      expect(notifications.expiryWarnings, [syrupId]);
+      expect(notifications.expiryDays, [syrupId]);
+      expect(notifications.cancelledExpiry, containsAll([syrupId, inactiveId]));
+    },
+  );
 }

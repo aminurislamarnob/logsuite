@@ -242,7 +242,7 @@ class AppIcons {
   // medicine
   static const medicine = HugeIcons.strokeRoundedMedicine02;
   static const capsule = HugeIcons.strokeRoundedPill;
-  static const syrup = HugeIcons.strokeRoundedDrink;
+  static const syrup = HugeIcons.strokeRoundedMedicineSyrup;
   static const injection = HugeIcons.strokeRoundedInjection;
   static const inhaler = HugeIcons.strokeRoundedLungs;
   static const prescription = HugeIcons.strokeRoundedPrescription;

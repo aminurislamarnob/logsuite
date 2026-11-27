@@ -9,6 +9,7 @@ import '../../../core/ai/ai_drafts.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/brand.dart';
 import '../../../core/widgets/common.dart';
 import '../../expenses/widgets/expense_entry_sheet.dart';
@@ -38,100 +39,210 @@ class ActionPreviewCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
     final draft = preview.draft;
     final kind = draft.kind;
-    final accent = kind.color(context.brand);
+    final accent = kind.color(brand);
+    final roles = brand.roleFor(accent);
     final currency = ref.watch(settingsProvider).currencySymbol;
-    final muted = context.muted;
     final isSaved = saved != null;
     final blocked = preview.blocked;
+    final hasWarnings = preview.warnings.isNotEmpty;
 
-    final card = TintCard(
-      accent: accent,
-      padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-      onTap: isSaved
+    final eyebrowLabel = kind == AiActionKind.addMedicine
+        ? 'MEDICINE COURSE'
+        : kind.label.toUpperCase();
+
+    final summaryParts = draft
+        .summary(currency)
+        .split(' · ')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    final card = BrandTappable(
+      onPressed: isSaved
           ? () => context.push(saved!.route, extra: saved!.extra)
           : blocked
           ? null
-          : () => _edit(context, ref),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
-            child: AppIcon(
-              kind.icon,
-              color: context.brand.onAccent(accent),
-              size: 21,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+          : () {
+              AppHaptics.tap();
+              _edit(context, ref);
+            },
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: brand.surface,
+          borderRadius: BorderRadius.circular(22),
+          border: hasWarnings
+              ? Border.all(color: brand.warningRoles.graphicOnTint, width: 2)
+              : null,
+          boxShadow: AppShadows.card(theme.brightness),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        draft.title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
+                Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: roles.tintFill,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: AppIcon(
+                    kind.icon,
+                    color: roles.graphicOnTint,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        eyebrowLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.6,
+                          color: roles.textOnTint,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              draft.title,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                                letterSpacing: -0.2,
+                                color: brand.ink,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isSaved)
+                            AppIcon(
+                              AppIcons.checkCircle,
+                              color: brand.success,
+                              size: 18,
+                            ),
+                        ],
+                      ),
+                      if (summaryParts.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            for (final part in summaryParts)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: brand.canvas,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  part,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.muted,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (isSaved)
+                  Pill(
+                    label: 'Open',
+                    color: accent,
+                    selected: true,
+                    onTap: () =>
+                        context.push(saved!.route, extra: saved!.extra),
+                  )
+                else ...[
+                  if (!blocked)
+                    Text(
+                      'Edit',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: roles.textOnTint,
                       ),
                     ),
-                    if (isSaved)
-                      AppIcon(
-                        AppIcons.checkCircle,
-                        color: context.brand.success,
-                        size: 18,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${kind.label} · ${draft.summary(currency)}',
-                  style: TextStyle(fontSize: 12, color: muted),
-                ),
-                if (preview.warnings.isNotEmpty || blocked || isSaved) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      if (blocked)
-                        Pill(label: 'Cannot save', color: context.brand.danger),
-                      for (final w in preview.warnings)
-                        Pill(label: w, color: context.brand.warning),
-                      if (isSaved)
-                        Pill(
-                          label: 'Open',
-                          color: accent,
-                          selected: true,
-                          onTap: () =>
-                              context.push(saved!.route, extra: saved!.extra),
-                        ),
-                    ],
+                  const SizedBox(width: 4),
+                  CircleIconButton(
+                    icon: AppIcons.close,
+                    tooltip: 'Remove',
+                    size: 36,
+                    onPressed: onRemove,
                   ),
                 ],
               ],
             ),
-          ),
-          if (!isSaved)
-            CircleIconButton(
-              icon: AppIcons.close,
-              tooltip: 'Remove',
-              size: 36,
-              onPressed: onRemove,
-            ),
-        ],
+            if (hasWarnings || blocked) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: blocked
+                      ? brand.dangerRoles.tintFill
+                      : brand.warningRoles.tintFill,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    AppIcon(
+                      AppIcons.warning,
+                      size: 16,
+                      color: blocked
+                          ? brand.dangerRoles.graphicOnTint
+                          : brand.warningRoles.graphicOnTint,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        blocked
+                            ? 'Cannot save — ${preview.warnings.isEmpty ? 'missing required data' : preview.warnings.join(' · ')}'
+                            : preview.warnings.join(' · '),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: blocked
+                              ? brand.dangerRoles.textOnTint
+                              : brand.warningRoles.textOnTint,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
 

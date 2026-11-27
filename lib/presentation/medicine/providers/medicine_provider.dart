@@ -46,6 +46,41 @@ class DoseView {
   /// Renders a dose amount without a trailing ".0".
   static String trimAmount(double v) =>
       v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
+
+  static const _invariantUnits = {
+    'ml',
+    'mg',
+    'mcg',
+    'g',
+    'iu',
+    'oz',
+    'tsp',
+    'tbsp',
+    'syrup',
+    'cream',
+    'ointment',
+    'gel',
+  };
+
+  /// Formats a unit for [count], pluralising countable forms ("tablet" ->
+  /// "tablets") while leaving abbreviations and uncountable nouns unchanged.
+  static String formatUnit(int count, String unit) {
+    final trimmed = unit.trim();
+    if (trimmed.isEmpty) return '';
+    if (count == 1 ||
+        trimmed.endsWith('s') ||
+        _invariantUnits.contains(trimmed.toLowerCase())) {
+      return trimmed;
+    }
+    return '${trimmed}s';
+  }
+
+  /// Sensible default dosage unit when the user switches medicine [form].
+  static String defaultUnitForForm(String form) => switch (form) {
+    'syrup' => 'ml',
+    'inhaler' => 'puff',
+    _ => form,
+  };
 }
 
 /// Joins doses to medicines, filtered to the active profile.
@@ -195,4 +230,26 @@ final conflictsProvider = Provider<List<DoseConflict>>((ref) {
 
 final symptomsProvider = StreamProvider<List<SymptomLog>>((ref) {
   return ref.watch(medicineRepositoryProvider).watchSymptoms();
+});
+
+/// Taken medicine doses per calendar day over the trailing [days] days
+/// (inclusive of today).
+final takenDosesByDayProvider = StreamProvider.family<Map<DateTime, int>, int>((
+  ref,
+  days,
+) {
+  final today = Fmt.dateOnly(DateTime.now());
+  final start = today.subtract(Duration(days: days - 1));
+  final end = today.add(const Duration(days: 1));
+  return ref.watch(medicineRepositoryProvider).watchDosesBetween(start, end).map(
+    (doses) {
+      final counts = <DateTime, int>{};
+      for (final d in doses) {
+        if (d.status != DoseStatus.taken) continue;
+        final day = Fmt.dateOnly(d.scheduledTime);
+        counts[day] = (counts[day] ?? 0) + 1;
+      }
+      return counts;
+    },
+  );
 });

@@ -2,8 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/database/app_database.dart';
+import '../../core/settings/app_settings.dart';
+import '../../core/theme/app_forui_theme.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
@@ -11,6 +15,7 @@ import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
 import '../tasks/providers/tasks_provider.dart';
+import '../tasks/repository/task_repository.dart';
 import 'providers/focus_provider.dart';
 
 class FocusScreen extends ConsumerStatefulWidget {
@@ -24,6 +29,8 @@ class FocusScreen extends ConsumerStatefulWidget {
 }
 
 class _FocusScreenState extends ConsumerState<FocusScreen> {
+  int _completedRating = 5;
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +42,23 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
     }
   }
 
+  void _openStatsSheet(
+    BuildContext context,
+    ThemeData darkTheme,
+    FThemeData darkForui,
+  ) {
+    brandSheet(
+      context: context,
+      builder: (_) => Theme(
+        data: darkTheme,
+        child: FTheme(
+          data: darkForui,
+          child: _FocusStatsSheet(onEditGoal: _editGoal),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(focusTimerProvider);
@@ -43,276 +67,918 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
     final goal = ref.watch(focusGoalProvider);
     final tasks = ref.watch(openTasksProvider).valueOrNull ?? const [];
     final linkedTask = tasks.where((t) => t.id == state.taskId).firstOrNull;
+    final sessions = ref.watch(recentSessionsProvider).valueOrNull ?? const [];
 
-    // Watch for the moment a session finishes so we can ask for a rating.
     ref.listen(focusTimerProvider, (prev, next) {
       if (prev?.phase != TimerPhase.finished &&
           next.phase == TimerPhase.finished) {
         AppHaptics.success();
-        if (next.elapsedSeconds > 30) {
-          _askForReflection();
-        }
+        setState(() => _completedRating = 5);
       }
     });
 
-    final accent = state.isBreak ? context.brand.success : context.brand.focus;
+    final settings = ref.watch(settingsProvider);
+    final darkTheme = AppTheme.dark(
+      palette: settings.palette,
+      compact: settings.compactDensity,
+      locale: settings.locale,
+    );
+    final darkForui = brandForuiTheme(
+      brightness: Brightness.dark,
+      palette: settings.palette,
+      compact: settings.compactDensity,
+      locale: settings.locale,
+    );
 
-    return BrandScaffold(
-      header: BrandTopBar(
-        title: state.isBreak
-            ? 'Break'
-            : state.mode.countsUp
-            ? 'Flow'
-            : 'Focus',
-        leadingIcon: AppIcons.back,
-        trailingIcon: AppIcons.barChart,
-        trailingTooltip: 'Stats',
-        onTrailing: () => brandSheet(
-          context: context,
-          builder: (_) => const _FocusStatsSheet(),
-        ),
-      ),
-      child: ListView(
-        padding: pageInsets(context, top: 4),
-        children: [
-          if (state.phase == TimerPhase.idle)
-            _buildModeSelector(state, notifier),
-          const SizedBox(height: 20),
+    return Theme(
+      data: darkTheme,
+      child: FTheme(
+        data: darkForui,
+        child: Builder(
+          builder: (context) {
+            final brand = context.brand;
+            final accent = state.isBreak
+                ? brand.successRoles.onInk
+                : brand.focusRoles.onInk;
 
-          // The hero ring: elapsed progress around a big tabular clock, the
-          // same shape the reference uses for distance.
-          Center(
-            child: ProgressRing(
-              // A count-up mode has no target to fill, so the ring stays as a
-              // track and the clock alone carries the state.
-              value: state.mode.countsUp ? 0 : state.progress,
-              size: 250,
-              thickness: 20,
-              color: accent,
-              center: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  FittedBox(
-                    child: Text(
-                      state.display,
-                      style: const TextStyle(
-                        fontSize: 46,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -1,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
+            return ColoredBox(
+              color: brand.inkDeep,
+              child: BrandScaffold(
+                header: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.gutter,
+                      8,
+                      AppSpacing.gutter,
+                      8,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    state.isBreak ? 'Break' : state.mode.label,
-                    style: TextStyle(fontSize: 14, color: context.muted),
-                  ),
-                  if (state.completedIntervals > 0)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: List.generate(
-                          math.min(state.completedIntervals, 8),
-                          (_) => Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 2.5,
-                            ),
+                    child: Row(
+                      children: [
+                        CircleIconButton(
+                          icon: AppIcons.back,
+                          tooltip: 'Back',
+                          onInk: true,
+                          onPressed: () async {
+                            final popped = await Navigator.maybePop(context);
+                            if (!popped && context.mounted) {
+                              context.go('/dashboard');
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Focus',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.displaySmall
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.8,
+                                ),
+                          ),
+                        ),
+                        BrandTooltip(
+                          message: 'Stats',
+                          child: BrandTappable(
+                            onPressed: () =>
+                                _openStatsSheet(context, darkTheme, darkForui),
+                            semanticsLabel: 'Focus stats',
                             child: Container(
-                              width: 7,
-                              height: 7,
-                              decoration: BoxDecoration(
-                                color: accent,
-                                shape: BoxShape.circle,
+                              height: 44,
+                              padding: const EdgeInsets.fromLTRB(12, 0, 16, 0),
+                              decoration: ShapeDecoration(
+                                color: Colors.white.withValues(alpha: 0.08),
+                                shape: const StadiumBorder(),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AppIcon(
+                                    AppIcons.barChart,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Stats',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                ),
+                child: ColoredBox(
+                  color: brand.inkDeep,
+                  child: state.phase == TimerPhase.finished
+                      ? _buildSessionComplete(
+                          context,
+                          state: state,
+                          notifier: notifier,
+                          stats: stats,
+                          goal: goal,
+                          linkedTask: linkedTask,
+                          lastSession: sessions.firstOrNull,
+                        )
+                      : _buildActiveTimer(
+                          context,
+                          state: state,
+                          notifier: notifier,
+                          stats: stats,
+                          goal: goal,
+                          linkedTask: linkedTask,
+                          accent: accent,
+                        ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveTimer(
+    BuildContext context, {
+    required FocusState state,
+    required FocusTimerNotifier notifier,
+    required FocusStats stats,
+    required int goal,
+    required Task? linkedTask,
+    required Color accent,
+  }) {
+    final brand = context.brand;
+    final sessionNum = (state.completedIntervals % 4) + 1;
+    final eyebrow = state.isBreak
+        ? 'BREAK'
+        : state.mode.countsUp
+        ? 'FLOW SESSION'
+        : 'SESSION $sessionNum OF 4';
+
+    final endTime = DateTime.now().add(
+      Duration(seconds: state.remainingSeconds),
+    );
+    final supporting = state.mode.countsUp
+        ? 'Counting up · tap finish when done'
+        : state.running
+        ? 'of ${state.targetSeconds ~/ 60} min · ends ${Fmt.time(endTime)}'
+        : 'of ${state.targetSeconds ~/ 60} min · ${state.mode.label}';
+
+    final goalFraction = goal <= 0
+        ? 0.0
+        : (stats.today.inMinutes / goal).clamp(0.0, 1.0);
+
+    return ListView(
+      padding: pageInsets(context, top: 8),
+      children: [
+        Center(child: _buildModeSelector(context, state, notifier)),
+        const SizedBox(height: 18),
+
+        // Large 260 ring (09-focus.html)
+        Center(
+          child: ProgressRing(
+            value: state.mode.countsUp
+                ? (state.elapsedSeconds % 1500) / 1500
+                : state.progress,
+            size: 260,
+            thickness: 12,
+            onInk: true,
+            color: accent,
+            center: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  eyebrow,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                FittedBox(
+                  child: Text(
+                    state.display,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 64,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -3,
+                      height: 1.0,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  supporting,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: brand.onInkMuted),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        // Linked task dark pill (09-focus.html)
+        Center(
+          child: BrandTappable(
+            onPressed: _pickTask,
+            child: Container(
+              height: 44,
+              padding: const EdgeInsets.fromLTRB(12, 0, 16, 0),
+              decoration: ShapeDecoration(
+                color: Colors.white.withValues(alpha: 0.07),
+                shape: const StadiumBorder(),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: brand.taskRoles.onInk,
+                        width: 2,
                       ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 220),
+                    child: Text(
+                      linkedTask?.title ?? 'Not linked to a task',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  if (linkedTask != null)
+                    GestureDetector(
+                      onTap: () => notifier.linkTask(null),
+                      child: AppIcon(
+                        AppIcons.close,
+                        size: 14,
+                        color: brand.onInkMuted,
+                      ),
+                    )
+                  else
+                    AppIcon(
+                      AppIcons.chevronDown,
+                      size: 14,
+                      color: brand.onInkMuted,
                     ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 34),
+        ),
+        const SizedBox(height: 20),
 
-          // The metric trio under the ring.
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              MetricColumn(
-                icon: AppIcons.today,
-                value: Fmt.duration(stats.today),
-                caption: 'Today',
-                color: accent,
-              ),
-              MetricColumn(
-                icon: AppIcons.checkCircle,
-                value: '${stats.sessionsToday}',
-                caption: 'Sessions',
-                color: accent,
-              ),
-              MetricColumn(
-                icon: AppIcons.streak,
-                value: '${stats.streakDays}',
-                caption: 'Day streak',
-                color: context.brand.warning,
-              ),
-            ],
+        // Ambient sound section (09-focus.html)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            'AMBIENT SOUND',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: brand.onInkMuted,
+              letterSpacing: 0.8,
+            ),
           ),
-          const SizedBox(height: 30),
+        ),
+        const SizedBox(height: 10),
+        const _AmbientRow(),
+        const SizedBox(height: 24),
 
-          _buildControls(state, notifier, accent),
-          const SizedBox(height: 30),
+        // Transport controls (56 reset, 84 white play/pause, 56 complete)
+        _buildControls(context, state, notifier),
+        const SizedBox(height: 22),
 
-          TintCard(
-            accent: accent,
-            onTap: _pickTask,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-            child: BrandTile(
-              leading: AppIcon(AppIcons.link, color: accent),
-              title: Text(linkedTask?.title ?? 'Not linked to a task'),
-              subtitle: Text(
-                linkedTask == null
-                    ? 'Link a task to log this time against it'
-                    : linkedTask.estimateMinutes == null
-                    ? 'Time will be logged to this task'
-                    : 'Estimate ${Fmt.durationFromMinutes(linkedTask.estimateMinutes!)} · '
-                          'logged ${Fmt.durationFromMinutes(linkedTask.loggedMinutes)}',
-                style: const TextStyle(fontSize: 12),
-              ),
-              trailing: linkedTask == null
-                  ? AppIcon(AppIcons.chevronRight, color: context.muted)
-                  : CircleIconButton(
-                      icon: AppIcons.close,
-                      size: 40,
-                      onPressed: () => notifier.linkTask(null),
+        // Bottom daily goal dark card (09-focus.html)
+        BrandTappable(
+          onPressed: _editGoal,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${Fmt.duration(stats.today)} of ${Fmt.durationFromMinutes(goal)} goal today',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: SizedBox(
+                          height: 5,
+                          child: LinearProgressIndicator(
+                            value: goalFraction,
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.12,
+                            ),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              brand.focusRoles.onInk,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppIcon(
+                      AppIcons.streak,
+                      size: 16,
+                      color: brand.warningRoles.onInk,
                     ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${stats.streakDays} ${stats.streakDays == 1 ? 'day' : 'days'}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-
-          LabeledProgress(
-            label: 'Daily focus goal',
-            trailing:
-                '${Fmt.duration(stats.today)} / ${Fmt.durationFromMinutes(goal)}',
-            value: goal == 0 ? 0 : stats.today.inMinutes / goal,
-            color: context.brand.focus,
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: BrandButton(
-              label: 'Change goal',
-              kind: BrandButtonKind.ghost,
-              expand: false,
-              onPressed: _editGoal,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-          const SectionHeader('Ambient sound'),
-          _AmbientRow(),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildModeSelector(FocusState state, FocusTimerNotifier notifier) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildSessionComplete(
+    BuildContext context, {
+    required FocusState state,
+    required FocusTimerNotifier notifier,
+    required FocusStats stats,
+    required int goal,
+    required Task? linkedTask,
+    required FocusSession? lastSession,
+  }) {
+    final brand = context.brand;
+    final focusOnInk = brand.focusRoles.onInk;
+    final focusedSeconds = lastSession?.actualSeconds ?? state.targetSeconds;
+    final goalFraction = goal <= 0
+        ? 0.0
+        : (stats.today.inMinutes / goal).clamp(0.0, 1.0);
+
+    final qualityLabel = switch (_completedRating) {
+      5 => 'Deep focus',
+      4 => 'Strong focus',
+      3 => 'Steady focus',
+      2 => 'Distracted',
+      _ => 'Tough session',
+    };
+
+    return ListView(
+      padding: pageInsets(context, top: 8),
       children: [
-        SizedBox(
-          height: 38,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: FocusMode.values
-                .map(
-                  (m) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Pill(
-                      label: m.label,
-                      selected: state.mode == m,
-                      color: Theme.of(context).colorScheme.primary,
-                      onTap: () => notifier.setMode(m),
-                    ),
+        const SizedBox(height: 6),
+        Center(
+          child: Container(
+            width: 250,
+            height: 250,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: focusOnInk.withValues(alpha: 0.10),
+              border: Border.all(color: focusOnInk, width: 14),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: focusOnInk,
+                    shape: BoxShape.circle,
                   ),
-                )
-                .toList(),
+                  alignment: Alignment.center,
+                  child: AppIcon(
+                    AppIcons.check,
+                    size: 22,
+                    color: brand.inkDeep,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  Fmt.timerClock(focusedSeconds),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 64,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -3,
+                    height: 1.0,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'focused',
+                  style: TextStyle(fontSize: 14, color: brand.onInkMuted),
+                ),
+              ],
+            ),
           ),
         ),
-        if (state.mode == FocusMode.custom)
-          Row(
+        const SizedBox(height: 18),
+        Column(
+          children: [
+            Text(
+              'SESSION COMPLETE',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: focusOnInk,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Session ${math.max(1, state.completedIntervals)} of 4 done',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.4,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+
+        // Linked task row (31-focus-complete.html)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: brand.taskRoles.onInk, width: 2.5),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      linkedTask?.title ?? 'Not linked to a task',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      linkedTask != null
+                          ? '${Fmt.duration(Duration(seconds: focusedSeconds))} logged · ${Fmt.durationFromMinutes(linkedTask.loggedMinutes)} total'
+                          : 'Link a task to track time spent',
+                      style: TextStyle(fontSize: 12, color: brand.onInkMuted),
+                    ),
+                  ],
+                ),
+              ),
+              if (linkedTask != null)
+                BrandTappable(
+                  onPressed: () async {
+                    await ref
+                        .read(taskRepositoryProvider)
+                        .setCompleted(linkedTask.id, true);
+                    notifier.linkTask(null);
+                  },
+                  child: Container(
+                    height: 44,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    alignment: Alignment.center,
+                    decoration: ShapeDecoration(
+                      color: Colors.white.withValues(alpha: 0.10),
+                      shape: const StadiumBorder(),
+                    ),
+                    child: const Text(
+                      'Mark done',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        // Focus quality rating 1..5 (31-focus-complete.html)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${state.customMinutes} min',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                'FOCUS QUALITY',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: brand.onInkMuted,
+                  letterSpacing: 0.8,
+                ),
               ),
+              Text(
+                qualityLabel,
+                style: TextStyle(fontSize: 13, color: brand.onInkMuted),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: List.generate(5, (i) {
+            final rating = i + 1;
+            final selected = _completedRating == rating;
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: i == 0 ? 0 : 8),
+                child: BrandTappable(
+                  onPressed: () {
+                    AppHaptics.selection();
+                    setState(() => _completedRating = rating);
+                    if (lastSession != null) {
+                      notifier.annotateLast(lastSession.id, rating: rating);
+                    }
+                  },
+                  semanticsLabel: 'Focus quality $rating',
+                  child: Container(
+                    height: 52,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? focusOnInk
+                          : Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Text(
+                      '$rating',
+                      style: TextStyle(
+                        color: selected ? brand.inkDeep : Colors.white,
+                        fontSize: 18,
+                        fontWeight: selected
+                            ? FontWeight.w800
+                            : FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 22),
+
+        // Goal progress bar + Break / Again / Finish buttons
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
               Expanded(
-                child: BrandSlider(
-                  value: state.customMinutes.toDouble(),
-                  min: 5,
-                  max: 120,
-                  divisions: 23,
-                  onChanged: (v) => notifier.setCustomMinutes(v.round()),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: SizedBox(
+                    height: 5,
+                    child: LinearProgressIndicator(
+                      value: goalFraction,
+                      backgroundColor: Colors.white.withValues(alpha: 0.12),
+                      valueColor: AlwaysStoppedAnimation<Color>(focusOnInk),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                '${Fmt.duration(stats.today)} of ${Fmt.durationFromMinutes(goal)} goal',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: brand.onInkMuted,
                 ),
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        BrandTappable(
+          onPressed: () {
+            if (lastSession != null) {
+              notifier.annotateLast(lastSession.id, rating: _completedRating);
+            }
+            notifier.reset();
+            notifier.start();
+          },
+          child: Container(
+            height: 58,
+            decoration: const ShapeDecoration(
+              color: Colors.white,
+              shape: StadiumBorder(),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AppIcon(AppIcons.habits, size: 20, color: brand.inkDeep),
+                const SizedBox(width: 8),
+                Text(
+                  'Break · ${state.mode.breakMinutes > 0 ? state.mode.breakMinutes : 5} min',
+                  style: TextStyle(
+                    color: brand.inkDeep,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: BrandTappable(
+                onPressed: () {
+                  if (lastSession != null) {
+                    notifier.annotateLast(
+                      lastSession.id,
+                      rating: _completedRating,
+                    );
+                  }
+                  notifier.reset();
+                  notifier.start();
+                },
+                child: Container(
+                  height: 52,
+                  decoration: ShapeDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    shape: const StadiumBorder(),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AppIcon(AppIcons.replay, size: 18, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        'Again',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: BrandTappable(
+                onPressed: () {
+                  if (lastSession != null) {
+                    notifier.annotateLast(
+                      lastSession.id,
+                      rating: _completedRating,
+                    );
+                  }
+                  notifier.reset();
+                },
+                child: Container(
+                  height: 52,
+                  alignment: Alignment.center,
+                  decoration: ShapeDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    shape: const StadiumBorder(),
+                  ),
+                  child: const Text(
+                    'Finish',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModeSelector(
+    BuildContext context,
+    FocusState state,
+    FocusTimerNotifier notifier,
+  ) {
+    final brand = context.brand;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Container(
+            height: 40,
+            padding: const EdgeInsets.all(4),
+            decoration: ShapeDecoration(
+              color: Colors.white.withValues(alpha: 0.07),
+              shape: const StadiumBorder(),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final m in FocusMode.values)
+                  BrandTappable(
+                    onPressed: () => notifier.setMode(m),
+                    semanticsLabel: m.label,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      alignment: Alignment.center,
+                      decoration: ShapeDecoration(
+                        color: state.mode == m
+                            ? Colors.white
+                            : Colors.transparent,
+                        shape: const StadiumBorder(),
+                      ),
+                      child: Text(
+                        m.label,
+                        style: TextStyle(
+                          color: state.mode == m
+                              ? brand.inkDeep
+                              : brand.onInkMuted,
+                          fontSize: 13,
+                          fontWeight: state.mode == m
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (state.mode == FocusMode.custom && state.phase == TimerPhase.idle)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              children: [
+                Text(
+                  '${state.customMinutes} min',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Expanded(
+                  child: BrandSlider(
+                    value: state.customMinutes.toDouble(),
+                    min: 5,
+                    max: 120,
+                    divisions: 23,
+                    onChanged: (v) => notifier.setCustomMinutes(v.round()),
+                  ),
+                ),
+              ],
+            ),
           ),
       ],
     );
   }
 
-  /// The transport row from the reference: a big filled circle in the middle,
-  /// flanked by two soft-tinted secondary circles.
+  /// Transport controls from 09-focus.html:
+  /// 56 reset circle, 84 white play/pause circle, 56 complete circle.
   Widget _buildControls(
+    BuildContext context,
     FocusState state,
     FocusTimerNotifier notifier,
-    Color accent,
   ) {
-    final idle =
-        state.phase == TimerPhase.idle || state.phase == TimerPhase.finished;
-
-    if (idle) {
-      return Center(
-        child: _RoundAction(
-          label: state.phase == TimerPhase.finished ? 'Again' : 'Start',
-          color: accent,
-          size: 84,
-          onPressed: () {
-            if (state.phase == TimerPhase.finished) notifier.reset();
-            notifier.start();
-          },
-        ),
-      );
-    }
-
+    final brand = context.brand;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _RoundAction(
-          icon: AppIcons.replay,
-          tooltip: 'Reset',
-          color: accent,
-          size: 52,
-          soft: true,
-          onPressed: notifier.reset,
+        BrandTooltip(
+          message: 'Reset',
+          child: BrandTappable(
+            onPressed: notifier.reset,
+            semanticsLabel: 'Reset',
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: const AppIcon(
+                AppIcons.replay,
+                size: 22,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ),
-        const SizedBox(width: 28),
-        _RoundAction(
-          label: state.running ? 'Pause' : 'Resume',
-          color: state.running ? context.brand.warning : accent,
-          size: 84,
-          onPressed: state.running ? notifier.pause : notifier.start,
+        const SizedBox(width: 20),
+        BrandTooltip(
+          message: state.running ? 'Pause' : 'Start',
+          child: BrandTappable(
+            onPressed: state.running ? notifier.pause : notifier.start,
+            semanticsLabel: state.running ? 'Pause' : 'Start',
+            child: Container(
+              width: 84,
+              height: 84,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: AppIcon(
+                state.running ? AppIcons.reduceMotion : AppIcons.play,
+                size: 30,
+                color: brand.inkDeep,
+              ),
+            ),
+          ),
         ),
-        const SizedBox(width: 28),
-        _RoundAction(
-          icon: AppIcons.stop,
-          tooltip: 'Finish',
-          color: accent,
-          size: 52,
-          soft: true,
-          onPressed: notifier.stop,
+        const SizedBox(width: 20),
+        BrandTooltip(
+          message: 'Finish session',
+          child: BrandTappable(
+            onPressed: notifier.stop,
+            semanticsLabel: 'Finish session',
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: const AppIcon(
+                AppIcons.check,
+                size: 22,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -381,168 +1047,74 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
       ref.read(focusGoalProvider.notifier).state = minutes;
     }
   }
-
-  /// After a session, capture what was worked on and how focused it felt.
-  Future<void> _askForReflection() async {
-    final sessions = ref.read(recentSessionsProvider).valueOrNull ?? const [];
-    final last = sessions.firstOrNull;
-    if (last == null || !mounted) return;
-
-    final controller = TextEditingController();
-    var rating = 3;
-
-    final saved = await brandSheet<bool>(
-      context: context,
-      builder: (_) => StatefulBuilder(
-        builder: (context, setState) => SheetScaffold(
-          title: 'Session complete',
-          actions: [
-            BrandButton(
-              label: 'Save',
-              kind: BrandButtonKind.ghost,
-              expand: false,
-              onPressed: () => Navigator.pop(context, true),
-            ),
-          ],
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'You focused for ${Fmt.duration(Duration(seconds: last.actualSeconds))}.',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 16),
-              BrandField(
-                controller: controller,
-                label: 'What did you work on?',
-                autofocus: true,
-                textCapitalization: TextCapitalization.sentences,
-              ),
-              const SizedBox(height: 20),
-              const Text('Focus quality'),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(5, (i) {
-                  final value = i + 1;
-                  return CircleIconButton(
-                    icon: value <= rating ? AppIcons.star : AppIcons.star,
-                    size: 40,
-                    onPressed: () => setState(() => rating = value),
-                  );
-                }),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (saved == true) {
-      await ref
-          .read(focusTimerProvider.notifier)
-          .annotateLast(
-            last.id,
-            note: controller.text.trim().isEmpty
-                ? null
-                : controller.text.trim(),
-            rating: rating,
-          );
-    }
-  }
-}
-
-/// A circular transport button. [soft] renders it as a tinted secondary
-/// control rather than a solid primary one.
-class _RoundAction extends StatelessWidget {
-  final String? label;
-  final HugeIconData? icon;
-  final String? tooltip;
-  final Color color;
-  final double size;
-  final bool soft;
-  final VoidCallback onPressed;
-
-  const _RoundAction({
-    this.label,
-    this.icon,
-    this.tooltip,
-    required this.color,
-    required this.size,
-    required this.onPressed,
-    this.soft = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final button = BrandTappable(
-      onPressed: onPressed,
-      semanticsLabel: tooltip ?? label,
-      child: DecoratedBox(
-        decoration: ShapeDecoration(
-          color: soft
-              ? AppColors.wash(color, brightness: Theme.of(context).brightness)
-              : color,
-          shape: const CircleBorder(),
-        ),
-        child: SizedBox(
-          width: size,
-          height: size,
-          child: Center(
-            child: icon != null
-                ? AppIcon(
-                    icon!,
-                    color: soft ? color : context.brand.onAccent(color),
-                    size: size * 0.42,
-                  )
-                : Text(
-                    label!,
-                    style: TextStyle(
-                      color: soft ? color : context.brand.onAccent(color),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-          ),
-        ),
-      ),
-    );
-    return BrandTooltip(message: tooltip ?? label ?? '', child: button);
-  }
 }
 
 class _AmbientRow extends ConsumerWidget {
+  const _AmbientRow();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final brand = context.brand;
     final active = ref.watch(ambientPlayerProvider);
     final notifier = ref.read(ambientPlayerProvider.notifier);
 
-    const labels = <String, (String, HugeIconData)>{
-      'rain': ('Rain', AppIcons.water),
-      'cafe': ('Café', AppIcons.habits),
-      'forest': ('Forest', AppIcons.forest),
-      'white': ('White', AppIcons.whiteNoise),
-      'brown': ('Brown', AppIcons.brownNoise),
-      'ocean': ('Ocean', AppIcons.ocean),
-    };
+    const items = <(String, String, HugeIconData)>[
+      ('rain', 'Rain', AppIcons.water),
+      ('forest', 'Forest', AppIcons.forest),
+      ('ocean', 'Ocean', AppIcons.ocean),
+      ('cafe', 'Café', AppIcons.habits),
+      ('white', 'White', AppIcons.whiteNoise),
+      ('brown', 'Brown', AppIcons.brownNoise),
+    ];
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: labels.entries.map((e) {
-        final (label, icon) = e.value;
-        final selected = active == e.key;
-        return Pill(
-          label: label,
-          icon: icon,
-          selected: selected,
-          color: Theme.of(context).colorScheme.primary,
-          onTap: () => ((_) async {
-            final ok = await notifier.toggle(e.key);
-            if (!ok && context.mounted) {
-              brandToast(context, 'Could not play the $label sound.');
-            }
-          })(!(selected)),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: items.map((entry) {
+        final (key, label, icon) = entry;
+        final selected = active == key;
+        return Expanded(
+          child: BrandTappable(
+            onPressed: () async {
+              AppHaptics.selection();
+              final ok = await notifier.toggle(key);
+              if (!ok && context.mounted) {
+                brandToast(context, 'Could not play the $label sound.');
+              }
+            },
+            semanticsLabel: label,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? brand.focusRoles.onInk
+                        : Colors.white.withValues(alpha: 0.07),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: AppIcon(
+                    icon,
+                    size: 20,
+                    color: selected ? brand.inkDeep : Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                    color: selected ? Colors.white : brand.onInkMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       }).toList(),
     );
@@ -550,149 +1122,499 @@ class _AmbientRow extends ConsumerWidget {
 }
 
 class _FocusStatsSheet extends ConsumerWidget {
-  const _FocusStatsSheet();
+  final VoidCallback onEditGoal;
+
+  const _FocusStatsSheet({required this.onEditGoal});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final brand = context.brand;
+    final focusOnInk = brand.focusRoles.onInk;
     final stats = ref.watch(focusStatsProvider).valueOrNull ?? FocusStats.empty;
     final sessions = ref.watch(recentSessionsProvider).valueOrNull ?? const [];
-    final muted = Theme.of(context).colorScheme.outline;
+    final goal = ref.watch(focusGoalProvider);
+
+    final ratedSessions = sessions.where((s) => s.rating != null).toList();
+    final avgQuality = ratedSessions.isEmpty
+        ? null
+        : ratedSessions.map((s) => s.rating!).reduce((a, b) => a + b) /
+              ratedSessions.length;
+
+    final now = DateTime.now();
+    final today = Fmt.dateOnly(now);
+    final last7Days = List.generate(
+      7,
+      (i) => today.subtract(Duration(days: 6 - i)),
+    );
 
     return SheetScaffold(
       title: 'Focus stats',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Top 3 stat cards (30-focus-stats.html)
           Row(
             children: [
               Expanded(
-                child: StatTile(
-                  tintIndex: 0,
-                  icon: AppIcons.today,
-                  color: context.brand.focus,
-                  label: 'Today',
+                child: _DarkStatCard(
+                  label: 'TODAY',
                   value: Fmt.duration(stats.today),
-                  sublabel: '${stats.sessionsToday} sessions',
+                  tinted: true,
+                  accent: focusOnInk,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
-                child: StatTile(
-                  tintIndex: 1,
-                  icon: AppIcons.calendarWeek,
-                  color: context.brand.focus,
-                  label: 'This week',
+                child: _DarkStatCard(
+                  label: 'THIS WEEK',
                   value: Fmt.duration(stats.week),
-                  sublabel: '${stats.sessionsWeek} sessions',
+                  accent: focusOnInk,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
-                child: StatTile(
-                  tintIndex: 2,
-                  icon: AppIcons.streak,
-                  color: context.brand.warning,
-                  label: 'Streak',
-                  value: '${stats.streakDays}',
-                  sublabel: 'days',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: StatTile(
-                  tintIndex: 3,
-                  icon: AppIcons.session,
-                  color: context.brand.focus,
-                  label: 'All time',
+                child: _DarkStatCard(
+                  label: 'ALL TIME',
                   value: Fmt.duration(stats.total),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: StatTile(
-                  tintIndex: 4,
-                  icon: AppIcons.lightMode,
-                  color: context.brand.warning,
-                  label: 'Best hour',
-                  value: stats.bestHour == null
-                      ? '—'
-                      : Fmt.minutesOfDay(stats.bestHour! * 60),
-                  sublabel: 'when you focus most',
+                  accent: focusOnInk,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          const SectionHeader('Focus days'),
-          SizedBox(
-            height: 7 * 17.0,
-            child: ContributionHeatmap(
-              color: context.brand.focus,
-              intensityFor: (day) {
-                final d = stats.byDay[Fmt.dateOnly(day)];
-                if (d == null || d == Duration.zero) return 0;
-                // Scale against a 2-hour day so a solid day reads as full.
-                return (d.inMinutes / 120).clamp(0.15, 1.0);
-              },
+          const SizedBox(height: 14),
+
+          // Last 7 days bar chart card (30-focus-stats.html)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'LAST 7 DAYS',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: brand.onInkMuted,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    BrandTappable(
+                      onPressed: () {
+                        Navigator.of(context).maybePop();
+                        onEditGoal();
+                      },
+                      child: Container(
+                        height: 32,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        alignment: Alignment.center,
+                        decoration: ShapeDecoration(
+                          color: Colors.white.withValues(alpha: 0.10),
+                          shape: const StadiumBorder(),
+                        ),
+                        child: Text(
+                          'Goal ${Fmt.durationFromMinutes(goal)} · Change',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  height: 104,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (final (i, day) in last7Days.indexed) ...[
+                        if (i > 0) const SizedBox(width: 8),
+                        Expanded(
+                          child: _DayBar(
+                            day: day,
+                            minutes:
+                                (stats.byDay[day] ?? Duration.zero).inMinutes,
+                            goalMinutes: math.max(goal, 30),
+                            isToday: Fmt.isSameDay(day, today),
+                            accent: focusOnInk,
+                            mutedColor: brand.onInkMuted,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-          const SectionHeader('Recent sessions'),
-          if (sessions.isEmpty)
-            Text('No sessions yet.', style: TextStyle(color: muted))
-          else
-            ...sessions
-                .take(12)
-                .map(
-                  (s) => Padding(
-                    padding: const EdgeInsets.only(bottom: cardGap),
-                    child: BrandTile(
-                      leading: AppIcon(
-                        s.isCompleted ? AppIcons.checkCircle : AppIcons.session,
-                        color: s.isCompleted ? context.brand.success : muted,
-                        size: 20,
+          const SizedBox(height: 12),
+
+          // 3-column secondary metrics (Streak, Best hour, Focus quality)
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Day streak',
+                        style: TextStyle(fontSize: 11, color: brand.onInkMuted),
                       ),
-                      title: Text(
-                        s.note?.isNotEmpty == true ? s.note! : 'Focus session',
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      subtitle: Text(
-                        '${Fmt.relativeDay(s.startTime)} · ${Fmt.time(s.startTime)}',
-                        style: TextStyle(fontSize: 11, color: muted),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      const SizedBox(height: 4),
+                      Row(
                         children: [
-                          if (s.rating != null) ...[
-                            AppIcon(
-                              AppIcons.star,
-                              size: 12,
-                              color: context.brand.warning,
-                            ),
-                            Text(
-                              '${s.rating}',
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(
-                            Fmt.duration(Duration(seconds: s.actualSeconds)),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
+                          AppIcon(
+                            AppIcons.streak,
+                            size: 14,
+                            color: brand.warningRoles.onInk,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              '${stats.streakDays} ${stats.streakDays == 1 ? 'day' : 'days'}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Best hour',
+                        style: TextStyle(fontSize: 11, color: brand.onInkMuted),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        stats.bestHour == null
+                            ? '—'
+                            : Fmt.minutesOfDay(stats.bestHour! * 60),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Focus quality',
+                        style: TextStyle(fontSize: 11, color: brand.onInkMuted),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        avgQuality == null
+                            ? '—'
+                            : '${avgQuality.toStringAsFixed(1)} / 5',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Recent sessions',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                Text(
+                  '${stats.sessionsWeek} this week',
+                  style: TextStyle(fontSize: 13, color: brand.onInkMuted),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (sessions.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+              child: Text(
+                'No sessions yet.',
+                style: TextStyle(color: brand.onInkMuted),
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Column(
+                children: [
+                  for (final (i, s) in sessions.take(10).indexed)
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        border: i < math.min(sessions.length, 10) - 1
+                            ? Border(
+                                bottom: BorderSide(
+                                  color: Colors.white.withValues(alpha: 0.08),
+                                ),
+                              )
+                            : null,
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 48,
+                            child: Text(
+                              Fmt.duration(Duration(seconds: s.actualSeconds)),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  s.note?.isNotEmpty == true
+                                      ? s.note!
+                                      : 'Focus session',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${Fmt.relativeDay(s.startTime)} ${Fmt.time(s.startTime)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: brand.onInkMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (s.rating != null)
+                            Container(
+                              height: 26,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 9,
+                              ),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: s.rating! >= 5
+                                    ? focusOnInk.withValues(alpha: 0.16)
+                                    : Colors.white.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(13),
+                              ),
+                              child: Text(
+                                '${s.rating} / 5',
+                                style: TextStyle(
+                                  color: s.rating! >= 5
+                                      ? focusOnInk
+                                      : Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
         ],
       ),
+    );
+  }
+}
+
+class _DarkStatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool tinted;
+  final Color accent;
+
+  const _DarkStatCard({
+    required this.label,
+    required this.value,
+    required this.accent,
+    this.tinted = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = context.brand;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: tinted
+            ? accent.withValues(alpha: 0.14)
+            : Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+              color: tinted ? accent : brand.onInkMuted,
+            ),
+          ),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.8,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DayBar extends StatelessWidget {
+  final DateTime day;
+  final int minutes;
+  final int goalMinutes;
+  final bool isToday;
+  final Color accent;
+  final Color mutedColor;
+
+  const _DayBar({
+    required this.day,
+    required this.minutes,
+    required this.goalMinutes,
+    required this.isToday,
+    required this.accent,
+    required this.mutedColor,
+  });
+
+  static const _letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+  @override
+  Widget build(BuildContext context) {
+    final fraction = (minutes / goalMinutes).clamp(0.04, 1.0);
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Expanded(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: FractionallySizedBox(
+              heightFactor: fraction,
+              widthFactor: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isToday
+                      ? accent
+                      : Colors.white.withValues(alpha: 0.20),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          _letters[day.weekday - 1],
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
+            color: isToday ? Colors.white : mutedColor,
+          ),
+        ),
+      ],
     );
   }
 }

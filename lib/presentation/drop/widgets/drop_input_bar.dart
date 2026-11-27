@@ -14,10 +14,7 @@ import '../utils/drop_gamification_feedback.dart';
 class DropInputBar extends ConsumerStatefulWidget {
   final VoidCallback? onAttachPressed;
 
-  const DropInputBar({
-    super.key,
-    this.onAttachPressed,
-  });
+  const DropInputBar({super.key, this.onAttachPressed});
 
   @override
   ConsumerState<DropInputBar> createState() => _DropInputBarState();
@@ -55,7 +52,6 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
   }
 
   void _onFocusChanged() {
-    // Only dismiss if neither the main text field nor the search box has focus
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (!_focusNode.hasFocus &&
@@ -125,7 +121,6 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
 
     final query = textBeforeCursor.substring(lastHash + 1);
 
-    // If query contains whitespace or characters that end a hashtag, close suggestions
     if (query.contains(RegExp(r'\s')) ||
         !RegExp(r'^[a-zA-Z0-9_\-]*$').hasMatch(query)) {
       if (_activeTagQuery != null) {
@@ -162,11 +157,14 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
     }
 
     final prefix = text.substring(0, _hashIndex!);
-    final suffix = (cursor >= 0 && cursor <= text.length) ? text.substring(cursor) : '';
+    final suffix = (cursor >= 0 && cursor <= text.length)
+        ? text.substring(cursor)
+        : '';
     final suffixStartsWithSpace = suffix.startsWith(' ');
     final replacement = suffixStartsWithSpace ? '#$tag' : '#$tag ';
     final newText = '$prefix$replacement$suffix';
-    final newCursor = prefix.length + replacement.length + (suffixStartsWithSpace ? 1 : 0);
+    final newCursor =
+        prefix.length + replacement.length + (suffixStartsWithSpace ? 1 : 0);
 
     _controller.value = TextEditingValue(
       text: newText,
@@ -213,13 +211,12 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
     setState(() => _isSubmitting = true);
 
     try {
-      // Extract hashtags (#tag)
       final hashtagRegex = RegExp(r'#([a-zA-Z0-9_\-]+)');
       final matches = hashtagRegex.allMatches(rawText);
       final tags = matches.map((m) => m.group(1)!).toList();
 
-      // Determine initial asset type
-      final isUrl = rawText.startsWith('http://') || rawText.startsWith('https://');
+      final isUrl =
+          rawText.startsWith('http://') || rawText.startsWith('https://');
       String assetType = 'clip';
       String? domain;
 
@@ -240,7 +237,9 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
         }
       }
 
-      await ref.read(dropRepositoryProvider).createDrop(
+      await ref
+          .read(dropRepositoryProvider)
+          .createDrop(
             content: rawText,
             assetType: assetType,
             sourceDomain: domain,
@@ -273,7 +272,6 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
     final theme = Theme.of(context);
     final brand = context.brand;
 
-    // Collect all existing (old) tags across drops and notes
     final dropTagsAsync = ref.watch(dropTagsStreamProvider);
     final noteTagsAsync = ref.watch(noteTagsProvider);
 
@@ -307,24 +305,15 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
 
     final showSuggestions = _activeTagQuery != null;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(color: brand.hairline, width: 1),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.gutter,
+          4,
+          AppSpacing.gutter,
+          16,
         ),
-        boxShadow: theme.brightness == Brightness.light
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  offset: const Offset(0, -2),
-                  blurRadius: 8,
-                ),
-              ]
-            : null,
-      ),
-      child: SafeArea(
-        top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -338,64 +327,76 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
                 tagSet: tagSet,
                 effectiveQuery: effectiveQuery,
               ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            // Floating white input pill (11-drop.html)
+            Container(
+              height: 62,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: ShapeDecoration(
+                color: brand.surface,
+                shape: const StadiumBorder(),
+                shadows: AppShadows.composer(theme.brightness),
+              ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (widget.onAttachPressed != null) ...[
-                    IconButton(
-                      icon: const AppIcon(AppIcons.camera, size: 22),
-                      tooltip: 'Attach photo or screenshot',
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                      onPressed: widget.onAttachPressed,
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: brand.canvas,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: AppIcon(
+                          AppIcons.camera,
+                          size: 20,
+                          color: brand.ink,
+                        ),
+                        tooltip: 'Attach photo or screenshot',
+                        onPressed: widget.onAttachPressed,
+                      ),
                     ),
                     const SizedBox(width: 4),
                   ],
                   Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: brand.canvas,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: brand.hairline),
-                      ),
-                      child: TextField(
-                        key: const ValueKey('drop_message_input_field'),
-                        controller: _controller,
-                        focusNode: _focusNode,
-                        minLines: 1,
-                        maxLines: 4,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => _submit(),
-                        decoration: InputDecoration(
-                          hintText: 'Drop a link, note or #tag...',
-                          hintStyle: TextStyle(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.45),
-                            fontSize: 14,
-                          ),
-                          filled: false,
-                          fillColor: Colors.transparent,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          errorBorder: InputBorder.none,
-                          focusedErrorBorder: InputBorder.none,
-                          disabledBorder: InputBorder.none,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
+                    child: TextField(
+                      key: const ValueKey('drop_message_input_field'),
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      minLines: 1,
+                      maxLines: 3,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _submit(),
+                      style: TextStyle(fontSize: 15, color: brand.ink),
+                      decoration: InputDecoration(
+                        hintText: 'Paste a link, thought or #tag',
+                        hintStyle: TextStyle(
+                          color: context.muted,
+                          fontSize: 15,
+                        ),
+                        filled: false,
+                        fillColor: Colors.transparent,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 10,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 4),
                   Container(
-                    decoration: ShapeDecoration(
-                      color: brand.drop,
-                      shape: const CircleBorder(),
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: brand.dropRoles.graphicOnTint,
+                      shape: BoxShape.circle,
                     ),
                     child: IconButton(
                       icon: _isSubmitting
@@ -407,7 +408,7 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
                               ),
                             )
                           : const AppIcon(
-                              AppIcons.arrowUp,
+                              AppIcons.arrowDown,
                               color: Colors.white,
                               size: 20,
                             ),
@@ -427,7 +428,7 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
   Widget _buildTagSuggestionsCard(
     BuildContext context, {
     required ThemeData theme,
-    required dynamic brand,
+    required BrandColors brand,
     required List<String> matchingTags,
     required Set<String> tagSet,
     required String effectiveQuery,
@@ -438,32 +439,22 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
     final canCreateNew = effectiveQuery.trim().isNotEmpty && !isExactMatch;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      margin: const EdgeInsets.only(bottom: 8),
       constraints: const BoxConstraints(maxHeight: 220),
       decoration: BoxDecoration(
-        color: brand.canvas,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: brand.hairline),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: theme.brightness == Brightness.dark ? 0.35 : 0.08,
-            ),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        color: brand.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppShadows.card(theme.brightness),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header bar
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              color: theme.colorScheme.surface,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              color: brand.surface,
               child: Row(
                 children: [
                   AppIcon(AppIcons.tag, size: 14, color: brand.drop),
@@ -474,16 +465,13 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.8,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: context.muted,
                     ),
                   ),
                   const Spacer(),
                   Text(
                     '${matchingTags.length} ${matchingTags.length == 1 ? 'tag' : 'tags'}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
-                    ),
+                    style: TextStyle(fontSize: 11, color: context.muted),
                   ),
                   const SizedBox(width: 6),
                   GestureDetector(
@@ -502,47 +490,36 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
                       child: AppIcon(
                         AppIcons.close,
                         size: 14,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                        color: context.muted,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-
-            // Search input field
             Container(
               height: 36,
-              margin: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+              margin: const EdgeInsets.fromLTRB(10, 4, 10, 6),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: brand.hairline),
+                color: brand.canvas,
+                borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Row(
                 children: [
-                  AppIcon(
-                    AppIcons.search,
-                    size: 15,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
+                  AppIcon(AppIcons.search, size: 15, color: context.muted),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       key: const ValueKey('mention_tag_search_field'),
                       controller: _searchController,
                       focusNode: _searchFocusNode,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: theme.colorScheme.onSurface,
-                      ),
+                      style: TextStyle(fontSize: 13, color: brand.ink),
                       decoration: InputDecoration(
                         hintText: 'Search or filter tags...',
                         hintStyle: TextStyle(
                           fontSize: 13,
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.4),
+                          color: context.muted,
                         ),
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -573,8 +550,7 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
                         child: AppIcon(
                           AppIcons.close,
                           size: 14,
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.45),
+                          color: context.muted,
                         ),
                       ),
                     ),
@@ -582,8 +558,6 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
               ),
             ),
             Divider(height: 1, color: brand.hairline),
-
-            // Scrollable list of suggestion tiles
             Flexible(
               child: ListView(
                 shrinkWrap: true,
@@ -600,30 +574,24 @@ class _DropInputBarState extends ConsumerState<DropInputBar> {
                           tagSet.isEmpty
                               ? 'No tags saved yet. Type a name to create one.'
                               : 'No matching tags found.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.5),
-                          ),
+                          style: TextStyle(fontSize: 13, color: context.muted),
                         ),
                       ),
                     ),
-                  ...matchingTags.map((tag) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _TagSuggestionTile(
-                            key: ValueKey('tag_suggestion_$tag'),
-                            tag: tag,
-                            query: effectiveQuery,
-                            onTap: () => _selectTag(tag),
-                          ),
-                          Divider(
-                            height: 1,
-                            indent: 48,
-                            color: brand.hairline.withValues(alpha: 0.5),
-                          ),
-                        ],
-                      )),
+                  ...matchingTags.map(
+                    (tag) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _TagSuggestionTile(
+                          key: ValueKey('tag_suggestion_$tag'),
+                          tag: tag,
+                          query: effectiveQuery,
+                          onTap: () => _selectTag(tag),
+                        ),
+                        Divider(height: 1, indent: 48, color: brand.hairline),
+                      ],
+                    ),
+                  ),
                   if (canCreateNew)
                     _CreateTagTile(
                       key: ValueKey('create_tag_${effectiveQuery.trim()}'),
@@ -669,7 +637,7 @@ class _TagSuggestionTile extends StatelessWidget {
                 width: 26,
                 height: 26,
                 decoration: BoxDecoration(
-                  color: brand.drop.withValues(alpha: 0.12),
+                  color: brand.dropRoles.tintFill,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 alignment: Alignment.center,
@@ -678,19 +646,13 @@ class _TagSuggestionTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: brand.drop,
+                    color: brand.dropRoles.textOnTint,
                   ),
                 ),
               ),
               const SizedBox(width: 10),
-              Expanded(
-                child: _buildHighlightedTag(theme, brand),
-              ),
-              AppIcon(
-                AppIcons.arrowUp,
-                size: 14,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
-              ),
+              Expanded(child: _buildHighlightedTag(theme, brand)),
+              AppIcon(AppIcons.arrowUp, size: 14, color: context.muted),
             ],
           ),
         ),
@@ -698,14 +660,14 @@ class _TagSuggestionTile extends StatelessWidget {
     );
   }
 
-  Widget _buildHighlightedTag(ThemeData theme, dynamic brand) {
+  Widget _buildHighlightedTag(ThemeData theme, BrandColors brand) {
     if (query.isEmpty) {
       return Text(
         tag,
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: theme.colorScheme.onSurface,
+          color: brand.ink,
         ),
       );
     }
@@ -721,17 +683,14 @@ class _TagSuggestionTile extends StatelessWidget {
 
       return RichText(
         text: TextSpan(
-          style: TextStyle(
-            fontSize: 14,
-            color: theme.colorScheme.onSurface,
-          ),
+          style: TextStyle(fontSize: 14, color: brand.ink),
           children: [
             if (before.isNotEmpty) TextSpan(text: before),
             TextSpan(
               text: matched,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color: brand.drop,
+                color: brand.dropRoles.textOnTint,
               ),
             ),
             if (after.isNotEmpty) TextSpan(text: after),
@@ -740,7 +699,6 @@ class _TagSuggestionTile extends StatelessWidget {
       );
     }
 
-    // Subsequence match highlighting
     final spans = <TextSpan>[];
     int qIdx = 0;
     for (int i = 0; i < tag.length; i++) {
@@ -751,7 +709,7 @@ class _TagSuggestionTile extends StatelessWidget {
             text: char,
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              color: brand.drop,
+              color: brand.dropRoles.textOnTint,
             ),
           ),
         );
@@ -763,10 +721,7 @@ class _TagSuggestionTile extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: TextStyle(
-          fontSize: 14,
-          color: theme.colorScheme.onSurface,
-        ),
+        style: TextStyle(fontSize: 14, color: brand.ink),
         children: spans,
       ),
     );
@@ -777,15 +732,10 @@ class _CreateTagTile extends StatelessWidget {
   final String tag;
   final VoidCallback onTap;
 
-  const _CreateTagTile({
-    super.key,
-    required this.tag,
-    required this.onTap,
-  });
+  const _CreateTagTile({super.key, required this.tag, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final brand = context.brand;
 
     return Material(
@@ -800,49 +750,24 @@ class _CreateTagTile extends StatelessWidget {
                 width: 26,
                 height: 26,
                 decoration: BoxDecoration(
-                  color: brand.drop.withValues(alpha: 0.15),
+                  color: brand.successRoles.tintFill,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 alignment: Alignment.center,
                 child: AppIcon(
                   AppIcons.add,
                   size: 14,
-                  color: brand.drop,
+                  color: brand.successRoles.graphicOnTint,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    children: [
-                      const TextSpan(text: 'Create tag '),
-                      TextSpan(
-                        text: '#$tag',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: brand.drop,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: brand.drop.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
                 child: Text(
-                  'NEW',
+                  'Create tag #$tag',
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: brand.drop,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: brand.successRoles.textOnTint,
                   ),
                 ),
               ),

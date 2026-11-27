@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_icons.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/utils/formatters.dart';
 import '../../core/utils/haptics.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/common.dart';
-import '../../core/theme/app_theme.dart';
 import 'providers/expenses_provider.dart';
 import 'repository/expense_repository.dart';
 
@@ -24,53 +26,88 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brand = context.brand;
+    final muted = Theme.of(context).colorScheme.outline;
+    final currency = ref.watch(settingsProvider).currencySymbol;
     final all = ref.watch(categoriesProvider).valueOrNull ?? const [];
     final shown = all.where((c) => c.isIncome == _income).toList();
+    final report = ref.watch(currentMonthReportProvider).valueOrNull;
+    final monthName = Fmt.monthYear(DateTime.now()).split(' ').first;
 
     return BrandScaffold(
       header: BrandTopBar(
         title: 'Categories',
         leadingIcon: AppIcons.back,
         actions: [
-          CircleIconButton(
-            icon: AppIcons.add,
-            tooltip: 'New category',
-            size: 40,
-            onPressed: () =>
-                CategoryEditor.show(context, ref, isIncome: _income),
+          _HeaderTypeToggle(
+            income: _income,
+            onChanged: (v) => setState(() => _income = v),
           ),
         ],
       ),
+      floatingAction: BrandFab(
+        icon: AppIcons.add,
+        label: 'New',
+        tooltip: 'New category',
+        onPressed: () => CategoryEditor.show(context, ref, isIncome: _income),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
+              AppSpacing.gutter + 4,
+              4,
               AppSpacing.gutter,
-              8,
-              AppSpacing.gutter,
-              8,
+              10,
             ),
-            child: BrandSegmented<bool>(
-              options: const {false: 'Expense', true: 'Income'},
-              selected: _income,
-              onSelected: (v) => setState(() => _income = v),
+            child: Text(
+              '${shown.length == 1 ? '1 category' : '${shown.length} categories'} · drag to reorder'
+              '${_income ? '' : ' · spend is for $monthName'}',
+              style: TextStyle(fontSize: 13, color: muted),
             ),
           ),
           Expanded(
-            child: ReorderableListView.builder(
-              padding: pageInsets(context, top: 4, end: PageEnd.fab),
-              buildDefaultDragHandles: false,
-              itemCount: shown.length,
-              onReorderStart: (_) => AppHaptics.medium(),
-              onReorderItem: (from, to) => _reorder(all, shown, from, to),
-              itemBuilder: (context, i) => _CategoryRow(
-                key: ValueKey('cat-${shown[i].id}'),
-                category: shown[i],
-                index: i,
-                onDelete: () => _delete(shown[i], shown),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
+              decoration: BoxDecoration(
+                color: brand.surface,
+                borderRadius: BorderRadius.circular(AppRadii.card),
+                boxShadow: AppShadows.card(Theme.of(context).brightness),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: ReorderableListView.builder(
+                padding: EdgeInsets.fromLTRB(
+                  0,
+                  4,
+                  0,
+                  AppSpacing.fabClearance +
+                      MediaQuery.paddingOf(context).bottom,
+                ),
+                buildDefaultDragHandles: false,
+                itemCount: shown.length,
+                onReorderStart: (_) => AppHaptics.medium(),
+                onReorderItem: (from, to) => _reorder(all, shown, from, to),
+                itemBuilder: (context, i) {
+                  final cat = shown[i];
+                  final spend = _income
+                      ? 0.0
+                      : (report?.byCategory[cat.id] ?? 0.0);
+                  return _CategoryRow(
+                    key: ValueKey('cat-${cat.id}'),
+                    category: cat,
+                    index: i,
+                    showDivider: i < shown.length - 1,
+                    spend: spend,
+                    showSpend: !_income,
+                    currency: currency,
+                    onDelete: () => _delete(cat, shown),
+                  );
+                },
               ),
             ),
           ),
+          SizedBox(height: MediaQuery.paddingOf(context).bottom + 20),
         ],
       ),
     );
@@ -171,60 +208,173 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }
 }
 
+class _HeaderTypeToggle extends StatelessWidget {
+  final bool income;
+  final ValueChanged<bool> onChanged;
+
+  const _HeaderTypeToggle({required this.income, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = context.brand;
+    final muted = Theme.of(context).colorScheme.outline;
+
+    Widget pill(String label, bool value) {
+      final selected = income == value;
+      return BrandTappable(
+        onPressed: () => onChanged(value),
+        semanticsLabel: label,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 11),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? brand.ink : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+              color: selected ? brand.onInk : muted,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: brand.well,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [pill('Expense', false), pill('Income', true)],
+      ),
+    );
+  }
+}
+
 class _CategoryRow extends ConsumerWidget {
   final ExpenseCategory category;
   final int index;
+  final bool showDivider;
+  final double spend;
+  final bool showSpend;
+  final String currency;
   final VoidCallback onDelete;
 
   const _CategoryRow({
     super.key,
     required this.category,
     required this.index,
+    required this.showDivider,
+    required this.spend,
+    required this.showSpend,
+    required this.currency,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final brand = context.brand;
+    final muted = Theme.of(context).colorScheme.outline;
     final color = Color(category.color);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: cardGap),
-      child: BrandTile(
-        dense: true,
-        leading: Container(
-          padding: const EdgeInsets.all(9),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.14),
-            shape: BoxShape.circle,
-          ),
-          child: AppIcon(
-            AppIcons.category(category.icon),
-            color: color,
-            size: 18,
-          ),
-        ),
-        title: Text(
-          category.name,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleIconButton(
-              icon: AppIcons.delete,
-              tooltip: 'Delete',
-              size: 40,
-              onPressed: onDelete,
-            ),
-            ReorderableDragStartListener(
-              index: index,
-              child: const Padding(
-                padding: EdgeInsets.all(8),
-                child: AppIcon(AppIcons.gripVertical),
+    final roles = brand.roleFor(color);
+    final isFallback = category.name == 'Other';
+
+    return Material(
+      color: brand.surface,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          BrandTappable(
+            onPressed: () =>
+                CategoryEditor.show(context, ref, category: category),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: roles.tintFill,
+                      borderRadius: BorderRadius.circular(AppRadii.chipSmall),
+                    ),
+                    child: AppIcon(
+                      AppIcons.category(category.icon),
+                      color: roles.graphicOnTint,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          category.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: brand.ink,
+                          ),
+                        ),
+                        if (isFallback)
+                          Text(
+                            'Fallback category',
+                            style: TextStyle(fontSize: 11, color: muted),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (showSpend) ...[
+                    Text(
+                      spend > 0 ? Fmt.money(spend, currency) : 'No spend',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: spend > 0
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: spend > 0 ? brand.ink : muted,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  CircleIconButton(
+                    icon: AppIcons.delete,
+                    tooltip: 'Delete',
+                    size: 36,
+                    onPressed: onDelete,
+                  ),
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: AppIcon(
+                        AppIcons.gripVertical,
+                        size: 18,
+                        color: brand.subtle,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-        onTap: () => CategoryEditor.show(context, ref, category: category),
+          ),
+          if (showDivider)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Divider(height: 1, thickness: 1, color: brand.hairline),
+            ),
+        ],
       ),
     );
   }
@@ -243,7 +393,7 @@ class CategoryEditor {
   }) async {
     final name = TextEditingController(text: category?.name ?? '');
     var icon = category?.icon ?? 'other';
-    var color = category?.color ?? 0xFF9A6DD7;
+    var color = category?.color ?? context.brand.expense.toARGB32();
 
     final saved = await brandDialog<bool>(
       context,
@@ -319,6 +469,7 @@ class _IconGrid extends StatelessWidget {
     return SizedBox(
       height: 160,
       child: GridView.count(
+        padding: EdgeInsets.zero,
         crossAxisCount: 6,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,

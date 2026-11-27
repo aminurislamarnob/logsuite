@@ -140,7 +140,7 @@ class _TabFadeState extends State<_TabFade>
       FadeTransition(opacity: _opacity, child: widget.child);
 }
 
-/// The round coral `+` that sits in the notch of the bottom bar.
+/// The round coral `+` inline in the floating ink pill bar.
 ///
 /// A long press goes straight to the voice assistant: the button is on every
 /// tab, so it is the one place a spoken command is always one gesture away.
@@ -152,8 +152,7 @@ class QuickAddButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final primary = scheme.primary;
+    final primary = Theme.of(context).colorScheme.primary;
     return BrandTooltip(
       message: onLongPress == null ? 'Quick add' : 'Quick add · hold to speak',
       semanticsLabel: 'Quick add',
@@ -167,19 +166,16 @@ class QuickAddButton extends StatelessWidget {
             shape: const CircleBorder(),
             shadows: [
               BoxShadow(
-                color: primary.withValues(alpha: 0.28),
-                blurRadius: 10,
-                spreadRadius: -2,
+                color: primary.withValues(alpha: 0.36),
+                blurRadius: 14,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: SizedBox(
-            width: 58,
-            height: 58,
-            // Not white: on coral that is 3.25:1, and the palette already says
-            // what belongs on its primary.
-            child: AppIcon(AppIcons.add, color: scheme.onPrimary, size: 30),
+          child: const SizedBox(
+            width: 50,
+            height: 50,
+            child: AppIcon(AppIcons.add, color: Colors.white, size: 26),
           ),
         ),
       ),
@@ -187,185 +183,369 @@ class QuickAddButton extends StatelessWidget {
   }
 }
 
-/// The Quick Add sheet. Every entry here is a real action, and the frequent
-/// ones (log habit, mark dose) complete in a single extra tap.
+/// The Quick Add sheet (`02-quick-add.png`). Every entry here is a real action,
+/// and the frequent ones (log habit, mark dose) complete in a single extra tap.
 Future<void> showQuickAdd(BuildContext context, WidgetRef ref) {
   final settings = ref.read(settingsProvider);
 
   return brandSheet(
     context: context,
-    builder: (sheetContext) => SheetScaffold(
-      title: 'Quick add',
-      child: Column(
-        children: [
-          // Ungated: the assistant itself honours whichever modules are on.
-          _tile(
-            icon: AppIcons.sparkle,
-            color: Theme.of(context).colorScheme.primary,
-            title: 'Speak a command',
-            subtitle: 'Add several things in one sentence',
-            onTap: () {
-              Navigator.pop(sheetContext);
-              context.push('/assistant');
-            },
-          ),
-          _tile(
-            icon: AppIcons.camera,
-            color: Theme.of(context).colorScheme.primary,
-            title: 'Scan a document',
-            subtitle: 'Scan a bill, invoice or handwritten note',
-            onTap: () async {
-              Navigator.pop(sheetContext);
-              final fromCamera = await showDocumentSourceSheet(context);
-              if (fromCamera != null && context.mounted) {
-                context.push('/assistant', extra: fromCamera);
-              }
-            },
-          ),
-          if (settings.isEnabled(AppModule.tasks))
-            _tile(
-              icon: AppIcons.tasks,
-              color: context.brand.task,
-              title: 'Add task',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                TaskEditorSheet.show(context);
-              },
-            ),
-          if (settings.isEnabled(AppModule.expenses))
-            _tile(
-              icon: AppIcons.expenses,
-              color: context.brand.expense,
-              title: 'Add expense',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                ExpenseEntrySheet.show(context);
-              },
-            ),
-          if (settings.isEnabled(AppModule.habits))
-            _tile(
-              icon: AppIcons.habits,
-              color: context.brand.habit,
-              title: 'Log habit',
-              subtitle: 'One tap per habit',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _showHabitPicker(context, ref);
-              },
-            ),
-          if (settings.isEnabled(AppModule.medicine))
-            _tile(
-              icon: AppIcons.medicine,
-              color: context.brand.medicine,
-              title: 'Mark medicine taken',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _showDosePicker(context, ref);
-              },
-            ),
-          if (settings.isEnabled(AppModule.notes))
-            _tile(
-              icon: AppIcons.notes,
-              color: context.brand.note,
-              title: 'New note',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                newNoteFlow(context, ref);
-              },
-            ),
-          if (settings.isEnabled(AppModule.focus))
-            _tile(
-              icon: AppIcons.focus,
-              color: context.brand.focus,
-              title: 'Start focus session',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                context.push('/focus');
-              },
-            ),
-          if (settings.isEnabled(AppModule.drop))
-            _tile(
-              icon: AppIcons.inbox,
-              color: context.brand.drop,
-              title: 'Drop something',
-              subtitle: 'Save links, text or media',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                context.push('/drop');
-              },
-            ),
-          if (settings.isEnabled(AppModule.expenses))
-            _tile(
-              icon: AppIcons.transfer,
-              color: Theme.of(context).colorScheme.primary,
-              title: 'Transfer money',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                ExpenseEntrySheet.show(context, kind: TxKind.transfer);
-              },
-            ),
-        ],
-      ),
+    builder: (sheetContext) => _QuickAddSheetContent(
+      settings: settings,
+      parentContext: context,
+      ref: ref,
     ),
   );
 }
 
-/// One row of the Quick Add sheet, on the same tinted-card chrome as the rest
-/// of the app.
-Widget _tile({
-  required HugeIconData icon,
-  required Color color,
-  required String title,
-  String? subtitle,
-  required VoidCallback onTap,
-}) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: cardGap),
-    child: Builder(
-      builder: (context) => TintCard(
-        accent: color,
-        onTap: onTap,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
+class _QuickAddSheetContent extends StatefulWidget {
+  final AppSettings settings;
+  final BuildContext parentContext;
+  final WidgetRef ref;
+
+  const _QuickAddSheetContent({
+    required this.settings,
+    required this.parentContext,
+    required this.ref,
+  });
+
+  @override
+  State<_QuickAddSheetContent> createState() => _QuickAddSheetContentState();
+}
+
+class _QuickAddSheetContentState extends State<_QuickAddSheetContent> {
+  final _textController = TextEditingController();
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  void _openAssistant([String? initialText]) {
+    final text = (initialText ?? _textController.text).trim();
+    Navigator.pop(context);
+    widget.parentContext.push('/assistant', extra: text.isEmpty ? null : text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final settings = widget.settings;
+    final parentContext = widget.parentContext;
+    final ref = widget.ref;
+
+    final entries =
+        <({HugeIconData icon, Color color, String label, VoidCallback onTap})>[
+          if (settings.isEnabled(AppModule.tasks))
+            (
+              icon: AppIcons.tasks,
+              color: brand.task,
+              label: 'Task',
+              onTap: () {
+                Navigator.pop(context);
+                TaskEditorSheet.show(parentContext);
+              },
+            ),
+          if (settings.isEnabled(AppModule.expenses))
+            (
+              icon: AppIcons.expenses,
+              color: brand.expense,
+              label: 'Expense',
+              onTap: () {
+                Navigator.pop(context);
+                ExpenseEntrySheet.show(parentContext);
+              },
+            ),
+          if (settings.isEnabled(AppModule.habits))
+            (
+              icon: AppIcons.habits,
+              color: brand.habit,
+              label: 'Habit',
+              onTap: () {
+                Navigator.pop(context);
+                _showHabitPicker(parentContext, ref);
+              },
+            ),
+          if (settings.isEnabled(AppModule.medicine))
+            (
+              icon: AppIcons.medicine,
+              color: brand.medicine,
+              label: 'Medicine',
+              onTap: () {
+                Navigator.pop(context);
+                _showDosePicker(parentContext, ref);
+              },
+            ),
+          if (settings.isEnabled(AppModule.notes))
+            (
+              icon: AppIcons.notes,
+              color: brand.note,
+              label: 'Note',
+              onTap: () {
+                Navigator.pop(context);
+                newNoteFlow(parentContext, ref);
+              },
+            ),
+          if (settings.isEnabled(AppModule.focus))
+            (
+              icon: AppIcons.focus,
+              color: brand.focus,
+              label: 'Focus',
+              onTap: () {
+                Navigator.pop(context);
+                parentContext.push('/focus');
+              },
+            ),
+          if (settings.isEnabled(AppModule.drop))
+            (
+              icon: AppIcons.inbox,
+              color: brand.drop,
+              label: 'Drop',
+              onTap: () {
+                Navigator.pop(context);
+                parentContext.push('/drop');
+              },
+            ),
+          if (settings.isEnabled(AppModule.expenses))
+            (
+              icon: AppIcons.transfer,
+              color: brand.ink,
+              label: 'Transfer',
+              onTap: () {
+                Navigator.pop(context);
+                ExpenseEntrySheet.show(parentContext, kind: TxKind.transfer);
+              },
+            ),
+        ];
+
+    return SheetScaffold(
+      title: 'Add',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: brand.heroSurface,
+              borderRadius: BorderRadius.circular(AppRadii.card),
+              boxShadow: AppShadows.hero(theme.brightness),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    AppIcon(
+                      AppIcons.sparkle,
+                      size: 16,
+                      color: brand.medicineRoles.onInk,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'SAY IT OR TYPE IT',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: brand.medicineRoles.onInk,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _textController,
+                  minLines: 2,
+                  maxLines: 3,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: _openAssistant,
+                  style: TextStyle(
+                    color: theme.brightness == Brightness.dark
+                        ? brand.ink
+                        : Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                    height: 1.35,
+                  ),
+                  decoration: InputDecoration(
+                    hintText:
+                        'Lunch 200 taka with bKash, or call the doctor at 5',
+                    hintStyle: TextStyle(
+                      color: brand.onInkMuted,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    CircleIconButton(
+                      icon: AppIcons.camera,
+                      tooltip: 'Scan a document',
+                      onInk: true,
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final fromCamera = await showDocumentSourceSheet(
+                          parentContext,
+                        );
+                        if (fromCamera != null && parentContext.mounted) {
+                          parentContext.push('/assistant', extra: fromCamera);
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    CircleIconButton(
+                      icon: AppIcons.mic,
+                      tooltip: 'Speak a command',
+                      onInk: true,
+                      onPressed: () => _openAssistant(''),
+                    ),
+                    const Spacer(),
+                    BrandTappable(
+                      onPressed: () => _openAssistant(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
+                        decoration: ShapeDecoration(
+                          color: theme.brightness == Brightness.dark
+                              ? brand.ink
+                              : Colors.white,
+                          shape: const StadiumBorder(),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Ask assistant',
+                              style: TextStyle(
+                                color: theme.brightness == Brightness.dark
+                                    ? brand.onInk
+                                    : brand.ink,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            AppIcon(
+                              AppIcons.chevronRight,
+                              size: 16,
+                              color: theme.brightness == Brightness.dark
+                                  ? brand.onInk
+                                  : brand.ink,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (entries.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Text(
+              'OR PICK ONE',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: context.muted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 12),
+            GridView.count(
+              padding: EdgeInsets.zero,
+              crossAxisCount: 4,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.86,
+              children: [
+                for (final e in entries)
+                  _QuickPickTile(
+                    icon: e.icon,
+                    color: e.color,
+                    label: e.label,
+                    onTap: e.onTap,
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickPickTile extends StatelessWidget {
+  final HugeIconData icon;
+  final Color color;
+  final String label;
+  final VoidCallback onTap;
+
+  const _QuickPickTile({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brand = context.brand;
+    final roles = brand.roleFor(color);
+    return BrandTappable(
+      onPressed: onTap,
+      semanticsLabel: label,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+        decoration: BoxDecoration(
+          color: brand.surface,
+          borderRadius: BorderRadius.circular(AppRadii.tile),
+          boxShadow: AppShadows.card(theme.brightness),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               width: 42,
               height: 42,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child: AppIcon(
-                icon,
-                color: context.brand.onAccent(color),
-                size: 21,
+              decoration: BoxDecoration(
+                color: roles.tintFill,
+                shape: BoxShape.circle,
+              ),
+              child: AppIcon(icon, size: 20, color: roles.graphicOnTint),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: brand.ink,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle,
-                      style: TextStyle(fontSize: 12, color: context.muted),
-                    ),
-                ],
-              ),
-            ),
-            AppIcon(AppIcons.chevronRight, color: context.muted),
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// Second tap of the 2-tap habit log.

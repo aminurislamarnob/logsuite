@@ -6,6 +6,7 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../settings/app_settings.dart';
+import '../utils/formatters.dart';
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService(ref);
@@ -21,6 +22,8 @@ class _IdRange {
   static const bill = 500000;
   static const loan = 600000;
   static const drop = 700000;
+  static const medicineExpiryWarning = 800000;
+  static const medicineExpiryDay = 850000;
 }
 
 class NotificationService {
@@ -209,6 +212,44 @@ class NotificationService {
 
   Future<void> cancelDose(int doseId) =>
       _plugin.cancel(id: _IdRange.medicine + doseId);
+
+  Future<void> scheduleMedicineExpiryWarning({
+    required int medicineId,
+    required String medicineName,
+    required DateTime useByDate,
+    required int daysBefore,
+    required DateTime when,
+  }) {
+    final timing = daysBefore == 1 ? 'tomorrow' : 'in $daysBefore days';
+    return _schedule(
+      id: _IdRange.medicineExpiryWarning + medicineId,
+      title: '$medicineName expires $timing',
+      body: 'Best use by ${Fmt.dayMonth(useByDate)} after opening',
+      when: when,
+      isMedicine: true,
+      payload: 'medicine_expiry:$medicineId',
+    );
+  }
+
+  Future<void> scheduleMedicineExpiryDay({
+    required int medicineId,
+    required String medicineName,
+    required DateTime when,
+  }) {
+    return _schedule(
+      id: _IdRange.medicineExpiryDay + medicineId,
+      title: '$medicineName expires today',
+      body: 'After-opening period ends today — discard and replace if needed',
+      when: when,
+      isMedicine: true,
+      payload: 'medicine_expiry:$medicineId',
+    );
+  }
+
+  Future<void> cancelMedicineExpiryAlerts(int medicineId) async {
+    await _plugin.cancel(id: _IdRange.medicineExpiryWarning + medicineId);
+    await _plugin.cancel(id: _IdRange.medicineExpiryDay + medicineId);
+  }
 
   Future<void> scheduleTaskReminder({
     required int taskId,

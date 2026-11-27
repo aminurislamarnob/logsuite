@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_skill/flutter_skill.dart';
 import 'package:forui/forui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,6 +25,9 @@ import 'presentation/notes/repository/note_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kDebugMode) {
+    FlutterSkillBinding.ensureInitialized(autoEnableIndicators: false);
+  }
 
   // Settings are read synchronously all over the app, so load them before the
   // first frame rather than threading an AsyncValue through every screen.
@@ -257,31 +262,98 @@ class _LockGateState extends ConsumerState<_LockGate>
 
   @override
   Widget build(BuildContext context) {
-    final locked = ref.watch(settingsProvider).appLockEnabled && !_unlocked;
+    final settings = ref.watch(settingsProvider);
+    final locked = settings.appLockEnabled && !_unlocked;
     if (!locked) return widget.child;
 
-    return BrandScaffold(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const AppIcon(AppIcons.lock, size: 56),
-              const SizedBox(height: 20),
-              const Text(
-                'logSuite is locked',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+    final darkTheme = AppTheme.dark(
+      palette: settings.palette,
+      compact: settings.compactDensity,
+      locale: settings.locale,
+    );
+    final darkForui = brandForuiTheme(
+      brightness: Brightness.dark,
+      palette: settings.palette,
+      compact: settings.compactDensity,
+      locale: settings.locale,
+    );
+
+    return Theme(
+      data: darkTheme,
+      child: FTheme(
+        data: darkForui,
+        child: Builder(
+          builder: (context) {
+            final brand = context.brand;
+            return BrandScaffold(
+              child: ColoredBox(
+                color: brand.inkDeep,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'log',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              TextSpan(
+                                text: 'Suite',
+                                style: TextStyle(
+                                  color: brand.medicineRoles.onInk,
+                                ),
+                              ),
+                            ],
+                          ),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.6,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        Container(
+                          width: 64,
+                          height: 64,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const AppIcon(
+                            AppIcons.lock,
+                            size: 28,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'logSuite is locked',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Authenticate to continue.',
+                          style: TextStyle(color: brand.onInkMuted),
+                        ),
+                        const SizedBox(height: 28),
+                        if (_pinMode) ..._pinEntry() else ..._authButtons(),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Authenticate to continue.',
-                style: TextStyle(color: Theme.of(context).colorScheme.outline),
-              ),
-              const SizedBox(height: 28),
-              if (_pinMode) ..._pinEntry() else ..._authButtons(),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

@@ -38,7 +38,10 @@ void main() {
         final p = palette.spec(brightness);
 
         test('$name — text pairs clear 4.5:1', () {
-          final minContrast = (palette == AppPalette.coral && brightness == Brightness.light) ? 3.0 : 4.5;
+          final minContrast =
+              (palette == AppPalette.coral && brightness == Brightness.light)
+              ? 3.0
+              : 4.5;
           expect(
             contrast(p.onPrimary, p.primary),
             greaterThanOrEqualTo(minContrast),
@@ -80,13 +83,64 @@ void main() {
             ('task', p.task),
             ('expense', p.expense),
             ('focus', p.focus),
+            ('drop', p.drop),
           ]) {
             expect(
-              contrast(colour, _over(colour, p.background, 0.07)),
+              contrast(colour, _over(colour, p.surface, 0.07)),
               greaterThanOrEqualTo(3.0),
               reason: '$name: the $label glyph on a $label card',
             );
           }
+        });
+
+        test('$name — redesign module & status roles clear AA contrast', () {
+          for (final (label, roles) in [
+            ('medicine', p.medicineRoles),
+            ('task', p.taskRoles),
+            ('habit', p.habitRoles),
+            ('expense', p.expenseRoles),
+            ('focus', p.focusRoles),
+            ('note', p.noteRoles),
+            ('drop', p.dropRoles),
+            ('success', p.successRoles),
+            ('warning', p.warningRoles),
+            ('danger', p.dangerRoles),
+          ]) {
+            expect(
+              contrast(roles.graphicOnTint, roles.tintFill),
+              greaterThanOrEqualTo(3.0),
+              reason: '$name: $label graphicOnTint on tintFill',
+            );
+            expect(
+              contrast(roles.textOnTint, roles.tintFill),
+              greaterThanOrEqualTo(4.5),
+              reason: '$name: $label textOnTint on tintFill',
+            );
+            expect(
+              contrast(roles.onInk, p.heroSurface),
+              greaterThanOrEqualTo(3.0),
+              reason: '$name: $label onInk on heroSurface',
+            );
+          }
+        });
+
+        test('$name — ink and hero surfaces clear 4.5:1', () {
+          expect(
+            contrast(p.onInk, p.ink),
+            greaterThanOrEqualTo(4.5),
+            reason: '$name: onInk on ink (primary button)',
+          );
+          final heroText = brightness == Brightness.light ? p.onInk : p.text;
+          expect(
+            contrast(heroText, p.heroSurface),
+            greaterThanOrEqualTo(4.5),
+            reason: '$name: primary text on heroSurface',
+          );
+          expect(
+            contrast(p.onInkMuted, p.heroSurface),
+            greaterThanOrEqualTo(4.5),
+            reason: '$name: onInkMuted on heroSurface',
+          );
         });
 
         test('$name — the six module accents stay apart', () {

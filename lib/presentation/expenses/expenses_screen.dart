@@ -26,15 +26,8 @@ class ExpensesScreen extends ConsumerStatefulWidget {
 }
 
 class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  static const _reportsTabIndex = 1;
+  int _tabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -63,15 +56,21 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
           ),
         ],
       ),
-      floatingAction: BrandFab(
-        icon: AppIcons.add,
-        tooltip: 'Add transaction',
-        onPressed: () => ExpenseEntrySheet.show(context),
-      ),
+      floatingAction: _tabIndex == _reportsTabIndex
+          ? null
+          : BrandFab(
+              icon: AppIcons.add,
+              label: 'Add',
+              tooltip: 'Add transaction',
+              onPressed: () => ExpenseEntrySheet.show(context),
+            ),
       // BrandTabs owns the strip and the views together, so the strip moves out
       // of the header into the body.
-      child: const BrandTabs(
-        tabs: {
+      child: BrandTabs(
+        onTabChanged: (index) {
+          if (_tabIndex != index) setState(() => _tabIndex = index);
+        },
+        tabs: const {
           'Overview': OverviewTab(),
           'Reports': ReportsTab(),
           'Budgets': BudgetsTab(),

@@ -21,7 +21,7 @@ class ReminderTarget {
     final id = int.tryParse(payload.substring(colon + 1));
     if (id == null) return null;
     return switch (kind) {
-      'dose' => const ReminderTarget('/medicine'),
+      'dose' || 'medicine_expiry' => const ReminderTarget('/medicine'),
       'task' => const ReminderTarget('/tasks'),
       'habit' => const ReminderTarget('/habits'),
       'note' => ReminderTarget('/note_editor', extra: id),

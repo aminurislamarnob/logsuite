@@ -208,6 +208,18 @@ class MedicineRepository {
     );
   }
 
+  /// Sets [openedDate] (defaulting to today) when a user opens an unopened or
+  /// replacement bottle, returning the updated row so expiry alerts can re-arm.
+  Future<Medicine?> markBottleOpened(
+    int medicineId, {
+    DateTime? openedDate,
+  }) async {
+    final day = Fmt.dateOnly(openedDate ?? DateTime.now());
+    await (_db.update(_db.medicines)..where((t) => t.id.equals(medicineId)))
+        .write(MedicinesCompanion(openedDate: Value(day)));
+    return getMedicine(medicineId);
+  }
+
   // --- Adherence -----------------------------------------------------------
 
   /// Fraction of due doses that were taken between [from] and [to].
