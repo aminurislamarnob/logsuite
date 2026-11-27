@@ -54,18 +54,9 @@ void main() {
           path: '/dashboard',
           builder: (_, _) => const Scaffold(body: Text('Dashboard Screen')),
         ),
-        GoRoute(
-          path: '/notes',
-          builder: (_, _) => const NotesScreen(),
-        ),
-        GoRoute(
-          path: '/tasks',
-          builder: (_, _) => const TasksScreen(),
-        ),
-        GoRoute(
-          path: '/medicine',
-          builder: (_, _) => const MedicineScreen(),
-        ),
+        GoRoute(path: '/notes', builder: (_, _) => const NotesScreen()),
+        GoRoute(path: '/tasks', builder: (_, _) => const TasksScreen()),
+        GoRoute(path: '/medicine', builder: (_, _) => const MedicineScreen()),
       ],
     );
 
@@ -77,11 +68,7 @@ void main() {
           routerConfig: router,
           builder: (context, child) => FTheme(
             data: brandForuiTheme(brightness: Brightness.light),
-            child: FToaster(
-              child: FTooltipGroup(
-                child: child!,
-              ),
-            ),
+            child: FToaster(child: FTooltipGroup(child: child!)),
           ),
         ),
       ),
@@ -95,66 +82,75 @@ void main() {
     return container;
   }
 
-  testWidgets('NotesScreen renders Back button and Folders button; tapping Back returns to previous screen', (tester) async {
-    await pumpTestScreen(tester, initialLocation: '/notes');
+  testWidgets(
+    'NotesScreen renders Back button and Folders button; tapping Back returns to previous screen',
+    (tester) async {
+      await pumpTestScreen(tester, initialLocation: '/notes');
 
-    expect(find.byType(NotesScreen), findsOneWidget);
+      expect(find.byType(NotesScreen), findsOneWidget);
 
-    // Verify both Back button and Folders button exist via their ValueKeys
-    final backBtn = find.byKey(const ValueKey('button-back'));
-    final folderBtn = find.byKey(const ValueKey('button-folders'));
+      // Verify both Back button and Folders button exist via their ValueKeys
+      final backBtn = find.byKey(const ValueKey('button-back'));
+      final folderBtn = find.byKey(const ValueKey('button-folders'));
 
-    expect(backBtn, findsOneWidget);
-    expect(folderBtn, findsOneWidget);
+      expect(backBtn, findsOneWidget);
+      expect(folderBtn, findsOneWidget);
 
-    // Tap back button
-    await tester.tap(backBtn);
-    await tester.pumpAndSettle();
+      // Tap back button
+      await tester.tap(backBtn);
+      await tester.pumpAndSettle();
 
-    // Should return to Dashboard
-    expect(find.text('Dashboard Screen'), findsOneWidget);
-    expect(find.byType(NotesScreen), findsNothing);
-  });
+      // Should return to Dashboard
+      expect(find.text('Dashboard Screen'), findsOneWidget);
+      expect(find.byType(NotesScreen), findsNothing);
+    },
+  );
 
-  testWidgets('TasksScreen renders Back button and Projects button; tapping Back returns to previous screen', (tester) async {
-    await pumpTestScreen(tester, initialLocation: '/tasks');
+  testWidgets(
+    'TasksScreen renders Back button and Projects button; tapping Back returns to previous screen',
+    (tester) async {
+      await pumpTestScreen(tester, initialLocation: '/tasks');
 
-    expect(find.byType(TasksScreen), findsOneWidget);
+      expect(find.byType(TasksScreen), findsOneWidget);
 
-    // Verify both Back button and Projects folder button exist
-    final backBtn = find.byKey(const ValueKey('button-back'));
-    final projectBtn = find.byKey(const ValueKey('button-projects'));
+      // Verify both Back button and Projects folder button exist
+      final backBtn = find.byKey(const ValueKey('button-back'));
+      final projectBtn = find.byKey(const ValueKey('button-projects'));
 
-    expect(backBtn, findsOneWidget);
-    expect(projectBtn, findsOneWidget);
+      expect(backBtn, findsOneWidget);
+      expect(projectBtn, findsOneWidget);
 
-    // Tap back button
-    await tester.tap(backBtn);
-    await tester.pumpAndSettle();
+      // Tap back button
+      await tester.tap(backBtn);
+      await tester.pumpAndSettle();
 
-    // Should return to Dashboard
-    expect(find.text('Dashboard Screen'), findsOneWidget);
-    expect(find.byType(TasksScreen), findsNothing);
-  });
+      // Should return to Dashboard
+      expect(find.text('Dashboard Screen'), findsOneWidget);
+      expect(find.byType(TasksScreen), findsNothing);
+    },
+  );
 
-  testWidgets('MedicineScreen renders Back button and Profiles button; tapping Back returns to previous screen', (tester) async {
-    await pumpTestScreen(tester, initialLocation: '/medicine');
+  testWidgets(
+    'MedicineScreen renders Back button and Profiles button; tapping Back returns to previous screen',
+    (tester) async {
+      await pumpTestScreen(tester, initialLocation: '/medicine');
 
-    expect(find.byType(MedicineScreen), findsOneWidget);
+      expect(find.byType(MedicineScreen), findsOneWidget);
 
-    // Verify both Back button and Profiles button exist
-    final backBtn = find.byKey(const ValueKey('button-back'));
-    final profileBtn = find.byKey(const ValueKey('button-profiles'));
+      // Verify both Back button and Profiles button exist
+      final backBtn = find.byKey(const ValueKey('button-back'));
+      final profileBtn = find.byKey(const ValueKey('button-profiles'));
 
-    expect(backBtn, findsOneWidget);
-    expect(profileBtn, findsOneWidget);
+      expect(backBtn, findsOneWidget);
+      expect(profileBtn, findsOneWidget);
 
-    // Tap back button
-    await tester.tap(backBtn);
-    await tester.pumpAndSettle();
+      // Tap back button
+      await tester.tap(backBtn);
+      await tester.pumpAndSettle();
 
-    // Should return to Dashboard
-    expect(find.text('Dashboard Screen'), findsOneWidget);
-    expect(find.byType(MedicineScreen), findsNothing);
-  });
+      // Should return to Dashboard
+      expect(find.text('Dashboard Screen'), findsOneWidget);
+      expect(find.byType(MedicineScreen), findsNothing);
+    },
+  );
 }

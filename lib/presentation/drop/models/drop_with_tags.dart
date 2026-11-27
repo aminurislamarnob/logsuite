@@ -4,10 +4,7 @@ class DropWithTags {
   final Drop drop;
   final List<String> tags;
 
-  const DropWithTags({
-    required this.drop,
-    this.tags = const [],
-  });
+  const DropWithTags({required this.drop, this.tags = const []});
 
   int get id => drop.id;
   String get content => drop.content;
@@ -34,13 +31,7 @@ class DropWithTags {
   bool get isArchived => triageStatus == 'archived';
   bool get isInbox => triageStatus == 'inbox';
 
-  DropWithTags copyWith({
-    Drop? drop,
-    List<String>? tags,
-  }) {
-    return DropWithTags(
-      drop: drop ?? this.drop,
-      tags: tags ?? this.tags,
-    );
+  DropWithTags copyWith({Drop? drop, List<String>? tags}) {
+    return DropWithTags(drop: drop ?? this.drop, tags: tags ?? this.tags);
   }
 }

@@ -930,7 +930,7 @@ class _CompletionHeatmapCard extends StatelessWidget {
               runSpacing: 4,
               children: [
                 Text(
-                  'COMPLETION HEATMAP',
+                  'TASK COMPLETION HEATMAP',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,

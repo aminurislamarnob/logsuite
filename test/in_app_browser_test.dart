@@ -11,10 +11,7 @@ import 'package:logsuite/presentation/drop/models/drop_with_tags.dart';
 import 'package:logsuite/presentation/drop/widgets/drop_card.dart';
 
 Widget _wrapWithTheme(Widget child) {
-  final material = AppTheme.light(
-    palette: AppPalette.coral,
-    compact: false,
-  );
+  final material = AppTheme.light(palette: AppPalette.coral, compact: false);
   final forui = brandForuiTheme(
     brightness: Brightness.light,
     palette: AppPalette.coral,
@@ -51,7 +48,9 @@ void main() {
 
     test('extracts http URL with port and query params', () {
       expect(
-        InAppBrowserScreen.normalizeUrl('http://localhost:8080/test?user=1&ref=app'),
+        InAppBrowserScreen.normalizeUrl(
+          'http://localhost:8080/test?user=1&ref=app',
+        ),
         'http://localhost:8080/test?user=1&ref=app',
       );
     });
@@ -144,43 +143,40 @@ void main() {
       expect(find.byType(InAppBrowserScreen), findsNothing);
     });
 
-    testWidgets('DropCard primary tap opens InAppBrowserScreen for article drops', (
-      tester,
-    ) async {
-      final dropItem = DropWithTags(
-        drop: Drop(
-          id: 42,
-          content: 'https://news.ycombinator.com',
-          title: 'Hacker News',
-          description: 'Tech discussions',
-          assetType: 'article',
-          triageStatus: 'inbox',
-          isPinned: false,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        tags: const ['tech', 'news'],
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          child: _wrapWithTheme(
-            Scaffold(
-              body: DropCard(item: dropItem),
-            ),
+    testWidgets(
+      'DropCard primary tap opens InAppBrowserScreen for article drops',
+      (tester) async {
+        final dropItem = DropWithTags(
+          drop: Drop(
+            id: 42,
+            content: 'https://news.ycombinator.com',
+            title: 'Hacker News',
+            description: 'Tech discussions',
+            assetType: 'article',
+            triageStatus: 'inbox',
+            isPinned: false,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+          tags: const ['tech', 'news'],
+        );
 
-      // Tap the drop card
-      await tester.tap(find.text('Hacker News'));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          ProviderScope(
+            child: _wrapWithTheme(Scaffold(body: DropCard(item: dropItem))),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      // Verify InAppBrowserScreen opened with URL and title
-      expect(find.byType(InAppBrowserScreen), findsOneWidget);
-      expect(find.text('Hacker News'), findsWidgets);
-      expect(find.text('news.ycombinator.com'), findsOneWidget);
-    });
+        // Tap the drop card
+        await tester.tap(find.text('Hacker News'));
+        await tester.pumpAndSettle();
+
+        // Verify InAppBrowserScreen opened with URL and title
+        expect(find.byType(InAppBrowserScreen), findsOneWidget);
+        expect(find.text('Hacker News'), findsWidgets);
+        expect(find.text('news.ycombinator.com'), findsOneWidget);
+      },
+    );
   });
 }

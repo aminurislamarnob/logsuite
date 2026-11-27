@@ -226,10 +226,7 @@ class DropCard extends ConsumerWidget {
             ),
             BrandTile(
               leading: AppIcon(AppIcons.delete, color: brand.danger),
-              title: Text(
-                'Delete Drop',
-                style: TextStyle(color: brand.danger),
-              ),
+              title: Text('Delete Drop', style: TextStyle(color: brand.danger)),
               onTap: () async {
                 Navigator.pop(sheetContext);
                 final confirm = await brandConfirm(
@@ -746,7 +743,9 @@ class DropCard extends ConsumerWidget {
                                 ? 'Move to Inbox'
                                 : 'Mark Done / Archive',
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
                               child: Transform.scale(
                                 scale: 0.72,
                                 child: BrandCheckbox(
@@ -754,7 +753,8 @@ class DropCard extends ConsumerWidget {
                                   semanticsLabel: item.isArchived
                                       ? 'Move to Inbox'
                                       : 'Mark Done / Archive',
-                                  onChanged: (_) => _toggleArchive(context, ref),
+                                  onChanged: (_) =>
+                                      _toggleArchive(context, ref),
                                 ),
                               ),
                             ),

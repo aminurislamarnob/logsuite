@@ -101,21 +101,24 @@ void main() {
     expect(t.reminder, DateTime(2026, 9, 5, 18));
   });
 
-  test('"remind me to" with buy/pay and a time stays a task, not an expense', () {
-    final t = parse('remind me to buy milk at 8pm').single as AddTaskAction;
-    expect(t.title, 'Buy milk');
-    expect(t.reminder, DateTime(2026, 9, 5, 20));
+  test(
+    '"remind me to" with buy/pay and a time stays a task, not an expense',
+    () {
+      final t = parse('remind me to buy milk at 8pm').single as AddTaskAction;
+      expect(t.title, 'Buy milk');
+      expect(t.reminder, DateTime(2026, 9, 5, 20));
 
-    final multi = parse(
-      'Spent 120 taka on snacks with cash and remind me to buy milk at 8pm',
-    );
-    expect(multi, hasLength(2));
-    expect(multi[0], isA<AddExpenseAction>());
-    expect((multi[0] as AddExpenseAction).amount, 120);
-    expect(multi[1], isA<AddTaskAction>());
-    expect((multi[1] as AddTaskAction).title, 'Buy milk');
-    expect((multi[1] as AddTaskAction).reminder, DateTime(2026, 9, 5, 20));
-  });
+      final multi = parse(
+        'Spent 120 taka on snacks with cash and remind me to buy milk at 8pm',
+      );
+      expect(multi, hasLength(2));
+      expect(multi[0], isA<AddExpenseAction>());
+      expect((multi[0] as AddExpenseAction).amount, 120);
+      expect(multi[1], isA<AddTaskAction>());
+      expect((multi[1] as AddTaskAction).title, 'Buy milk');
+      expect((multi[1] as AddTaskAction).reminder, DateTime(2026, 9, 5, 20));
+    },
+  );
 
   test('a category name only matches as a whole word', () {
     // "brother" contains the seeded category "Other".

@@ -21,11 +21,11 @@ void main() {
     AppHaptics.enabled = true;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-      if (call.method == 'HapticFeedback.vibrate') {
-        hapticCalls.add('${call.arguments ?? 'vibrate'}');
-      }
-      return null;
-    });
+          if (call.method == 'HapticFeedback.vibrate') {
+            hapticCalls.add('${call.arguments ?? 'vibrate'}');
+          }
+          return null;
+        });
   });
 
   tearDown(() {
@@ -135,32 +135,33 @@ void main() {
       expect(hapticCalls, ['HapticFeedbackType.heavyImpact']);
     });
 
-    testWidgets('BrandCheckbox triggers success on check and selection on uncheck', (
-      tester,
-    ) async {
-      bool checked = false;
-      await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (context, setState) => wrap(
-            BrandCheckbox(
-              value: checked,
-              onChanged: (v) => setState(() => checked = v),
+    testWidgets(
+      'BrandCheckbox triggers success on check and selection on uncheck',
+      (tester) async {
+        bool checked = false;
+        await tester.pumpWidget(
+          StatefulBuilder(
+            builder: (context, setState) => wrap(
+              BrandCheckbox(
+                value: checked,
+                onChanged: (v) => setState(() => checked = v),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.tap(find.byType(BrandCheckbox));
-      await tester.pumpAndSettle();
-      expect(checked, isTrue);
-      expect(hapticCalls, ['HapticFeedbackType.mediumImpact']);
+        await tester.tap(find.byType(BrandCheckbox));
+        await tester.pumpAndSettle();
+        expect(checked, isTrue);
+        expect(hapticCalls, ['HapticFeedbackType.mediumImpact']);
 
-      hapticCalls.clear();
-      await tester.tap(find.byType(BrandCheckbox));
-      await tester.pumpAndSettle();
-      expect(checked, isFalse);
-      expect(hapticCalls, ['HapticFeedbackType.selectionClick']);
-    });
+        hapticCalls.clear();
+        await tester.tap(find.byType(BrandCheckbox));
+        await tester.pumpAndSettle();
+        expect(checked, isFalse);
+        expect(hapticCalls, ['HapticFeedbackType.selectionClick']);
+      },
+    );
 
     testWidgets('Pill and CircleIconButton trigger haptics on tap', (
       tester,

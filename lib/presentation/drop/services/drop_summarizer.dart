@@ -51,10 +51,9 @@ class DropSummarizer {
         if (decoded is Map && decoded['summary'] is String) {
           final summary = (decoded['summary'] as String).trim();
           if (summary.isNotEmpty) {
-            await _ref.read(dropRepositoryProvider).updateDrop(
-                  item.id,
-                  description: summary,
-                );
+            await _ref
+                .read(dropRepositoryProvider)
+                .updateDrop(item.id, description: summary);
             return summary;
           }
         }
@@ -65,10 +64,9 @@ class DropSummarizer {
 
     // Offline extractive fallback
     final fallback = _extractiveSummary(textToSummarize);
-    await _ref.read(dropRepositoryProvider).updateDrop(
-          item.id,
-          description: fallback,
-        );
+    await _ref
+        .read(dropRepositoryProvider)
+        .updateDrop(item.id, description: fallback);
     return fallback;
   }
 

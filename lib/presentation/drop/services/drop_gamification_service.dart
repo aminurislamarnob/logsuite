@@ -28,7 +28,8 @@ class DropGamificationService {
       totalDropsTriaged: _prefs.getInt(_keyTotalTriaged) ?? 0,
       totalDropsStarred: _prefs.getInt(_keyTotalStarred) ?? 0,
       inboxZeroCount: _prefs.getInt(_keyInboxZeroCount) ?? 0,
-      unlockedBadgeIds: (_prefs.getStringList(_keyUnlockedBadges) ?? []).toSet(),
+      unlockedBadgeIds: (_prefs.getStringList(_keyUnlockedBadges) ?? [])
+          .toSet(),
     );
   }
 
@@ -124,7 +125,9 @@ class DropGamificationService {
     );
   }
 
-  Future<GamificationReward> recordDropTriaged({bool reachedInboxZero = false}) async {
+  Future<GamificationReward> recordDropTriaged({
+    bool reachedInboxZero = false,
+  }) async {
     final stats = getStats();
     final totalTriaged = stats.totalDropsTriaged + 1;
     var inboxZeroCount = stats.inboxZeroCount;
@@ -232,7 +235,9 @@ class DropGamificationService {
     final newlyUnlockedBadges = <DropBadge>[];
 
     if (!unlockedBadgeIds.contains('scholar')) {
-      final b = DropBadge.allBadges.firstWhere((element) => element.id == 'scholar');
+      final b = DropBadge.allBadges.firstWhere(
+        (element) => element.id == 'scholar',
+      );
       unlockedBadgeIds.add('scholar');
       newlyUnlockedBadges.add(b);
       earnedXp += b.xpReward;
@@ -266,7 +271,9 @@ class DropGamificationService {
     final newlyUnlockedBadges = <DropBadge>[];
 
     if (!unlockedBadgeIds.contains('action_taker')) {
-      final b = DropBadge.allBadges.firstWhere((element) => element.id == 'action_taker');
+      final b = DropBadge.allBadges.firstWhere(
+        (element) => element.id == 'action_taker',
+      );
       unlockedBadgeIds.add('action_taker');
       newlyUnlockedBadges.add(b);
       earnedXp += b.xpReward;
@@ -301,7 +308,9 @@ class DropGamificationService {
     final newlyUnlockedBadges = <DropBadge>[];
 
     if (totalStarred >= 3 && !unlockedBadgeIds.contains('curator')) {
-      final b = DropBadge.allBadges.firstWhere((element) => element.id == 'curator');
+      final b = DropBadge.allBadges.firstWhere(
+        (element) => element.id == 'curator',
+      );
       unlockedBadgeIds.add('curator');
       newlyUnlockedBadges.add(b);
       earnedXp += b.xpReward;

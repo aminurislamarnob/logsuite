@@ -45,11 +45,7 @@ void main() {
           theme: AppTheme.light(),
           home: FTheme(
             data: brandForuiTheme(brightness: Brightness.light),
-            child: const FToaster(
-              child: FTooltipGroup(
-                child: DropScreen(),
-              ),
-            ),
+            child: const FToaster(child: FTooltipGroup(child: DropScreen())),
           ),
         ),
       ),
@@ -77,7 +73,9 @@ void main() {
     expect(find.text('Normal drop'), findsNothing);
   });
 
-  testWidgets('enters multi-select mode on long press and archives items', (tester) async {
+  testWidgets('enters multi-select mode on long press and archives items', (
+    tester,
+  ) async {
     final id1 = await repo.createDrop(content: 'Item 1');
     final id2 = await repo.createDrop(content: 'Item 2');
 

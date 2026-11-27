@@ -37,23 +37,6 @@ bool _isHabitDoneOn(Habit habit, HabitStats stats, DateTime day) {
   return amount >= target;
 }
 
-String _weekdayMaskLabel(int mask) {
-  const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  if (mask == 127) return 'Daily';
-  if (mask == 31) return 'Weekdays';
-  final active = <String>[];
-  for (var i = 0; i < 7; i++) {
-    if ((mask & (1 << i)) != 0) active.add(names[i]);
-  }
-  return active.isEmpty ? 'Custom' : active.join(' · ');
-}
-
-String _habitFrequencyLabel(Habit habit) => switch (habit.frequencyType) {
-  1 => _weekdayMaskLabel(habit.weekdayMask),
-  2 => '${habit.timesPerWeek}x / week',
-  _ => 'Daily',
-};
-
 class HabitsScreen extends ConsumerWidget {
   const HabitsScreen({super.key});
 
@@ -171,12 +154,20 @@ class _HabitsHeroCard extends ConsumerWidget {
     };
 
     var doneToday = 0;
+    var overToday = 0;
     var bestStreak = 0;
+    String? bestStreakHabit;
     for (final h in habits) {
       final s = statsByHabit[h.id]!;
       if (_isHabitDoneOn(h, s, today)) doneToday++;
-      if (s.bestStreak > bestStreak) bestStreak = s.bestStreak;
-      if (s.currentStreak > bestStreak) bestStreak = s.currentStreak;
+      if (s.overLimit(h)) overToday++;
+      final habitBest = s.bestStreak > s.currentStreak
+          ? s.bestStreak
+          : s.currentStreak;
+      if (habitBest > bestStreak) {
+        bestStreak = habitBest;
+        bestStreakHabit = h.name;
+      }
     }
 
     final last7Days = [
@@ -213,7 +204,7 @@ class _HabitsHeroCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'TODAY',
+                    "TODAY'S PASSED",
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -247,37 +238,67 @@ class _HabitsHeroCard extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  if (overToday > 0) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppIcon(
+                          AppIcons.warning,
+                          size: 13,
+                          color: brand.dangerRoles.onInk,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          overToday == 1
+                              ? '1 over limit'
+                              : '$overToday over limit',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: brand.dangerRoles.onInk,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AppIcon(
-                        AppIcons.streak,
-                        size: 18,
-                        color: brand.noteRoles.onInk,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$bestStreak',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.5,
-                          color: primaryText,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppIcon(
+                          AppIcons.streak,
+                          size: 18,
+                          color: brand.noteRoles.onInk,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'best streak',
-                    style: TextStyle(fontSize: 12, color: brand.onInkMuted),
-                  ),
-                ],
+                        const SizedBox(width: 4),
+                        Text(
+                          '$bestStreak',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                            color: primaryText,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      bestStreakHabit != null
+                          ? 'Best streak · $bestStreakHabit'
+                          : 'Best streak',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: brand.onInkMuted),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -356,32 +377,12 @@ class _HabitCard extends ConsumerWidget {
     final repo = ref.read(habitRepositoryProvider);
     final isReduce = habit.goalType == 1;
     final over = stats.overLimit(habit);
-    final today = Fmt.dateOnly(DateTime.now());
-    final isMultiUnit = habit.targetAmount > 1 && !isReduce;
-    final doneToday = isReduce
-        ? (stats.todayAmount > 0 && !over)
-        : (stats.todayAmount >=
-              (habit.targetAmount <= 0 ? 1.0 : habit.targetAmount));
 
     final progress = habit.targetAmount <= 0
         ? (stats.todayAmount > 0 ? 1.0 : 0.0)
         : (stats.todayAmount / habit.targetAmount).clamp(0.0, 1.0);
 
-    // Recent scheduled days for the segmented mini bar (`05-habits.html`).
-    final recentScheduledDays = <DateTime>[];
-    for (var i = 6; i >= 0; i--) {
-      final d = today.subtract(Duration(days: i));
-      if (_isHabitScheduledOn(habit, d)) {
-        recentScheduledDays.add(d);
-      }
-    }
-
     Future<void> onActionTap() async {
-      if (doneToday && !isMultiUnit && !isReduce) {
-        AppHaptics.selection();
-        await repo.setDayAmount(habit.id, today, 0);
-        return;
-      }
       await repo.addToDay(habit.id, 1);
       if (!context.mounted) return;
       final next = stats.todayAmount + 1;
@@ -445,7 +446,22 @@ class _HabitCard extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    if (isMultiUnit && !doneToday)
+                    if (over) ...[
+                      AppIcon(
+                        AppIcons.warning,
+                        size: 13,
+                        color: brand.dangerRoles.textOnTint,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Over ${_trim(stats.todayAmount)}/${_trim(habit.targetAmount)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: brand.dangerRoles.textOnTint,
+                        ),
+                      ),
+                    ] else
                       Text(
                         '${_trim(stats.todayAmount)} / ${_trim(habit.targetAmount)}'
                         '${habit.unit == null ? '' : ' ${habit.unit}'}',
@@ -454,80 +470,31 @@ class _HabitCard extends ConsumerWidget {
                           fontWeight: FontWeight.w600,
                           color: theme.colorScheme.outline,
                         ),
-                      )
-                    else if (habit.frequencyType == 1 &&
-                        habit.weekdayMask != 127)
-                      Text(
-                        _weekdayMaskLabel(habit.weekdayMask),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.outline,
-                        ),
-                      )
-                    else if (stats.currentStreak > 0)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AppIcon(
-                            AppIcons.streak,
-                            size: 12,
-                            color: brand.warningRoles.graphicOnTint,
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            '${stats.currentStreak}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: brand.warningRoles.textOnTint,
-                            ),
-                          ),
-                        ],
                       ),
                   ],
                 ),
                 const SizedBox(height: 7),
-                if (isMultiUnit && !doneToday)
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 150),
-                    child: Container(
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: brand.track,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      alignment: Alignment.centerLeft,
-                      child: FractionallySizedBox(
-                        widthFactor: progress,
-                        child: Container(
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: over ? brand.danger : roles.graphicOnTint,
-                            borderRadius: BorderRadius.circular(3),
-                          ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 150),
+                  child: Container(
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: brand.track,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    alignment: Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: progress,
+                      child: Container(
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: over ? brand.danger : roles.graphicOnTint,
+                          borderRadius: BorderRadius.circular(3),
                         ),
                       ),
                     ),
-                  )
-                else
-                  Wrap(
-                    spacing: 4,
-                    runSpacing: 4,
-                    children: [
-                      for (final d in recentScheduledDays)
-                        Container(
-                          width: 16,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: _isHabitDoneOn(habit, stats, d)
-                                ? brand.habit
-                                : brand.track,
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                        ),
-                    ],
                   ),
+                ),
               ],
             ),
           ),
@@ -535,52 +502,21 @@ class _HabitCard extends ConsumerWidget {
           // 48x48 right action circle (`05-habits.html` lines 57, 66, 75)
           BrandTappable(
             onPressed: onActionTap,
-            semanticsLabel: doneToday
-                ? '${habit.name} done, tap to undo'
-                : isMultiUnit
-                ? 'Add ${habit.unit ?? 'one'}'
-                : 'Mark ${habit.name} done',
-            child: doneToday
-                ? Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: brand.habit,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const AppIcon(
-                      AppIcons.check,
-                      size: 22,
-                      color: Colors.white,
-                    ),
-                  )
-                : (isMultiUnit || isReduce)
-                ? Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: over ? brand.dangerRoles.tintFill : roles.tintFill,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: AppIcon(
-                      AppIcons.add,
-                      size: 22,
-                      color: over
-                          ? brand.dangerRoles.textOnTint
-                          : roles.textOnTint,
-                    ),
-                  )
-                : Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: brand.surface,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: brand.outlineIdle, width: 2.5),
-                    ),
-                  ),
+            semanticsLabel: 'Add ${habit.unit ?? 'one'}',
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: over ? brand.dangerRoles.tintFill : roles.tintFill,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: AppIcon(
+                AppIcons.add,
+                size: 22,
+                color: over ? brand.dangerRoles.textOnTint : roles.textOnTint,
+              ),
+            ),
           ),
         ],
       ),
@@ -588,55 +524,7 @@ class _HabitCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    brandSheet(
-      context: context,
-      builder: (_) => _HabitDetailSheet(habit: habit),
-    );
-  }
-
-  /// Bulk back-fill: tapping a heatmap cell edits that day's amount.
-  static Future<void> editDay(
-    BuildContext context,
-    WidgetRef ref,
-    Habit habit,
-    DateTime day,
-    HabitStats stats,
-  ) async {
-    final controller = TextEditingController(
-      text: _trim(stats.byDay[Fmt.dateOnly(day)] ?? 0),
-    );
-    final result = await brandDialog<String>(
-      context,
-      title: Fmt.dayMonthYear(day),
-      builder: (dialogContext) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          BrandField(
-            controller: controller,
-            label: 'Amount',
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            suffix: habit.unit == null ? null : Text(habit.unit!),
-          ),
-          const SizedBox(height: 20),
-          BrandButton(
-            label: 'Save',
-            onPressed: () => Navigator.pop(dialogContext, controller.text),
-          ),
-          const SizedBox(height: 8),
-          BrandButton(
-            label: 'Cancel',
-            kind: BrandButtonKind.ghost,
-            onPressed: () => Navigator.pop(dialogContext),
-          ),
-        ],
-      ),
-    );
-    if (result == null) return;
-    final amount = double.tryParse(result.trim());
-    if (amount == null) return;
-    await ref.read(habitRepositoryProvider).setDayAmount(habit.id, day, amount);
+    context.push('/habits/${habit.id}');
   }
 }
 
@@ -761,548 +649,6 @@ class _FourWeeksSummaryCard extends ConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Habit detail bottom sheet (`23-habit-detail.html`).
-class _HabitDetailSheet extends ConsumerWidget {
-  final Habit habit;
-  const _HabitDetailSheet({required this.habit});
-
-  static const _monthShort = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final stats =
-        ref.watch(habitStatsProvider(habit.id)).valueOrNull ?? HabitStats.empty;
-    final currency = ref.watch(settingsProvider).currencySymbol;
-    final theme = Theme.of(context);
-    final brand = context.brand;
-    final muted = theme.colorScheme.outline;
-    final isDark = theme.brightness == Brightness.dark;
-    final primaryOnHero = isDark ? brand.ink : brand.onInk;
-    final color = Color(habit.color);
-    final roles = brand.roleFor(color);
-    final today = Fmt.dateOnly(DateTime.now());
-    final doneToday = _isHabitDoneOn(habit, stats, today);
-
-    // Compute week, month, and all-time scheduled/completed day counts.
-    final weekStart = Fmt.startOfWeek(today);
-    var weekDone = 0;
-    var weekSched = 0;
-    for (
-      var d = weekStart;
-      !d.isAfter(today);
-      d = d.add(const Duration(days: 1))
-    ) {
-      if (_isHabitScheduledOn(habit, d)) {
-        weekSched++;
-        if (_isHabitDoneOn(habit, stats, d)) weekDone++;
-      }
-    }
-
-    final monthStart = Fmt.startOfMonth(today);
-    var monthDone = 0;
-    var monthSched = 0;
-    for (
-      var d = monthStart;
-      !d.isAfter(today);
-      d = d.add(const Duration(days: 1))
-    ) {
-      if (_isHabitScheduledOn(habit, d)) {
-        monthSched++;
-        if (_isHabitDoneOn(habit, stats, d)) monthDone++;
-      }
-    }
-
-    var allTimeDone = 0;
-    final createdDate = Fmt.dateOnly(habit.createdAt);
-    for (
-      var d = createdDate;
-      !d.isAfter(today);
-      d = d.add(const Duration(days: 1))
-    ) {
-      if (_isHabitScheduledOn(habit, d) && _isHabitDoneOn(habit, stats, d)) {
-        allTimeDone++;
-      }
-    }
-
-    // 5 month labels spanning the last 17 weeks.
-    final monthLabels = <String>[];
-    for (var i = 4; i >= 0; i--) {
-      final m = DateTime(today.year, today.month - i, 1);
-      monthLabels.add(_monthShort[(m.month - 1) % 12]);
-    }
-
-    final subtitleParts = <String>[
-      _habitFrequencyLabel(habit),
-      if (habit.reminderMinutes != null)
-        'reminder ${Fmt.minutesOfDay(habit.reminderMinutes!)}',
-    ];
-
-    final todayStatus = doneToday
-        ? 'done today'
-        : stats.todayAmount > 0
-        ? '${_HabitCard._trim(stats.todayAmount)} / ${_HabitCard._trim(habit.targetAmount)}'
-              '${habit.unit == null ? '' : ' ${habit.unit}'} today'
-        : 'not logged today';
-
-    final streakNote = [
-      if (stats.currentStreak >= stats.bestStreak && stats.currentStreak > 0)
-        'Your best yet'
-      else
-        'Best ${stats.bestStreak} days',
-      todayStatus,
-    ].join(' · ');
-
-    return Material(
-      type: MaterialType.transparency,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: brand.canvas,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppRadii.sheet),
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.gutter,
-              10,
-              AppSpacing.gutter,
-              24,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: brand.outlineIdle,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                // Header row (`23-habit-detail.html` lines 27-34)
-                Row(
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: roles.tintFill,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      alignment: Alignment.center,
-                      child: AppIcon(
-                        AppIcons.habit(habit.icon),
-                        size: 26,
-                        color: roles.graphicOnTint,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            habit.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.6,
-                              height: 1.1,
-                              color: brand.ink,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitleParts.join(' · '),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 13, color: muted),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    CircleIconButton(
-                      icon: AppIcons.close,
-                      tooltip: 'Close',
-                      size: 44,
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Ink streak hero card (`23-habit-detail.html` lines 36-46)
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: brand.heroSurface,
-                    borderRadius: BorderRadius.circular(AppRadii.hero),
-                    boxShadow: AppShadows.hero(theme.brightness),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'CURRENT STREAK',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: brand.habitRoles.onInk,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                AppIcon(
-                                  AppIcons.streak,
-                                  size: 26,
-                                  color: brand.noteRoles.onInk,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${stats.currentStreak}',
-                                  style: TextStyle(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -2,
-                                    height: 1.0,
-                                    color: primaryOnHero,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'days',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: brand.onInkMuted,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              streakNote,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: brand.onInkMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 88,
-                        height: 88,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            ProgressRing(
-                              value: stats.completionRate,
-                              size: 88,
-                              thickness: 10,
-                              color: brand.habitRoles.onInk,
-                              onInk: true,
-                            ),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  Fmt.percent(stats.completionRate),
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
-                                    height: 1.1,
-                                    color: primaryOnHero,
-                                  ),
-                                ),
-                                Text(
-                                  'KEPT',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w600,
-                                    color: brand.onInkMuted,
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                // Three stat cards row (`This week`, `This month`, `All time`)
-                Row(
-                  children: [
-                    Expanded(
-                      child: _detailStatCard(
-                        context: context,
-                        label: 'This week',
-                        value: '$weekDone',
-                        suffix: ' of $weekSched',
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _detailStatCard(
-                        context: context,
-                        label: 'This month',
-                        value: '$monthDone',
-                        suffix: ' of $monthSched',
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _detailStatCard(
-                        context: context,
-                        label: 'All time',
-                        value: '$allTimeDone',
-                        suffix: ' days',
-                      ),
-                    ),
-                  ],
-                ),
-
-                if (habit.costPerUnit != null) ...[
-                  const SizedBox(height: 12),
-                  StatTile(
-                    icon: AppIcons.savings,
-                    color: brand.expense,
-                    label: 'Cost this month',
-                    value: Fmt.money(stats.costThisMonth(habit), currency),
-                    sublabel:
-                        '${Fmt.money(habit.costPerUnit!, currency)} per ${habit.unit ?? 'unit'}',
-                  ),
-                ],
-                const SizedBox(height: 14),
-
-                // Last 17 weeks heatmap card (`23-habit-detail.html` lines 54-76)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: brand.surface,
-                    borderRadius: BorderRadius.circular(AppRadii.card),
-                    boxShadow: AppShadows.card(theme.brightness),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'LAST 17 WEEKS',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: muted,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Missed',
-                                style: TextStyle(fontSize: 11, color: muted),
-                              ),
-                              const SizedBox(width: 4),
-                              _legendCell(brand.track),
-                              const SizedBox(width: 4),
-                              _legendCell(color.withValues(alpha: 0.28)),
-                              const SizedBox(width: 4),
-                              _legendCell(color.withValues(alpha: 0.62)),
-                              const SizedBox(width: 4),
-                              _legendCell(color),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Full',
-                                style: TextStyle(fontSize: 11, color: muted),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 7 * 17.0,
-                        child: ContributionHeatmap(
-                          color: color,
-                          intensityFor: (day) => stats.intensityOn(day, habit),
-                          onTapDay: (day) => _HabitCard.editDay(
-                            context,
-                            ref,
-                            habit,
-                            day,
-                            stats,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          for (final m in monthLabels)
-                            Text(
-                              m,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: muted,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Bottom action row (`Delete habit` circle + `Edit habit` pill)
-                Row(
-                  children: [
-                    CircleIconButton(
-                      icon: AppIcons.delete,
-                      tooltip: 'Delete habit',
-                      size: 54,
-                      color: brand.danger,
-                      onPressed: () async {
-                        await ref
-                            .read(habitRepositoryProvider)
-                            .deleteHabit(habit.id);
-                        await ref
-                            .read(notificationServiceProvider)
-                            .cancelHabitNudge(habit.id);
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: BrandButton(
-                        label: 'Edit habit',
-                        icon: AppIcons.edit,
-                        onPressed: () {
-                          Navigator.pop(context);
-                          HabitEditorSheet.show(context, habit: habit);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _detailStatCard({
-    required BuildContext context,
-    required String label,
-    required String value,
-    required String suffix,
-  }) {
-    final theme = Theme.of(context);
-    final brand = context.brand;
-    final muted = theme.colorScheme.outline;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: brand.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppShadows.card(theme.brightness),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: muted,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: value,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    color: brand.ink,
-                  ),
-                ),
-                TextSpan(
-                  text: suffix,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: muted,
-                  ),
-                ),
-              ],
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _legendCell(Color color) {
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(3),
       ),
     );
   }

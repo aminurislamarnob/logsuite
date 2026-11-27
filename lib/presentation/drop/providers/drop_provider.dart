@@ -22,8 +22,9 @@ final dropsStreamProvider = StreamProvider<List<DropWithTags>>((ref) {
   final query = ref.watch(dropSearchQueryProvider);
 
   final isFavorites = filterType == 'favorites';
-  final effectiveAssetType =
-      (filterType == 'all' || isFavorites) ? null : filterType;
+  final effectiveAssetType = (filterType == 'all' || isFavorites)
+      ? null
+      : filterType;
 
   return repo.watchDrops(
     triageStatus: isFavorites ? null : triageStatus,

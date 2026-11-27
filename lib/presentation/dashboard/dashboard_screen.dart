@@ -70,8 +70,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         .where((key) => settings.enabledModules.any((m) => m.name == key))
         .toList();
 
-    final activeKey =
-        ordered.contains(_selectedModule) ? _selectedModule : ordered.firstOrNull;
+    final activeKey = ordered.contains(_selectedModule)
+        ? _selectedModule
+        : ordered.firstOrNull;
 
     return BrandScaffold(
       child: SafeArea(
@@ -241,9 +242,7 @@ class _TodayHeroCard extends ConsumerWidget {
                     : 'Next up at ${Fmt.time(nextTask.dueDate!)}')
               : 'Next: ${nextTask.title}')
         : remaining <= 0
-        ? (totalCount == 0
-              ? Fmt.fullDate(now)
-              : 'All caught up for today')
+        ? (totalCount == 0 ? Fmt.fullDate(now) : 'All caught up for today')
         : habitsLeft == remaining
         ? (habitsLeft == 1
               ? '1 habit still open'
@@ -1284,7 +1283,13 @@ class _MedicineWidget extends ConsumerWidget {
           onAction: () => context.push('/medicine'),
         ),
         if (upcoming.isEmpty)
-          _quiet(context, 'All doses handled for today.')
+          _quiet(
+            context,
+            'All doses handled for today.',
+            icon: AppIcons.medicine,
+            roles: context.brand.medicineRoles,
+            onTap: () => context.push('/medicine'),
+          )
         else
           ...upcoming.map((v) => DoseTile(view: v)),
       ],
@@ -1309,7 +1314,13 @@ class _TasksWidget extends ConsumerWidget {
           onAction: () => context.push('/tasks'),
         ),
         if (open.isEmpty)
-          _quiet(context, 'Nothing due — you are all caught up.')
+          _quiet(
+            context,
+            'Nothing due — you are all caught up.',
+            icon: AppIcons.tasks,
+            roles: context.brand.taskRoles,
+            onTap: () => context.push('/tasks'),
+          )
         else
           ...open.map((t) => TaskTile(task: t, dense: true)),
       ],
@@ -1346,7 +1357,13 @@ class _HabitsWidget extends ConsumerWidget {
           onAction: () => context.push('/habits'),
         ),
         if (habits.isEmpty)
-          _quiet(context, 'No habits yet.')
+          _quiet(
+            context,
+            'No habits yet.',
+            icon: AppIcons.habits,
+            roles: brand.habitRoles,
+            onTap: () => context.push('/habits'),
+          )
         else
           SizedBox(
             height: 96,
@@ -1650,7 +1667,13 @@ class _NotesWidget extends ConsumerWidget {
           onAction: () => context.push('/notes'),
         ),
         if (notes.isEmpty)
-          _quiet(context, 'No notes yet.')
+          _quiet(
+            context,
+            'No notes yet.',
+            icon: AppIcons.notes,
+            roles: brand.noteRoles,
+            onTap: () => context.push('/notes'),
+          )
         else
           Row(
             children: [
@@ -1716,10 +1739,50 @@ class _NotesWidget extends ConsumerWidget {
   }
 }
 
-Widget _quiet(BuildContext context, String message) => Padding(
-  padding: const EdgeInsets.symmetric(vertical: 4),
-  child: Text(message, style: TextStyle(color: context.muted, fontSize: 14)),
-);
+Widget _quiet(
+  BuildContext context,
+  String message, {
+  required HugeIconData icon,
+  required ModuleColors roles,
+  required VoidCallback onTap,
+}) {
+  final brand = context.brand;
+  return SizedBox(
+    width: double.infinity,
+    child: TintCard(
+      fill: brand.surface,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: roles.tintFill,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: AppIcon(icon, size: 18, color: roles.graphicOnTint),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: context.muted,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          AppIcon(AppIcons.chevronRight, size: 18, color: brand.subtle),
+        ],
+      ),
+    ),
+  );
+}
 
 class _DropWidget extends ConsumerWidget {
   const _DropWidget();
@@ -1742,6 +1805,9 @@ class _DropWidget extends ConsumerWidget {
           _quiet(
             context,
             'No drops in inbox yet. Save links, notes, or photos.',
+            icon: AppIcons.inbox,
+            roles: brand.dropRoles,
+            onTap: () => context.push('/drop'),
           )
         else
           TintCard(

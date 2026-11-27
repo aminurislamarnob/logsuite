@@ -241,15 +241,16 @@ final takenDosesByDayProvider = StreamProvider.family<Map<DateTime, int>, int>((
   final today = Fmt.dateOnly(DateTime.now());
   final start = today.subtract(Duration(days: days - 1));
   final end = today.add(const Duration(days: 1));
-  return ref.watch(medicineRepositoryProvider).watchDosesBetween(start, end).map(
-    (doses) {
-      final counts = <DateTime, int>{};
-      for (final d in doses) {
-        if (d.status != DoseStatus.taken) continue;
-        final day = Fmt.dateOnly(d.scheduledTime);
-        counts[day] = (counts[day] ?? 0) + 1;
-      }
-      return counts;
-    },
-  );
+  return ref
+      .watch(medicineRepositoryProvider)
+      .watchDosesBetween(start, end)
+      .map((doses) {
+        final counts = <DateTime, int>{};
+        for (final d in doses) {
+          if (d.status != DoseStatus.taken) continue;
+          final day = Fmt.dateOnly(d.scheduledTime);
+          counts[day] = (counts[day] ?? 0) + 1;
+        }
+        return counts;
+      });
 });

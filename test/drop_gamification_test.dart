@@ -40,53 +40,71 @@ void main() {
       expect(stats.unlockedBadgeIds.isEmpty, isTrue);
     });
 
-    test('Capturing first drop awards XP, updates streak and unlocks first_drop badge', () async {
-      final reward = await service.recordDropCaptured(hasTags: false);
+    test(
+      'Capturing first drop awards XP, updates streak and unlocks first_drop badge',
+      () async {
+        final reward = await service.recordDropCaptured(hasTags: false);
 
-      expect(reward.xpGained, 35); // 10 (drop) + 25 (first_drop badge)
-      expect(reward.unlockedBadges.any((b) => b.id == 'first_drop'), isTrue);
-      expect(reward.streakExtended, isTrue);
-      expect(reward.streakCount, 1);
+        expect(reward.xpGained, 35); // 10 (drop) + 25 (first_drop badge)
+        expect(reward.unlockedBadges.any((b) => b.id == 'first_drop'), isTrue);
+        expect(reward.streakExtended, isTrue);
+        expect(reward.streakCount, 1);
 
-      final stats = service.getStats();
-      expect(stats.xp, 35);
-      expect(stats.totalDropsCaptured, 1);
-      expect(stats.currentStreak, 1);
-      expect(stats.unlockedBadgeIds.contains('first_drop'), isTrue);
-    });
+        final stats = service.getStats();
+        expect(stats.xp, 35);
+        expect(stats.totalDropsCaptured, 1);
+        expect(stats.currentStreak, 1);
+        expect(stats.unlockedBadgeIds.contains('first_drop'), isTrue);
+      },
+    );
 
-    test('Capturing drop with #tags awards bonus XP and unlocks tag_architect badge', () async {
-      final reward = await service.recordDropCaptured(hasTags: true);
+    test(
+      'Capturing drop with #tags awards bonus XP and unlocks tag_architect badge',
+      () async {
+        final reward = await service.recordDropCaptured(hasTags: true);
 
-      // 15 (drop with tag) + 25 (first_drop) + 30 (tag_architect) = 70 XP
-      expect(reward.xpGained, 70);
-      expect(reward.unlockedBadges.map((b) => b.id).toSet(), containsAll({'first_drop', 'tag_architect'}));
-      expect(reward.didLevelUp, isTrue); // > 50 XP reaches Level 2
-      expect(reward.newLevel, 2);
-      expect(reward.newLevelTitle, 'Active Gatherer');
-    });
+        // 15 (drop with tag) + 25 (first_drop) + 30 (tag_architect) = 70 XP
+        expect(reward.xpGained, 70);
+        expect(
+          reward.unlockedBadges.map((b) => b.id).toSet(),
+          containsAll({'first_drop', 'tag_architect'}),
+        );
+        expect(reward.didLevelUp, isTrue); // > 50 XP reaches Level 2
+        expect(reward.newLevel, 2);
+        expect(reward.newLevelTitle, 'Active Gatherer');
+      },
+    );
 
-    test('Triaging items awards XP and unlocks triage_specialist badge after 5', () async {
-      for (int i = 0; i < 4; i++) {
-        await service.recordDropTriaged();
-      }
-      final r5 = await service.recordDropTriaged();
-      expect(r5.unlockedBadges.any((b) => b.id == 'triage_specialist'), isTrue);
+    test(
+      'Triaging items awards XP and unlocks triage_specialist badge after 5',
+      () async {
+        for (int i = 0; i < 4; i++) {
+          await service.recordDropTriaged();
+        }
+        final r5 = await service.recordDropTriaged();
+        expect(
+          r5.unlockedBadges.any((b) => b.id == 'triage_specialist'),
+          isTrue,
+        );
 
-      final stats = service.getStats();
-      expect(stats.totalDropsTriaged, 5);
-      expect(stats.unlockedBadgeIds.contains('triage_specialist'), isTrue);
-    });
+        final stats = service.getStats();
+        expect(stats.totalDropsTriaged, 5);
+        expect(stats.unlockedBadgeIds.contains('triage_specialist'), isTrue);
+      },
+    );
 
-    test('Reaching inbox zero grants +50 XP bonus and inbox_zero badge', () async {
-      final reward = await service.recordDropTriaged(reachedInboxZero: true);
-      // 10 base + 50 hero bonus + 50 inbox_zero badge = 110 XP
-      expect(reward.xpGained, 110);
-      expect(reward.unlockedBadges.any((b) => b.id == 'inbox_zero'), isTrue);
+    test(
+      'Reaching inbox zero grants +50 XP bonus and inbox_zero badge',
+      () async {
+        final reward = await service.recordDropTriaged(reachedInboxZero: true);
+        // 10 base + 50 hero bonus + 50 inbox_zero badge = 110 XP
+        expect(reward.xpGained, 110);
+        expect(reward.unlockedBadges.any((b) => b.id == 'inbox_zero'), isTrue);
 
-      final stats = service.getStats();
-      expect(stats.inboxZeroCount, 1);
-    });
+        final stats = service.getStats();
+        expect(stats.inboxZeroCount, 1);
+      },
+    );
 
     test('Favoriting and converting awards XP and badges', () async {
       final favReward = await service.recordDropFavorited();
@@ -94,7 +112,10 @@ void main() {
 
       final taskReward = await service.recordConvertedToTask();
       expect(taskReward.xpGained, 15 + 35); // 15 + 35 for action_taker badge
-      expect(taskReward.unlockedBadges.any((b) => b.id == 'action_taker'), isTrue);
+      expect(
+        taskReward.unlockedBadges.any((b) => b.id == 'action_taker'),
+        isTrue,
+      );
 
       final noteReward = await service.recordConvertedToNote();
       expect(noteReward.xpGained, 15 + 35); // 15 + 35 for scholar badge
@@ -140,10 +161,7 @@ void main() {
       final router = GoRouter(
         initialLocation: '/drop',
         routes: [
-          GoRoute(
-            path: '/drop',
-            builder: (_, _) => const DropScreen(),
-          ),
+          GoRoute(path: '/drop', builder: (_, _) => const DropScreen()),
           GoRoute(
             path: '/note_editor',
             builder: (_, state) => const Scaffold(body: Text('Note Editor')),
@@ -159,11 +177,7 @@ void main() {
             routerConfig: router,
             builder: (context, child) => FTheme(
               data: brandForuiTheme(brightness: Brightness.light),
-              child: FToaster(
-                child: FTooltipGroup(
-                  child: child!,
-                ),
-              ),
+              child: FToaster(child: FTooltipGroup(child: child!)),
             ),
           ),
         ),
@@ -172,47 +186,57 @@ void main() {
       return container;
     }
 
-    testWidgets('DropGamificationBar renders streak, level, and XP accurately', (tester) async {
+    testWidgets(
+      'DropGamificationBar renders streak, level, and XP accurately',
+      (tester) async {
+        await pumpScreen(tester);
+        await tester.pumpAndSettle();
+
+        // Verify Gamification Bar is rendered
+        expect(find.byType(DropGamificationBar), findsOneWidget);
+        expect(find.text('3d'), findsOneWidget);
+        expect(find.text('Lvl 2'), findsOneWidget);
+        expect(find.textContaining('Active Gatherer'), findsWidgets);
+        expect(find.textContaining('85 XP'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Tapping DropGamificationBar opens DropMasterySheet bottom sheet',
+      (tester) async {
+        await pumpScreen(tester);
+        await tester.pumpAndSettle();
+
+        // Tap gamification bar
+        await tester.tap(find.byType(DropGamificationBar));
+        await tester.pumpAndSettle();
+
+        // Verify DropMasterySheet is displayed
+        expect(find.byType(DropMasterySheet), findsOneWidget);
+        expect(find.text('Drop Mastery & Badges'), findsOneWidget);
+        expect(find.textContaining('Level 2'), findsWidgets);
+        expect(find.textContaining('Active Gatherer'), findsWidgets);
+        expect(find.text('Streak'), findsOneWidget);
+        expect(find.text('Captured'), findsOneWidget);
+        expect(find.text('Inbox Zero'), findsWidgets);
+        expect(find.text('2 of 9 unlocked'), findsOneWidget);
+
+        // Verify badges section
+        expect(find.text('First Capture'), findsOneWidget);
+        expect(find.text('Tag Architect'), findsOneWidget);
+        expect(find.text('Inbox Zero Hero'), findsOneWidget);
+      },
+    );
+
+    testWidgets('Submitting a drop with tags grants XP and updates bar', (
+      tester,
+    ) async {
       await pumpScreen(tester);
       await tester.pumpAndSettle();
 
-      // Verify Gamification Bar is rendered
-      expect(find.byType(DropGamificationBar), findsOneWidget);
-      expect(find.text('3d'), findsOneWidget);
-      expect(find.text('Lvl 2'), findsOneWidget);
-      expect(find.textContaining('Active Gatherer'), findsWidgets);
-      expect(find.textContaining('85 XP'), findsOneWidget);
-    });
-
-    testWidgets('Tapping DropGamificationBar opens DropMasterySheet bottom sheet', (tester) async {
-      await pumpScreen(tester);
-      await tester.pumpAndSettle();
-
-      // Tap gamification bar
-      await tester.tap(find.byType(DropGamificationBar));
-      await tester.pumpAndSettle();
-
-      // Verify DropMasterySheet is displayed
-      expect(find.byType(DropMasterySheet), findsOneWidget);
-      expect(find.text('Drop Mastery & Badges'), findsOneWidget);
-      expect(find.textContaining('Level 2'), findsWidgets);
-      expect(find.textContaining('Active Gatherer'), findsWidgets);
-      expect(find.text('Streak'), findsOneWidget);
-      expect(find.text('Captured'), findsOneWidget);
-      expect(find.text('Inbox Zero'), findsWidgets);
-      expect(find.text('2 of 9 unlocked'), findsOneWidget);
-
-      // Verify badges section
-      expect(find.text('First Capture'), findsOneWidget);
-      expect(find.text('Tag Architect'), findsOneWidget);
-      expect(find.text('Inbox Zero Hero'), findsOneWidget);
-    });
-
-    testWidgets('Submitting a drop with tags grants XP and updates bar', (tester) async {
-      await pumpScreen(tester);
-      await tester.pumpAndSettle();
-
-      final inputFinder = find.byKey(const ValueKey('drop_message_input_field'));
+      final inputFinder = find.byKey(
+        const ValueKey('drop_message_input_field'),
+      );
       expect(inputFinder, findsOneWidget);
 
       await tester.enterText(inputFinder, 'Read this article #flutter #mobile');
@@ -224,14 +248,24 @@ void main() {
       expect(find.textContaining('100 XP'), findsOneWidget);
     });
 
-    testWidgets('Inbox Zero hero view is shown when all drops are cleared', (tester) async {
+    testWidgets('Inbox Zero hero view is shown when all drops are cleared', (
+      tester,
+    ) async {
       // With drops empty and totalDropsCaptured > 0 (preset in prefs as 5)
       await pumpScreen(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('Inbox Zero!'), findsOneWidget);
-      expect(find.textContaining('All items triaged! Your workspace is clear and calm.'), findsOneWidget);
-      expect(find.textContaining('Inbox Zero Master • +50 XP Hero Bonus'), findsOneWidget);
+      expect(
+        find.textContaining(
+          'All items triaged! Your workspace is clear and calm.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Inbox Zero Master • +50 XP Hero Bonus'),
+        findsOneWidget,
+      );
     });
   });
 }

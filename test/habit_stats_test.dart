@@ -80,8 +80,33 @@ void main() {
       ]);
 
       expect(stats.bestStreak, 4);
+      expect(stats.bestStreakEnd, ago(3));
       expect(stats.currentStreak, 1);
     });
+
+    test(
+      'bestStreakEnd tracks the end date of the longest run across two runs',
+      () {
+        final habit = buildHabit(target: 1, createdAt: ago(9));
+        final stats = HabitStats.compute(habit, [
+          // Run 1: 2 days (ago9..ago8)
+          log(ago(9), 1),
+          log(ago(8), 1),
+          // ago(7) missed
+          // Run 2: 4 days (ago6..ago3)
+          log(ago(6), 1),
+          log(ago(5), 1),
+          log(ago(4), 1),
+          log(ago(3), 1),
+          // ago(2) missed
+          log(ago(1), 1),
+        ]);
+
+        expect(stats.bestStreak, 4);
+        expect(stats.bestStreakEnd, ago(3));
+        expect(stats.currentStreak, 1);
+      },
+    );
 
     test('completion rate counts scheduled days only', () {
       final habit = buildHabit(target: 1, createdAt: ago(3));

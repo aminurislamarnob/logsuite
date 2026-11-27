@@ -55,17 +55,28 @@ void main() {
     );
 
     // Filter only videos with tag 'flutter'
-    final flutterVideos = await repo.getDrops(assetType: 'video', tag: 'flutter');
+    final flutterVideos = await repo.getDrops(
+      assetType: 'video',
+      tag: 'flutter',
+    );
     expect(flutterVideos.length, 1);
     expect(flutterVideos.first.title, contains('Advanced Flutter'));
 
     // Filter only videos with tag 'code' and query 'Riverpod'
-    final queried = await repo.getDrops(assetType: 'video', tag: 'code', query: 'Riverpod');
+    final queried = await repo.getDrops(
+      assetType: 'video',
+      tag: 'code',
+      query: 'Riverpod',
+    );
     expect(queried.length, 1);
     expect(queried.first.title, contains('Advanced Flutter'));
 
     // Filter videos with tag 'code' and query 'Beginner'
-    final beginnerVideos = await repo.getDrops(assetType: 'video', tag: 'code', query: 'Beginner');
+    final beginnerVideos = await repo.getDrops(
+      assetType: 'video',
+      tag: 'code',
+      query: 'Beginner',
+    );
     expect(beginnerVideos.length, 1);
     expect(beginnerVideos.first.title, contains('Beginner Python'));
   });

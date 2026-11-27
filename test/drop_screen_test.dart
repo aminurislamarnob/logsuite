@@ -46,10 +46,7 @@ void main() {
     final router = GoRouter(
       initialLocation: '/drop',
       routes: [
-        GoRoute(
-          path: '/drop',
-          builder: (_, _) => const DropScreen(),
-        ),
+        GoRoute(path: '/drop', builder: (_, _) => const DropScreen()),
         GoRoute(
           path: '/note_editor',
           builder: (_, state) => const Scaffold(body: Text('Note Editor')),
@@ -65,11 +62,7 @@ void main() {
           routerConfig: router,
           builder: (context, child) => FTheme(
             data: brandForuiTheme(brightness: Brightness.light),
-            child: FToaster(
-              child: FTooltipGroup(
-                child: child!,
-              ),
-            ),
+            child: FToaster(child: FTooltipGroup(child: child!)),
           ),
         ),
       ),
@@ -78,7 +71,9 @@ void main() {
     return container;
   }
 
-  testWidgets('renders DropScreen empty state and filter pills', (tester) async {
+  testWidgets('renders DropScreen empty state and filter pills', (
+    tester,
+  ) async {
     await pumpScreen(tester);
     await tester.pump(const Duration(milliseconds: 50));
 
@@ -92,7 +87,9 @@ void main() {
     expect(find.text('Favorites'), findsOneWidget);
   });
 
-  testWidgets('submits new drop from bottom input bar and updates feed', (tester) async {
+  testWidgets('submits new drop from bottom input bar and updates feed', (
+    tester,
+  ) async {
     await pumpScreen(tester);
     await tester.pump(const Duration(milliseconds: 50));
 
@@ -111,14 +108,8 @@ void main() {
   });
 
   testWidgets('toggles between inbox and archive views', (tester) async {
-    await repo.createDrop(
-      content: 'Inbox item',
-      triageStatus: 'inbox',
-    );
-    await repo.createDrop(
-      content: 'Archived item',
-      triageStatus: 'archived',
-    );
+    await repo.createDrop(content: 'Inbox item', triageStatus: 'inbox');
+    await repo.createDrop(content: 'Archived item', triageStatus: 'archived');
 
     await pumpScreen(tester);
     await tester.pump(const Duration(milliseconds: 100));
@@ -172,7 +163,9 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
   });
 
-  testWidgets('suggests old tags when typing # and auto-completes on tap', (tester) async {
+  testWidgets('suggests old tags when typing # and auto-completes on tap', (
+    tester,
+  ) async {
     // Seed drops with existing tags
     await repo.createDrop(
       content: 'Prior item with tags',
@@ -196,16 +189,25 @@ void main() {
     // Suggestions card should appear showing 3 tags
     expect(find.text('SEARCH TAGS'), findsOneWidget);
     expect(find.text('3 tags'), findsOneWidget);
-    expect(find.byKey(const ValueKey('tag_suggestion_flutter')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('tag_suggestion_flutter')),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('tag_suggestion_design')), findsOneWidget);
-    expect(find.byKey(const ValueKey('tag_suggestion_finance')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('tag_suggestion_finance')),
+      findsOneWidget,
+    );
 
     // Filter to 'fl'
     await tester.enterText(inputFinder, '#fl');
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.text('1 tag'), findsOneWidget);
-    expect(find.byKey(const ValueKey('tag_suggestion_flutter')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('tag_suggestion_flutter')),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('tag_suggestion_design')), findsNothing);
 
     // Tap suggestion tile
@@ -229,65 +231,84 @@ void main() {
     expect(find.text('#flutter Great new framework update'), findsOneWidget);
   });
 
-  testWidgets('searches tags via dedicated search box and allows creating new tags', (tester) async {
-    await repo.createDrop(
-      content: 'Item with tags',
-      tags: ['productivity', 'coding', 'health'],
-    );
+  testWidgets(
+    'searches tags via dedicated search box and allows creating new tags',
+    (tester) async {
+      await repo.createDrop(
+        content: 'Item with tags',
+        tags: ['productivity', 'coding', 'health'],
+      );
 
-    await pumpScreen(tester);
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump();
+      await pumpScreen(tester);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump();
 
-    final inputFinder = find.byKey(const ValueKey('drop_message_input_field'));
+      final inputFinder = find.byKey(
+        const ValueKey('drop_message_input_field'),
+      );
 
-    // Type '#' to open mention
-    await tester.enterText(inputFinder, '#');
-    await tester.pump(const Duration(milliseconds: 50));
+      // Type '#' to open mention
+      await tester.enterText(inputFinder, '#');
+      await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.text('SEARCH TAGS'), findsOneWidget);
-    expect(find.byKey(const ValueKey('mention_tag_search_field')), findsOneWidget);
+      expect(find.text('SEARCH TAGS'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('mention_tag_search_field')),
+        findsOneWidget,
+      );
 
-    // Search via the dedicated search input inside the mention card
-    final searchInputFinder = find.byKey(const ValueKey('mention_tag_search_field'));
-    await tester.enterText(searchInputFinder, 'cod');
-    await tester.pump(const Duration(milliseconds: 50));
+      // Search via the dedicated search input inside the mention card
+      final searchInputFinder = find.byKey(
+        const ValueKey('mention_tag_search_field'),
+      );
+      await tester.enterText(searchInputFinder, 'cod');
+      await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.byKey(const ValueKey('tag_suggestion_coding')), findsOneWidget);
-    expect(find.byKey(const ValueKey('tag_suggestion_productivity')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('tag_suggestion_coding')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('tag_suggestion_productivity')),
+        findsNothing,
+      );
 
-    // Clear search with clear button
-    final clearBtnFinder = find.byKey(const ValueKey('clear_tag_search'));
-    expect(clearBtnFinder, findsOneWidget);
-    await tester.tap(clearBtnFinder);
-    await tester.pump(const Duration(milliseconds: 50));
+      // Clear search with clear button
+      final clearBtnFinder = find.byKey(const ValueKey('clear_tag_search'));
+      expect(clearBtnFinder, findsOneWidget);
+      await tester.tap(clearBtnFinder);
+      await tester.pump(const Duration(milliseconds: 50));
 
-    // All tags show again
-    expect(find.byKey(const ValueKey('tag_suggestion_coding')), findsOneWidget);
-    expect(find.byKey(const ValueKey('tag_suggestion_productivity')), findsOneWidget);
+      // All tags show again
+      expect(
+        find.byKey(const ValueKey('tag_suggestion_coding')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('tag_suggestion_productivity')),
+        findsOneWidget,
+      );
 
-    // Search for a non-existent tag
-    await tester.enterText(searchInputFinder, 'travel');
-    await tester.pump(const Duration(milliseconds: 50));
+      // Search for a non-existent tag
+      await tester.enterText(searchInputFinder, 'travel');
+      await tester.pump(const Duration(milliseconds: 50));
 
-    // 'Create tag #travel' option appears
-    expect(find.byKey(const ValueKey('create_tag_travel')), findsOneWidget);
+      // 'Create tag #travel' option appears
+      expect(find.byKey(const ValueKey('create_tag_travel')), findsOneWidget);
 
-    // Tap create tag
-    await tester.tap(find.byKey(const ValueKey('create_tag_travel')));
-    await tester.pump(const Duration(milliseconds: 50));
+      // Tap create tag
+      await tester.tap(find.byKey(const ValueKey('create_tag_travel')));
+      await tester.pump(const Duration(milliseconds: 50));
 
-    // Card closes and main field has '#travel '
-    expect(find.text('SEARCH TAGS'), findsNothing);
-    final mainTextField = tester.widget<TextField>(inputFinder);
-    expect(mainTextField.controller?.text, '#travel ');
-  });
+      // Card closes and main field has '#travel '
+      expect(find.text('SEARCH TAGS'), findsNothing);
+      final mainTextField = tester.widget<TextField>(inputFinder);
+      expect(mainTextField.controller?.text, '#travel ');
+    },
+  );
 
   testWidgets('ignores # inside URLs or non-whitespace words', (tester) async {
-    await repo.createDrop(
-      content: 'Old drop',
-      tags: ['flutter', 'code'],
-    );
+    await repo.createDrop(content: 'Old drop', tags: ['flutter', 'code']);
 
     await pumpScreen(tester);
     await tester.pump(const Duration(milliseconds: 100));

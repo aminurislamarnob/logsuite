@@ -30,7 +30,8 @@ class DropMediaStorage {
   }
 
   Directory get dir => Directory(p.join(root.path, 'drop_media'));
-  Directory get thumbsDir => Directory(p.join(root.path, 'drop_media', 'thumbs'));
+  Directory get thumbsDir =>
+      Directory(p.join(root.path, 'drop_media', 'thumbs'));
 
   static String _token() {
     final rand = Random();
@@ -44,7 +45,8 @@ class DropMediaStorage {
     await thumbsDir.create(recursive: true);
 
     final ext = p.extension(source.path).toLowerCase();
-    final safeExt = (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.webp')
+    final safeExt =
+        (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.webp')
         ? ext
         : '.jpg';
 
@@ -61,7 +63,10 @@ class DropMediaStorage {
           decoded,
           width: decoded.width > 480 ? 480 : decoded.width,
         );
-        await thumbFile.writeAsBytes(img.encodeJpg(resized, quality: 80), flush: true);
+        await thumbFile.writeAsBytes(
+          img.encodeJpg(resized, quality: 80),
+          flush: true,
+        );
       } else {
         await source.copy(thumbFile.path);
       }

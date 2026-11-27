@@ -13,6 +13,7 @@ import '../../../core/utils/formatters.dart';
 class HabitStats {
   final int currentStreak;
   final int bestStreak;
+  final DateTime? bestStreakEnd;
   final double completionRate;
   final double todayAmount;
   final double weekTotal;
@@ -22,6 +23,7 @@ class HabitStats {
   const HabitStats({
     required this.currentStreak,
     required this.bestStreak,
+    this.bestStreakEnd,
     required this.completionRate,
     required this.todayAmount,
     required this.weekTotal,
@@ -32,6 +34,7 @@ class HabitStats {
   static const empty = HabitStats(
     currentStreak: 0,
     bestStreak: 0,
+    bestStreakEnd: null,
     completionRate: 0,
     todayAmount: 0,
     weekTotal: 0,
@@ -88,6 +91,7 @@ class HabitStats {
 
     // --- Best streak, scanned from creation to today ---
     var best = 0;
+    DateTime? bestEnd;
     var run = 0;
     var day = Fmt.dateOnly(habit.createdAt);
     var successfulDays = 0;
@@ -98,7 +102,10 @@ class HabitStats {
         if (succeeded(day)) {
           successfulDays++;
           run++;
-          if (run > best) best = run;
+          if (run > best) {
+            best = run;
+            bestEnd = day;
+          }
         } else {
           run = 0;
         }
@@ -115,6 +122,7 @@ class HabitStats {
     return HabitStats(
       currentStreak: current,
       bestStreak: best,
+      bestStreakEnd: bestEnd,
       completionRate: scheduledDays == 0 ? 0 : successfulDays / scheduledDays,
       todayAmount: byDay[today] ?? 0,
       weekTotal: sumFrom(weekStart),

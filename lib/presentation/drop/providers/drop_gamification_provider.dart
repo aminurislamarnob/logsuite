@@ -4,16 +4,20 @@ import '../../../core/settings/app_settings.dart';
 import '../models/drop_gamification.dart';
 import '../services/drop_gamification_service.dart';
 
-final dropGamificationServiceProvider = Provider<DropGamificationService>((ref) {
+final dropGamificationServiceProvider = Provider<DropGamificationService>((
+  ref,
+) {
   final prefs = ref.watch(sharedPrefsProvider);
   return DropGamificationService(prefs);
 });
 
 final dropGamificationProvider =
-    StateNotifierProvider<DropGamificationNotifier, DropGamificationStats>((ref) {
-  final service = ref.watch(dropGamificationServiceProvider);
-  return DropGamificationNotifier(service);
-});
+    StateNotifierProvider<DropGamificationNotifier, DropGamificationStats>((
+      ref,
+    ) {
+      final service = ref.watch(dropGamificationServiceProvider);
+      return DropGamificationNotifier(service);
+    });
 
 class DropGamificationNotifier extends StateNotifier<DropGamificationStats> {
   final DropGamificationService _service;
@@ -30,8 +34,12 @@ class DropGamificationNotifier extends StateNotifier<DropGamificationStats> {
     return reward;
   }
 
-  Future<GamificationReward> recordDropTriaged({bool reachedInboxZero = false}) async {
-    final reward = await _service.recordDropTriaged(reachedInboxZero: reachedInboxZero);
+  Future<GamificationReward> recordDropTriaged({
+    bool reachedInboxZero = false,
+  }) async {
+    final reward = await _service.recordDropTriaged(
+      reachedInboxZero: reachedInboxZero,
+    );
     state = _service.getStats();
     return reward;
   }

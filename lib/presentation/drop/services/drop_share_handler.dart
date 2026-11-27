@@ -50,12 +50,14 @@ class DropShareHandler {
     var createdAny = false;
 
     for (final file in files) {
-      if (file.type == SharedMediaType.text || file.type == SharedMediaType.url) {
+      if (file.type == SharedMediaType.text ||
+          file.type == SharedMediaType.url) {
         final text = file.path.trim();
         if (text.isNotEmpty) {
           await repo.createDrop(
             content: text,
-            assetType: (text.startsWith('http://') || text.startsWith('https://'))
+            assetType:
+                (text.startsWith('http://') || text.startsWith('https://'))
                 ? 'article'
                 : 'clip',
           );

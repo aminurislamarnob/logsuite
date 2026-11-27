@@ -380,6 +380,8 @@ class StatTile extends StatelessWidget {
 /// GitHub-style contribution heatmap. [intensityFor] returns 0.0–1.0 for a day.
 class ContributionHeatmap extends StatelessWidget {
   final int days;
+  final DateTime? startDate;
+  final DateTime? endDate;
   final Color color;
   final double Function(DateTime day) intensityFor;
   final void Function(DateTime day)? onTapDay;
@@ -390,6 +392,8 @@ class ContributionHeatmap extends StatelessWidget {
     required this.color,
     required this.intensityFor,
     this.days = 119, // 17 weeks
+    this.startDate,
+    this.endDate,
     this.onTapDay,
     this.cell = 14,
   });
@@ -398,10 +402,16 @@ class ContributionHeatmap extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final start = today.subtract(Duration(days: days - 1));
+    final end = endDate == null
+        ? today
+        : DateTime(endDate!.year, endDate!.month, endDate!.day);
+    final start = startDate != null
+        ? DateTime(startDate!.year, startDate!.month, startDate!.day)
+        : end.subtract(Duration(days: days - 1));
+    final totalDays = (end.difference(start).inDays + 1).clamp(1, 3660);
     // Pad to the start of that week so columns line up as Mon–Sun.
     final leading = start.weekday - 1;
-    final total = leading + days;
+    final total = leading + totalDays;
     final weeks = (total / 7).ceil();
     final brand = context.brand;
     final base = brand.track;
@@ -422,7 +432,7 @@ class ContributionHeatmap extends StatelessWidget {
               child: Column(
                 children: List.generate(7, (d) {
                   final index = w * 7 + d - leading;
-                  if (index < 0 || index >= days) {
+                  if (index < 0 || index >= totalDays) {
                     return SizedBox(height: cell + 3, width: cell);
                   }
                   final day = start.add(Duration(days: index));

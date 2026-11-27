@@ -11,6 +11,7 @@ import '../../presentation/dashboard/dashboard_screen.dart';
 import '../../presentation/drop/drop_screen.dart';
 import '../../presentation/expenses/expenses_screen.dart';
 import '../../presentation/focus/focus_screen.dart';
+import '../../presentation/habits/habit_detail_screen.dart';
 import '../../presentation/habits/habits_screen.dart';
 import '../../presentation/insights/insights_screen.dart';
 import '../../presentation/medicine/medicine_screen.dart';
@@ -110,6 +111,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           module: AppModule.habits,
           child: HabitsScreen(),
         ),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (_, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+              return ModuleLockGate(
+                module: AppModule.habits,
+                child: HabitDetailScreen(habitId: id),
+              );
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/expenses',
@@ -135,10 +148,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/drop',
-        builder: (_, _) => const ModuleLockGate(
-          module: AppModule.drop,
-          child: DropScreen(),
-        ),
+        builder: (_, _) =>
+            const ModuleLockGate(module: AppModule.drop, child: DropScreen()),
       ),
       GoRoute(path: '/search', builder: (_, _) => const SearchScreen()),
       GoRoute(

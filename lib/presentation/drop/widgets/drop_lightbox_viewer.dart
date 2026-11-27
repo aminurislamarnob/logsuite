@@ -63,7 +63,9 @@ class _DropLightboxViewerState extends ConsumerState<DropLightboxViewer> {
       final text = await ocrService.extractText(File(imagePath));
       if (text != null && text.isNotEmpty) {
         setState(() => _ocrText = text);
-        await ref.read(dropRepositoryProvider).updateOcrText(widget.item.id, text);
+        await ref
+            .read(dropRepositoryProvider)
+            .updateOcrText(widget.item.id, text);
         await Clipboard.setData(ClipboardData(text: text));
         if (mounted) {
           AppHaptics.success();
@@ -105,11 +107,11 @@ class _DropLightboxViewerState extends ConsumerState<DropLightboxViewer> {
                         ),
                       )
                     : (widget.item.previewImageUrl != null
-                        ? Image.network(
-                            widget.item.previewImageUrl!,
-                            fit: BoxFit.contain,
-                          )
-                        : const SizedBox.shrink()),
+                          ? Image.network(
+                              widget.item.previewImageUrl!,
+                              fit: BoxFit.contain,
+                            )
+                          : const SizedBox.shrink()),
               ),
             ),
 
@@ -153,7 +155,10 @@ class _DropLightboxViewerState extends ConsumerState<DropLightboxViewer> {
                             ),
                       label: Text(
                         _ocrText != null ? 'Copy Text' : 'Extract Text',
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
                       ),
                       onPressed: _isExtractingOcr ? null : _handleOcrText,
                     ),
@@ -166,7 +171,10 @@ class _DropLightboxViewerState extends ConsumerState<DropLightboxViewer> {
                         shape: CircleBorder(),
                       ),
                       child: IconButton(
-                        icon: const AppIcon(AppIcons.share, color: Colors.white),
+                        icon: const AppIcon(
+                          AppIcons.share,
+                          color: Colors.white,
+                        ),
                         onPressed: () {
                           SharePlus.instance.share(
                             ShareParams(
@@ -187,7 +195,10 @@ class _DropLightboxViewerState extends ConsumerState<DropLightboxViewer> {
               left: 16,
               right: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(12),
@@ -223,7 +234,10 @@ class _DropLightboxViewerState extends ConsumerState<DropLightboxViewer> {
                     if (_ocrText != null) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white24,
                           borderRadius: BorderRadius.circular(6),

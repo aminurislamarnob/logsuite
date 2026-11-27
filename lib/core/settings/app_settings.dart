@@ -243,7 +243,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       dndEndMinutes: _prefs.getInt(_kDndEnd) ?? 7 * 60,
       dashboardOrder:
           _prefs.getStringList(_kDashOrder) ??
-          const ['medicine', 'tasks', 'drop', 'habits', 'expenses', 'focus', 'notes'],
+          const [
+            'medicine',
+            'tasks',
+            'drop',
+            'habits',
+            'expenses',
+            'focus',
+            'notes',
+          ],
       aiProvider: AiProviderX.byName(_prefs.getString(_kAiProvider)),
       aiModel: _prefs.getString(_kAiModel) ?? '',
       aiAutoSave: _prefs.getBool(_kAiAutoSave) ?? false,

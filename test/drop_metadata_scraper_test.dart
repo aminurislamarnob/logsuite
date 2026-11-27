@@ -7,22 +7,29 @@ import 'package:logsuite/presentation/drop/services/drop_metadata_scraper.dart';
 void main() {
   test('extracts YouTube video IDs from various URL formats', () {
     expect(
-      DropMetadataScraper.extractYouTubeVideoId('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+      DropMetadataScraper.extractYouTubeVideoId(
+        'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      ),
       'dQw4w9WgXcQ',
     );
     expect(
-      DropMetadataScraper.extractYouTubeVideoId('https://youtu.be/dQw4w9WgXcQ?si=123'),
+      DropMetadataScraper.extractYouTubeVideoId(
+        'https://youtu.be/dQw4w9WgXcQ?si=123',
+      ),
       'dQw4w9WgXcQ',
     );
     expect(
-      DropMetadataScraper.extractYouTubeVideoId('https://www.youtube.com/shorts/dQw4w9WgXcQ'),
+      DropMetadataScraper.extractYouTubeVideoId(
+        'https://www.youtube.com/shorts/dQw4w9WgXcQ',
+      ),
       'dQw4w9WgXcQ',
     );
   });
 
   test('scrapes YouTube video with oembed response', () async {
     final mockClient = MockClient((request) async {
-      if (request.url.host == 'www.youtube.com' && request.url.path == '/oembed') {
+      if (request.url.host == 'www.youtube.com' &&
+          request.url.path == '/oembed') {
         return http.Response(
           jsonEncode({
             'title': 'Never Gonna Give You Up',
@@ -36,7 +43,9 @@ void main() {
     });
 
     final scraper = DropMetadataScraper(client: mockClient);
-    final meta = await scraper.scrape('Check this video: https://youtu.be/dQw4w9WgXcQ');
+    final meta = await scraper.scrape(
+      'Check this video: https://youtu.be/dQw4w9WgXcQ',
+    );
 
     expect(meta, isNotNull);
     expect(meta!.assetType, 'video');
@@ -79,16 +88,19 @@ void main() {
     expect(meta.sourceDomain, 'example.com');
   });
 
-  test('falls back to HTML title and handles network failures gracefully', () async {
-    final mockClient = MockClient((request) async {
-      throw http.ClientException('Offline');
-    });
+  test(
+    'falls back to HTML title and handles network failures gracefully',
+    () async {
+      final mockClient = MockClient((request) async {
+        throw http.ClientException('Offline');
+      });
 
-    final scraper = DropMetadataScraper(client: mockClient);
-    final meta = await scraper.scrape('https://offline-example.org/news');
+      final scraper = DropMetadataScraper(client: mockClient);
+      final meta = await scraper.scrape('https://offline-example.org/news');
 
-    expect(meta, isNotNull);
-    expect(meta!.assetType, 'article');
-    expect(meta.sourceDomain, 'offline-example.org');
-  });
+      expect(meta, isNotNull);
+      expect(meta!.assetType, 'article');
+      expect(meta.sourceDomain, 'offline-example.org');
+    },
+  );
 }

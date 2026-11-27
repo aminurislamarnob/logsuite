@@ -16,7 +16,7 @@ class DropRepository {
   final DropMetadataScraper _scraper;
 
   DropRepository(this._db, {DropMetadataScraper? scraper})
-      : _scraper = scraper ?? DropMetadataScraper();
+    : _scraper = scraper ?? DropMetadataScraper();
 
   Stream<List<DropWithTags>> watchDrops({
     String? triageStatus,
@@ -41,12 +41,14 @@ class DropRepository {
 
     if (query != null && query.trim().isNotEmpty) {
       final q = '%${query.trim().toLowerCase()}%';
-      dropsQuery.where((d) =>
-          d.content.lower().like(q) |
-          d.title.lower().like(q) |
-          d.description.lower().like(q) |
-          d.ocrText.lower().like(q) |
-          d.sourceDomain.lower().like(q));
+      dropsQuery.where(
+        (d) =>
+            d.content.lower().like(q) |
+            d.title.lower().like(q) |
+            d.description.lower().like(q) |
+            d.ocrText.lower().like(q) |
+            d.sourceDomain.lower().like(q),
+      );
     }
 
     dropsQuery.orderBy([
@@ -68,10 +70,7 @@ class DropRepository {
       }
 
       var result = dropsList.map((drop) {
-        return DropWithTags(
-          drop: drop,
-          tags: tagsByDrop[drop.id] ?? const [],
-        );
+        return DropWithTags(drop: drop, tags: tagsByDrop[drop.id] ?? const []);
       }).toList();
 
       if (tag != null && tag.isNotEmpty) {
@@ -105,12 +104,14 @@ class DropRepository {
 
     if (query != null && query.trim().isNotEmpty) {
       final q = '%${query.trim().toLowerCase()}%';
-      dropsQuery.where((d) =>
-          d.content.lower().like(q) |
-          d.title.lower().like(q) |
-          d.description.lower().like(q) |
-          d.ocrText.lower().like(q) |
-          d.sourceDomain.lower().like(q));
+      dropsQuery.where(
+        (d) =>
+            d.content.lower().like(q) |
+            d.title.lower().like(q) |
+            d.description.lower().like(q) |
+            d.ocrText.lower().like(q) |
+            d.sourceDomain.lower().like(q),
+      );
     }
 
     dropsQuery.orderBy([
@@ -132,10 +133,7 @@ class DropRepository {
     }
 
     var result = dropsList.map((drop) {
-      return DropWithTags(
-        drop: drop,
-        tags: tagsByDrop[drop.id] ?? const [],
-      );
+      return DropWithTags(drop: drop, tags: tagsByDrop[drop.id] ?? const []);
     }).toList();
 
     if (tag != null && tag.isNotEmpty) {
@@ -146,18 +144,16 @@ class DropRepository {
   }
 
   Future<DropWithTags?> getDrop(int id) async {
-    final drop = await (_db.select(_db.drops)..where((d) => d.id.equals(id)))
-        .getSingleOrNull();
+    final drop = await (_db.select(
+      _db.drops,
+    )..where((d) => d.id.equals(id))).getSingleOrNull();
     if (drop == null) return null;
 
-    final tags = await (_db.select(_db.dropTags)
-          ..where((t) => t.dropId.equals(id)))
-        .get();
+    final tags = await (_db.select(
+      _db.dropTags,
+    )..where((t) => t.dropId.equals(id))).get();
 
-    return DropWithTags(
-      drop: drop,
-      tags: tags.map((t) => t.tag).toList(),
-    );
+    return DropWithTags(drop: drop, tags: tags.map((t) => t.tag).toList());
   }
 
   Future<int> createDrop({
@@ -178,7 +174,9 @@ class DropRepository {
   }) async {
     final id = await _db.transaction(() async {
       final now = DateTime.now();
-      final id = await _db.into(_db.drops).insert(
+      final id = await _db
+          .into(_db.drops)
+          .insert(
             DropsCompanion.insert(
               content: content,
               title: Value(title),
@@ -202,7 +200,9 @@ class DropRepository {
         for (final tag in tags.toSet()) {
           final cleanTag = tag.trim().replaceAll('#', '');
           if (cleanTag.isNotEmpty) {
-            await _db.into(_db.dropTags).insert(
+            await _db
+                .into(_db.dropTags)
+                .insert(
                   DropTagsCompanion.insert(dropId: id, tag: cleanTag),
                   mode: InsertMode.insertOrIgnore,
                 );
@@ -224,8 +224,9 @@ class DropRepository {
 
   Future<void> enrichDrop(int id) async {
     try {
-      final current = await (_db.select(_db.drops)..where((d) => d.id.equals(id)))
-          .getSingleOrNull();
+      final current = await (_db.select(
+        _db.drops,
+      )..where((d) => d.id.equals(id))).getSingleOrNull();
       if (current == null) return;
 
       final meta = await _scraper.scrape(current.content);
@@ -240,8 +241,9 @@ class DropRepository {
           previewImageUrl: meta.previewImageUrl != null
               ? Value(meta.previewImageUrl)
               : const Value.absent(),
-          faviconUrl:
-              meta.faviconUrl != null ? Value(meta.faviconUrl) : const Value.absent(),
+          faviconUrl: meta.faviconUrl != null
+              ? Value(meta.faviconUrl)
+              : const Value.absent(),
           sourceDomain: meta.sourceDomain != null
               ? Value(meta.sourceDomain)
               : const Value.absent(),
@@ -276,38 +278,49 @@ class DropRepository {
         DropsCompanion(
           content: content != null ? Value(content) : const Value.absent(),
           title: title != null ? Value(title) : const Value.absent(),
-          description:
-              description != null ? Value(description) : const Value.absent(),
+          description: description != null
+              ? Value(description)
+              : const Value.absent(),
           previewImageUrl: previewImageUrl != null
               ? Value(previewImageUrl)
               : const Value.absent(),
-          faviconUrl:
-              faviconUrl != null ? Value(faviconUrl) : const Value.absent(),
-          sourceDomain:
-              sourceDomain != null ? Value(sourceDomain) : const Value.absent(),
-          assetType:
-              assetType != null ? Value(assetType) : const Value.absent(),
-          triageStatus:
-              triageStatus != null ? Value(triageStatus) : const Value.absent(),
+          faviconUrl: faviconUrl != null
+              ? Value(faviconUrl)
+              : const Value.absent(),
+          sourceDomain: sourceDomain != null
+              ? Value(sourceDomain)
+              : const Value.absent(),
+          assetType: assetType != null
+              ? Value(assetType)
+              : const Value.absent(),
+          triageStatus: triageStatus != null
+              ? Value(triageStatus)
+              : const Value.absent(),
           isPinned: isPinned != null ? Value(isPinned) : const Value.absent(),
-          mediaPath:
-              mediaPath != null ? Value(mediaPath) : const Value.absent(),
+          mediaPath: mediaPath != null
+              ? Value(mediaPath)
+              : const Value.absent(),
           mediaThumbnailPath: mediaThumbnailPath != null
               ? Value(mediaThumbnailPath)
               : const Value.absent(),
           ocrText: ocrText != null ? Value(ocrText) : const Value.absent(),
-          reminderAt:
-              reminderAt != null ? Value(reminderAt) : const Value.absent(),
+          reminderAt: reminderAt != null
+              ? Value(reminderAt)
+              : const Value.absent(),
           updatedAt: Value(DateTime.now()),
         ),
       );
 
       if (tags != null) {
-        await (_db.delete(_db.dropTags)..where((t) => t.dropId.equals(id))).go();
+        await (_db.delete(
+          _db.dropTags,
+        )..where((t) => t.dropId.equals(id))).go();
         for (final tag in tags.toSet()) {
           final cleanTag = tag.trim().replaceAll('#', '');
           if (cleanTag.isNotEmpty) {
-            await _db.into(_db.dropTags).insert(
+            await _db
+                .into(_db.dropTags)
+                .insert(
                   DropTagsCompanion.insert(dropId: id, tag: cleanTag),
                   mode: InsertMode.insertOrIgnore,
                 );
@@ -317,7 +330,11 @@ class DropRepository {
     });
   }
 
-  Future<void> setTriageStatus(int id, String status, {NotificationService? notifier}) async {
+  Future<void> setTriageStatus(
+    int id,
+    String status, {
+    NotificationService? notifier,
+  }) async {
     await (_db.update(_db.drops)..where((d) => d.id.equals(id))).write(
       DropsCompanion(
         triageStatus: Value(status),
@@ -330,8 +347,9 @@ class DropRepository {
   }
 
   Future<void> togglePinned(int id) async {
-    final current = await (_db.select(_db.drops)..where((d) => d.id.equals(id)))
-        .getSingleOrNull();
+    final current = await (_db.select(
+      _db.drops,
+    )..where((d) => d.id.equals(id))).getSingleOrNull();
     if (current != null) {
       await (_db.update(_db.drops)..where((d) => d.id.equals(id))).write(
         DropsCompanion(
@@ -347,7 +365,10 @@ class DropRepository {
     await (_db.delete(_db.drops)..where((d) => d.id.equals(id))).go();
   }
 
-  Future<void> deleteDrops(List<int> ids, {NotificationService? notifier}) async {
+  Future<void> deleteDrops(
+    List<int> ids, {
+    NotificationService? notifier,
+  }) async {
     if (ids.isEmpty) return;
     if (notifier != null) {
       for (final id in ids) {
@@ -357,7 +378,11 @@ class DropRepository {
     await (_db.delete(_db.drops)..where((d) => d.id.isIn(ids))).go();
   }
 
-  Future<void> bulkSetTriageStatus(List<int> ids, String status, {NotificationService? notifier}) async {
+  Future<void> bulkSetTriageStatus(
+    List<int> ids,
+    String status, {
+    NotificationService? notifier,
+  }) async {
     if (ids.isEmpty) return;
     if (status == 'archived' && notifier != null) {
       for (final id in ids) {
@@ -378,7 +403,9 @@ class DropRepository {
 
     await _db.transaction(() async {
       for (final id in ids) {
-        await _db.into(_db.dropTags).insert(
+        await _db
+            .into(_db.dropTags)
+            .insert(
               DropTagsCompanion.insert(dropId: id, tag: cleanTag),
               mode: InsertMode.insertOrIgnore,
             );
@@ -400,10 +427,12 @@ class DropRepository {
 
     if (notifier != null) {
       if (reminderAt != null && reminderAt.isAfter(DateTime.now())) {
-        final drop = await (_db.select(_db.drops)..where((d) => d.id.equals(id)))
-            .getSingleOrNull();
+        final drop = await (_db.select(
+          _db.drops,
+        )..where((d) => d.id.equals(id))).getSingleOrNull();
         if (drop != null) {
-          final title = drop.title ??
+          final title =
+              drop.title ??
               (drop.content.length > 50
                   ? '${drop.content.substring(0, 50)}...'
                   : drop.content);
@@ -421,20 +450,18 @@ class DropRepository {
 
   Future<List<Drop>> dropsWithReminders() async {
     final now = DateTime.now();
-    return (_db.select(_db.drops)
-          ..where((d) =>
+    return (_db.select(_db.drops)..where(
+          (d) =>
               d.reminderAt.isNotNull() &
               d.reminderAt.isBiggerThanValue(now) &
-              d.triageStatus.equals('inbox')))
+              d.triageStatus.equals('inbox'),
+        ))
         .get();
   }
 
   Future<void> updateOcrText(int id, String ocrText) async {
     await (_db.update(_db.drops)..where((d) => d.id.equals(id))).write(
-      DropsCompanion(
-        ocrText: Value(ocrText),
-        updatedAt: Value(DateTime.now()),
-      ),
+      DropsCompanion(ocrText: Value(ocrText), updatedAt: Value(DateTime.now())),
     );
   }
 
@@ -449,10 +476,12 @@ class DropRepository {
   }
 
   Future<List<String>> getAllTags() async {
-    final rows = await _db.customSelect(
-      'SELECT DISTINCT tag FROM drop_tags ORDER BY tag COLLATE NOCASE ASC;',
-      readsFrom: {_db.dropTags},
-    ).get();
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT tag FROM drop_tags ORDER BY tag COLLATE NOCASE ASC;',
+          readsFrom: {_db.dropTags},
+        )
+        .get();
     return rows.map((r) => r.read<String>('tag')).toList();
   }
 }

@@ -23,7 +23,8 @@ class DropMetadata {
 class DropMetadataScraper {
   final http.Client _client;
 
-  DropMetadataScraper({http.Client? client}) : _client = client ?? http.Client();
+  DropMetadataScraper({http.Client? client})
+    : _client = client ?? http.Client();
 
   static String? extractFirstUrl(String text) {
     final match = RegExp(r'https?://[^\s<>"]+').firstMatch(text);
@@ -77,7 +78,9 @@ class DropMetadataScraper {
         final oembedUri = Uri.parse(
           'https://www.youtube.com/oembed?url=${Uri.encodeComponent(url)}&format=json',
         );
-        final res = await _client.get(oembedUri).timeout(const Duration(seconds: 4));
+        final res = await _client
+            .get(oembedUri)
+            .timeout(const Duration(seconds: 4));
         if (res.statusCode == 200) {
           final data = jsonDecode(res.body) as Map<String, dynamic>;
           title = data['title'] as String?;
@@ -109,19 +112,18 @@ class DropMetadataScraper {
 
     // Standard Web Link / Article OpenGraph Scraping
     try {
-      final response = await _client.get(
-        uri,
-        headers: {
-          'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-      ).timeout(const Duration(seconds: 5));
+      final response = await _client
+          .get(
+            uri,
+            headers: {
+              'User-Agent':
+                  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            },
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode != 200) {
-        return DropMetadata(
-          sourceDomain: domain,
-          assetType: 'article',
-        );
+        return DropMetadata(sourceDomain: domain, assetType: 'article');
       }
 
       final doc = html_parser.parse(response.body);
@@ -187,10 +189,7 @@ class DropMetadataScraper {
         assetType: 'article',
       );
     } catch (_) {
-      return DropMetadata(
-        sourceDomain: domain,
-        assetType: 'article',
-      );
+      return DropMetadata(sourceDomain: domain, assetType: 'article');
     }
   }
 }
