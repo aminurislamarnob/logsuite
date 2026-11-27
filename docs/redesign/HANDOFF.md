@@ -224,9 +224,47 @@ Build only what the data supports.
 | People "linked to" counts (`40`) | Show only counts that are cheap to query; otherwise show relation only. |
 | Settings colour swatches (`16`) | Use the real four palettes. |
 | Badge icons (`24`) | Names and levels come from `drop_gamification.dart`. |
+| Streak badge row in Habit detail (`23`) | Milestones 7, 14, 30, 60, 100, 365 days. Compute from the current streak; there is no badge table, so do not add one. |
+| Insight in Habit detail (`23`) | Only show "X are your weak spot" when the weakest weekday is under 75% and at least 15 points behind the best; otherwise show the "steady" text with no action button. The action opens the habit editor at the reminder field. |
 
 When you omit something, the layout must still look finished: close the gap,
 do not leave a placeholder.
+
+### Screen 23 · Habit detail — behaviour
+
+This screen is a pushed page (not a sheet), opened by tapping a habit card.
+Everything below can be built from `Habits`, `HabitLogs` and `HabitStats`.
+
+- **Today card first.** For habits with a target amount it shows today's
+  amount against the target, quick-add buttons (`+5`, `+10`, derived from the
+  target: about a quarter and a half of it) and **Mark done**, which logs the
+  full target. Once the target is met it shows the streak, `+5 more` and
+  **Undo today**. For a plain yes/no habit (target 1, no unit) show only
+  Mark done / Undo. For a *reduce* habit invert the copy ("Stay under 2").
+- **Today is not a miss until it is over.** An unfinished today does not
+  break the streak and is not counted in Completion or the trend.
+- **Range tabs drive every section below them**: 30 days, 90 days, All time.
+  Hide ranges longer than the habit has existed. 30 days renders a calendar
+  with dates; longer ranges render week columns (rows Mon–Sun).
+- **Three day states plus not tracked**: Done (target met), Partly (logged but
+  under target — matches `HabitStats.intensityOn`), Missed. Days before the
+  habit existed, and days not in its schedule, are drawn empty and are never
+  counted as missed.
+- **Tap a day** to show its detail in the bar under the grid, with
+  Mark done / Undo to fix it. That writes or deletes that day's `HabitLogs`
+  row. No floating tooltip.
+- **Stats**: Completion with the change versus the previous range of equal
+  length (hidden when that range predates the habit), Best streak with when it
+  ended, and the total of the habit's unit for unit habits (for a yes/no habit
+  show "Days done x / y" instead).
+- **Trend**: 7-day rolling completion with the habit's 80% target line, and a
+  one-line verdict comparing the first and second half of the range.
+- **Delete** lives only in the ⋯ menu, with a confirmation. Pause and Archive
+  are the visible actions.
+
+The canvas also holds three explored alternatives (Analytics, Scheduled
+sheet, Counted habit). They are reference only; the official screen is the
+one in `screens/23-habit-detail.png`.
 
 ## 9. Shared widgets: what to change
 
@@ -266,7 +304,7 @@ Change the kit first. Most screens then update with little per-screen work.
 | 03 | Add expense | `expenses/widgets/expense_entry_sheet.dart` |
 | 04, 19, 20, 21 | Tasks: list, board, calendar, matrix | `tasks/tasks_screen.dart`, `tasks/widgets/task_tile.dart` |
 | 18 | Task editor | `tasks/widgets/task_editor_sheet.dart` |
-| 05, 22, 23 | Habits, editor, detail | `habits/habits_screen.dart` |
+| 05, 22, 23 | Habits, editor, detail (23 is a full page; see "Screen 23" in section 8) | `habits/habits_screen.dart` (`_HabitDetailSheet` becomes a pushed screen) |
 | 06, 26, 27 | Medicine: today, calendar, medicines | `medicine/medicine_screen.dart` |
 | 25 | Medicine editor | `medicine/widgets/medicine_editor_sheet.dart` |
 | 07 | Modules | `modules/modules_screen.dart` |
