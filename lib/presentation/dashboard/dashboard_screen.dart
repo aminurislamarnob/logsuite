@@ -279,6 +279,7 @@ class _TodayHeroCard extends ConsumerWidget {
     final subTiles = <Widget>[
       if (settings.isEnabled(AppModule.tasks))
         _HeroSubTile(
+          icon: AppIcons.tasks,
           dot: brand.taskRoles.onInk,
           label: 'Tasks',
           done: '$tasksDone',
@@ -287,6 +288,7 @@ class _TodayHeroCard extends ConsumerWidget {
         ),
       if (settings.isEnabled(AppModule.medicine))
         _HeroSubTile(
+          icon: AppIcons.medicine,
           dot: brand.medicineRoles.onInk,
           label: 'Meds',
           done: '$dosesDone',
@@ -295,6 +297,7 @@ class _TodayHeroCard extends ConsumerWidget {
         ),
       if (settings.isEnabled(AppModule.habits))
         _HeroSubTile(
+          icon: AppIcons.habits,
           dot: brand.habitRoles.onInk,
           label: 'Habits',
           done: '$habitsDone',
@@ -303,6 +306,7 @@ class _TodayHeroCard extends ConsumerWidget {
         ),
       if (settings.isEnabled(AppModule.focus))
         _HeroSubTile(
+          icon: AppIcons.focus,
           dot: brand.focusRoles.onInk,
           label: 'Focus',
           done: '${(focusStats?.today ?? Duration.zero).inMinutes}',
@@ -311,6 +315,7 @@ class _TodayHeroCard extends ConsumerWidget {
         ),
       if (settings.isEnabled(AppModule.expenses))
         _HeroSubTile(
+          icon: AppIcons.expenses,
           dot: brand.expenseRoles.onInk,
           label: 'Expenses',
           done: Fmt.compactMoney(spentToday, settings.currencySymbol),
@@ -319,6 +324,7 @@ class _TodayHeroCard extends ConsumerWidget {
         ),
       if (settings.isEnabled(AppModule.notes))
         _HeroSubTile(
+          icon: AppIcons.notes,
           dot: brand.noteRoles.onInk,
           label: 'Notes',
           done: '$noteCount',
@@ -327,6 +333,7 @@ class _TodayHeroCard extends ConsumerWidget {
         ),
       if (settings.isEnabled(AppModule.drop))
         _HeroSubTile(
+          icon: AppIcons.inbox,
           dot: brand.dropRoles.onInk,
           label: 'Drop',
           done: '$unreadDrops',
@@ -459,6 +466,7 @@ class _TodayHeroCard extends ConsumerWidget {
 }
 
 class _HeroSubTile extends StatelessWidget {
+  final HugeIconData icon;
   final Color dot;
   final String label;
   final String done;
@@ -466,6 +474,7 @@ class _HeroSubTile extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _HeroSubTile({
+    required this.icon,
     required this.dot,
     required this.label,
     required this.done,
@@ -492,12 +501,8 @@ class _HeroSubTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
-                ),
-                const SizedBox(width: 6),
+                AppIcon(icon, size: 11, color: dot),
+                const SizedBox(width: 5),
                 Expanded(
                   child: Text(
                     label,

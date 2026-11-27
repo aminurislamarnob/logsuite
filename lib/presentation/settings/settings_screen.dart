@@ -548,7 +548,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   !await security.canUseBiometrics() &&
                                   !security.hasPin) {
                                 if (context.mounted) {
-                                  final set = await _setPin(context, ref);
+                                  final set = await showSetPinSheet(
+                                    context,
+                                    ref,
+                                  );
                                   if (!set) return;
                                 }
                               }
@@ -652,72 +655,76 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (picked != null) notifier.setAutoLockMinutes(picked);
   }
 
-  Future<bool> _setPin(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-    final confirm = TextEditingController();
-    String? lengthError;
-    String? matchError;
+  Future<bool> _setPin(BuildContext context, WidgetRef ref) =>
+      showSetPinSheet(context, ref);
+}
 
-    final result = await brandDialog<bool>(
-      context,
-      title: 'Set a PIN',
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            BrandField(
-              controller: controller,
-              label: 'New PIN',
-              error: lengthError,
-              autofocus: true,
-              obscure: true,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 12),
-            BrandField(
-              controller: confirm,
-              label: 'Confirm PIN',
-              error: matchError,
-              obscure: true,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 20),
-            BrandButton(
-              label: 'Save',
-              onPressed: () {
-                final short = controller.text.length < 4;
-                final mismatch = !short && controller.text != confirm.text;
-                if (short || mismatch) {
-                  setState(() {
-                    lengthError = short ? 'Use at least 4 digits' : null;
-                    matchError = mismatch ? 'PINs do not match' : null;
-                  });
-                  return;
-                }
-                Navigator.pop(context, true);
-              },
-            ),
-            const SizedBox(height: 8),
-            BrandButton(
-              label: 'Cancel',
-              kind: BrandButtonKind.ghost,
-              onPressed: () => Navigator.pop(context, false),
-            ),
-          ],
-        ),
+/// Prompts the user to create a 4–6 digit app PIN. Shared with Modules edit mode.
+Future<bool> showSetPinSheet(BuildContext context, WidgetRef ref) async {
+  final controller = TextEditingController();
+  final confirm = TextEditingController();
+  String? lengthError;
+  String? matchError;
+
+  final result = await brandDialog<bool>(
+    context,
+    title: 'Set a PIN',
+    builder: (context) => StatefulBuilder(
+      builder: (context, setState) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          BrandField(
+            controller: controller,
+            label: 'New PIN',
+            error: lengthError,
+            autofocus: true,
+            obscure: true,
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 12),
+          BrandField(
+            controller: confirm,
+            label: 'Confirm PIN',
+            error: matchError,
+            obscure: true,
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 20),
+          BrandButton(
+            label: 'Save',
+            onPressed: () {
+              final short = controller.text.length < 4;
+              final mismatch = !short && controller.text != confirm.text;
+              if (short || mismatch) {
+                setState(() {
+                  lengthError = short ? 'Use at least 4 digits' : null;
+                  matchError = mismatch ? 'PINs do not match' : null;
+                });
+                return;
+              }
+              Navigator.pop(context, true);
+            },
+          ),
+          const SizedBox(height: 8),
+          BrandButton(
+            label: 'Cancel',
+            kind: BrandButtonKind.ghost,
+            onPressed: () => Navigator.pop(context, false),
+          ),
+        ],
       ),
-    );
+    ),
+  );
 
-    if (result == true) {
-      await ref.read(pinStatusProvider.notifier).set(controller.text);
-      if (context.mounted) {
-        brandToast(context, 'PIN saved.');
-      }
-      return true;
+  if (result == true) {
+    await ref.read(pinStatusProvider.notifier).set(controller.text);
+    if (context.mounted) {
+      brandToast(context, 'PIN saved.');
     }
-    return false;
+    return true;
   }
+  return false;
 }
 
 class _ThemeModeSegment extends StatelessWidget {

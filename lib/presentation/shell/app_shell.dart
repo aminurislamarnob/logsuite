@@ -245,7 +245,7 @@ class _QuickAddSheetContentState extends State<_QuickAddSheetContent> {
               label: 'Task',
               onTap: () {
                 Navigator.pop(context);
-                TaskEditorSheet.show(parentContext);
+                runModuleQuickAction(parentContext, ref, AppModule.tasks);
               },
             ),
           if (settings.isEnabled(AppModule.expenses))
@@ -255,7 +255,7 @@ class _QuickAddSheetContentState extends State<_QuickAddSheetContent> {
               label: 'Expense',
               onTap: () {
                 Navigator.pop(context);
-                ExpenseEntrySheet.show(parentContext);
+                runModuleQuickAction(parentContext, ref, AppModule.expenses);
               },
             ),
           if (settings.isEnabled(AppModule.habits))
@@ -265,7 +265,7 @@ class _QuickAddSheetContentState extends State<_QuickAddSheetContent> {
               label: 'Habit',
               onTap: () {
                 Navigator.pop(context);
-                _showHabitPicker(parentContext, ref);
+                runModuleQuickAction(parentContext, ref, AppModule.habits);
               },
             ),
           if (settings.isEnabled(AppModule.medicine))
@@ -275,7 +275,7 @@ class _QuickAddSheetContentState extends State<_QuickAddSheetContent> {
               label: 'Medicine',
               onTap: () {
                 Navigator.pop(context);
-                _showDosePicker(parentContext, ref);
+                runModuleQuickAction(parentContext, ref, AppModule.medicine);
               },
             ),
           if (settings.isEnabled(AppModule.notes))
@@ -285,7 +285,7 @@ class _QuickAddSheetContentState extends State<_QuickAddSheetContent> {
               label: 'Note',
               onTap: () {
                 Navigator.pop(context);
-                newNoteFlow(parentContext, ref);
+                runModuleQuickAction(parentContext, ref, AppModule.notes);
               },
             ),
           if (settings.isEnabled(AppModule.focus))
@@ -295,7 +295,7 @@ class _QuickAddSheetContentState extends State<_QuickAddSheetContent> {
               label: 'Focus',
               onTap: () {
                 Navigator.pop(context);
-                parentContext.push('/focus');
+                runModuleQuickAction(parentContext, ref, AppModule.focus);
               },
             ),
           if (settings.isEnabled(AppModule.drop))
@@ -305,7 +305,7 @@ class _QuickAddSheetContentState extends State<_QuickAddSheetContent> {
               label: 'Drop',
               onTap: () {
                 Navigator.pop(context);
-                parentContext.push('/drop');
+                runModuleQuickAction(parentContext, ref, AppModule.drop);
               },
             ),
           if (settings.isEnabled(AppModule.expenses))
@@ -545,6 +545,30 @@ class _QuickPickTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Runs the quick-add action for [module], shared by Quick add and Modules.
+void runModuleQuickAction(
+  BuildContext context,
+  WidgetRef ref,
+  AppModule module,
+) {
+  switch (module) {
+    case AppModule.tasks:
+      TaskEditorSheet.show(context);
+    case AppModule.expenses:
+      ExpenseEntrySheet.show(context);
+    case AppModule.habits:
+      _showHabitPicker(context, ref);
+    case AppModule.medicine:
+      _showDosePicker(context, ref);
+    case AppModule.notes:
+      newNoteFlow(context, ref);
+    case AppModule.focus:
+      context.push('/focus');
+    case AppModule.drop:
+      context.push('/drop');
   }
 }
 
