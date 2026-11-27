@@ -228,6 +228,12 @@ Build only what the data supports.
 When you omit something, the layout must still look finished: close the gap,
 do not leave a placeholder.
 
+### Screen 23 · Habit detail
+
+Screen 23 has its own, complete handoff: **`docs/redesign/HABIT_DETAIL_HANDOFF.md`**.
+It replaces the habit detail bottom sheet with a full page and overrides
+anything this file says about screen 23.
+
 ## 9. Shared widgets: what to change
 
 Change the kit first. Most screens then update with little per-screen work.
@@ -266,7 +272,7 @@ Change the kit first. Most screens then update with little per-screen work.
 | 03 | Add expense | `expenses/widgets/expense_entry_sheet.dart` |
 | 04, 19, 20, 21 | Tasks: list, board, calendar, matrix | `tasks/tasks_screen.dart`, `tasks/widgets/task_tile.dart` |
 | 18 | Task editor | `tasks/widgets/task_editor_sheet.dart` |
-| 05, 22, 23 | Habits, editor, detail | `habits/habits_screen.dart` |
+| 05, 22, 23 | Habits, editor, detail (23: see `HABIT_DETAIL_HANDOFF.md`) | `habits/habits_screen.dart` |
 | 06, 26, 27 | Medicine: today, calendar, medicines | `medicine/medicine_screen.dart` |
 | 25 | Medicine editor | `medicine/widgets/medicine_editor_sheet.dart` |
 | 07 | Modules | `modules/modules_screen.dart` |

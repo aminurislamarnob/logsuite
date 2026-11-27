@@ -3,85 +3,292 @@
 <head>
 <meta charset="utf-8">
 <title>Habit detail</title>
-
-</head>
-<body>
-
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0}
-a{color:#22694A}a:hover{color:#174D35}
+a{color:#1F5E3D}a:hover{color:#174D35}
 button{font-family:inherit;cursor:pointer}
-.hm span{border-radius:4px}
+button:disabled{cursor:default}
+.page>*{flex-shrink:0}
 </style>
+</head>
+<body style="margin:0">
 
-<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #2B2522; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614">
 
-  <div aria-hidden="true" style="position: absolute; left: 20px; right: 20px; top: 40px; display: flex; align-items: center; gap: 12px; opacity: 0.18"><span style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF"></span><span style="width: 120px; height: 22px; border-radius: 11px; background: #FFFFFF"></span></div>
 
-  <section aria-label="Read 20 pages" style="position: absolute; left: 0; right: 0; bottom: 0; height: 740px; background: #F4F1EE; border-radius: 32px 32px 0 0; box-sizing: border-box; padding: 10px 20px 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 -20px 60px rgba(0,0,0,0.35)">
-    <div style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #D9D3CE"></div>
 
-    <div style="display: flex; align-items: center; gap: 12px">
-      <span style="width: 52px; height: 52px; border-radius: 18px; background: #FBF1E3; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#A86C22" stroke-width="2" stroke-linejoin="round"><path d="M4 5h6a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h6z"></path></svg></span>
-      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
-        <h1 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.6px; line-height: 1.1">Read 20 pages</h1>
-        <span style="font-size: 13px; color: #6B625C">Daily · reminder 9:30 PM</span>
+
+
+<div class="page" style="width: 390px; height: 1660px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 14px">
+
+  <header style="display: flex; align-items: center; gap: 10px">
+    <a href="Habits.dc.html" aria-label="Back to habits" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <span style="flex-grow: 1"></span>
+    <a href="HabitEditor.dc.html" aria-label="Edit habit" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg></a>
+    <button aria-label="More: archive or delete" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="#1A1614"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+  </header>
+
+  <div style="display: flex; align-items: center; gap: 14px">
+    <span style="width: 64px; height: 64px; border-radius: 22px; background: #2D8657; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 10px 24px rgba(45,134,87,0.28)"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"><path d="M4 5h6a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h6z"></path></svg></span>
+    <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.05">Read 20 pages</h1>
+      <span style="font-size: 14px; color: #6B625C">Every day · reminder 9:30 PM</span>
+    </div>
+  </div>
+
+  <section aria-label="Today" style="background: #1A1614; color: #FFFFFF; border-radius: 28px; padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 16px 40px rgba(26,22,20,0.22)">
+    <div style="display: flex; align-items: center; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+        <span style="font-size: 12px; font-weight: 700; color: #7EE0AC; letter-spacing: 1px; text-transform: uppercase">Today</span>
+        <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15">8 pages to go</span>
+        <span style="font-size: 13px; color: #B5ADA8; line-height: 1.35">Finish to reach a 21-day streak.</span>
       </div>
-      <a href="#" aria-label="Close" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+      <button aria-label="12 of 20 pages today. Edit" onclick="() =&gt; this.setState({ edit: { t, v: info(t).pages || 0 }, sel: t, lastAdd: 0 })" style="position: relative; width: 84px; height: 84px; flex-shrink: 0; padding: 0; border: none; background: transparent; color: #FFFFFF">
+        <svg aria-hidden="true" width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="9"></circle><circle cx="42" cy="42" r="35" fill="none" stroke="#56CE8E" stroke-width="9" stroke-linecap="round" stroke-dasharray="131.9 219.9" transform="rotate(-90 42 42)"></circle></svg>
+        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 24px; font-weight: 800; letter-spacing: -0.8px; line-height: 1">12</span><span style="font-size: 11px; color: #B5ADA8">of 20</span></div>
+        <span aria-hidden="true" style="position: absolute; right: -2px; bottom: -2px; width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #1A1614"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg></span>
+      </button>
     </div>
 
-    <div style="background: #1A1614; color: #FFFFFF; border-radius: 28px; padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 16px 40px rgba(26,22,20,0.22)">
-      <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1">
-        <span style="font-size: 12px; font-weight: 700; color: #7EE0AC; letter-spacing: 1px; text-transform: uppercase">Current streak</span>
-        <div style="display: flex; align-items: baseline; gap: 6px"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="#FFB95C" style="align-self: center"><path d="M12 22c-4.4 0-7-2.8-7-6.5 0-4.3 3.8-6.5 4.3-11 2.7 1.6 3.8 4.3 3.8 6.5 1.1-.6 2.2-1.9 2.4-3.3 2 2 3.5 4.6 3.5 7.6 0 3.9-2.6 6.7-7 6.7z"></path></svg><span style="font-size: 48px; font-weight: 800; letter-spacing: -2px; line-height: 1">21</span><span style="font-size: 18px; font-weight: 600; color: #A39B96">days</span></div>
-        <span style="font-size: 13px; color: #B5ADA8">Your best yet · done today</span>
+    
+      <div style="display: flex; gap: 8px">
+        <button aria-label="Add 5 pages" onclick="() =&gt; this.setState({ pages: todayPages + n, lastAdd: n, edit: null })" style="height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">+5</button>
+        <button aria-label="Add 10 pages" onclick="() =&gt; this.setState({ pages: todayPages + n, lastAdd: n, edit: null })" style="height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">+10</button>
+        <button onclick="() =&gt; this.setState({ pages: Math.max(GOAL, todayPages), lastAdd: Math.max(0, GOAL - todayPages), edit: null })" style="flex-grow: 1; height: 52px; border-radius: 26px; border: none; background: #FFFFFF; color: #1A1614; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Mark done</button>
       </div>
-      <div style="position: relative; width: 88px; height: 88px; flex-shrink: 0">
-        <svg role="img" aria-label="93 percent completion" width="88" height="88" viewBox="0 0 88 88"><circle cx="44" cy="44" r="36" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="10"></circle><circle cx="44" cy="44" r="36" fill="none" stroke="#56CE8E" stroke-width="10" stroke-linecap="round" stroke-dasharray="210.4 226.2" transform="rotate(-90 44 44)"></circle></svg>
-        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 18px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1">93%</span><span style="font-size: 9px; color: #B5ADA8; letter-spacing: 0.4px; text-transform: uppercase">kept</span></div>
+    
+    
+
+    
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: -4px">
+        <span role="status" style="flex-grow: 1; font-size: 13px; color: #B5ADA8">12 pages logged today</span>
+        
+        <button onclick="() =&gt; this.setState({ edit: { t, v: info(t).pages || 0 }, sel: t, lastAdd: 0 })" style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg>Edit</button>
       </div>
-    </div>
+    
 
-    <div style="display: flex; gap: 10px">
-      <div style="flex: 1; background: #FFFFFF; border-radius: 20px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="font-size: 12px; font-weight: 600; color: #6B625C">This week</span><span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px">3<span style="font-size: 13px; font-weight: 600; color: #6B625C; letter-spacing: 0"> of 3</span></span></div>
-      <div style="flex: 1; background: #FFFFFF; border-radius: 20px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="font-size: 12px; font-weight: 600; color: #6B625C">This month</span><span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px">17<span style="font-size: 13px; font-weight: 600; color: #6B625C; letter-spacing: 0"> of 17</span></span></div>
-      <div style="flex: 1; background: #FFFFFF; border-radius: 20px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><span style="font-size: 12px; font-weight: 600; color: #6B625C">All time</span><span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px">96<span style="font-size: 13px; font-weight: 600; color: #6B625C; letter-spacing: 0"> days</span></span></div>
-    </div>
+    
 
-    <div style="background: #FFFFFF; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
-      <div style="display: flex; align-items: center; justify-content: space-between"><span style="font-size: 12px; font-weight: 700; color: #6B625C; letter-spacing: 0.8px; text-transform: uppercase">Last 17 weeks</span><span style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #6B625C">Missed<span style="width: 10px; height: 10px; border-radius: 3px; background: #EFEAE6"></span><span style="width: 10px; height: 10px; border-radius: 3px; background: #BFE3CE"></span><span style="width: 10px; height: 10px; border-radius: 3px; background: #6DB78F"></span><span style="width: 10px; height: 10px; border-radius: 3px; background: #2D8657"></span>Full</span></div>
-      <div class="hm" role="img" aria-label="Completion over the last 17 weeks, one column per week; mostly missed early on, every day done in the last three weeks" style="display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 13px); grid-auto-columns: minmax(0, 1fr); gap: 4px">
-        <span style="background: #EFEAE6"></span><span style="background: #EFEAE6"></span><span style="background: #BFE3CE"></span><span style="background: #EFEAE6"></span><span style="background: #EFEAE6"></span><span style="background: #BFE3CE"></span><span style="background: #EFEAE6"></span>
-        <span style="background: #BFE3CE"></span><span style="background: #EFEAE6"></span><span style="background: #BFE3CE"></span><span style="background: #BFE3CE"></span><span style="background: #EFEAE6"></span><span style="background: #EFEAE6"></span><span style="background: #BFE3CE"></span>
-        <span style="background: #BFE3CE"></span><span style="background: #BFE3CE"></span><span style="background: #EFEAE6"></span><span style="background: #6DB78F"></span><span style="background: #BFE3CE"></span><span style="background: #BFE3CE"></span><span style="background: #EFEAE6"></span>
-        <span style="background: #6DB78F"></span><span style="background: #BFE3CE"></span><span style="background: #BFE3CE"></span><span style="background: #6DB78F"></span><span style="background: #EFEAE6"></span><span style="background: #BFE3CE"></span><span style="background: #6DB78F"></span>
-        <span style="background: #6DB78F"></span><span style="background: #6DB78F"></span><span style="background: #BFE3CE"></span><span style="background: #EFEAE6"></span><span style="background: #6DB78F"></span><span style="background: #6DB78F"></span><span style="background: #BFE3CE"></span>
-        <span style="background: #BFE3CE"></span><span style="background: #6DB78F"></span><span style="background: #6DB78F"></span><span style="background: #6DB78F"></span><span style="background: #2D8657"></span><span style="background: #6DB78F"></span><span style="background: #EFEAE6"></span>
-        <span style="background: #6DB78F"></span><span style="background: #2D8657"></span><span style="background: #6DB78F"></span><span style="background: #6DB78F"></span><span style="background: #6DB78F"></span><span style="background: #EFEAE6"></span><span style="background: #6DB78F"></span>
-        <span style="background: #2D8657"></span><span style="background: #6DB78F"></span><span style="background: #6DB78F"></span><span style="background: #2D8657"></span><span style="background: #6DB78F"></span><span style="background: #6DB78F"></span><span style="background: #2D8657"></span>
-        <span style="background: #6DB78F"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #EFEAE6"></span><span style="background: #2D8657"></span><span style="background: #6DB78F"></span><span style="background: #2D8657"></span>
-        <span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #6DB78F"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #EFEAE6"></span>
-        <span style="background: #2D8657"></span><span style="background: #6DB78F"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #6DB78F"></span><span style="background: #2D8657"></span>
-        <span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #EFEAE6"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span>
-        <span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #6DB78F"></span>
-        <span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span>
-        <span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span>
-        <span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657"></span>
-        <span style="background: #2D8657"></span><span style="background: #2D8657"></span><span style="background: #2D8657; box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 3.5px #1A1614"></span><span style="background: #FFFFFF; box-shadow: inset 0 0 0 1.5px #E4DFDB"></span><span style="background: #FFFFFF; box-shadow: inset 0 0 0 1.5px #E4DFDB"></span><span style="background: #FFFFFF; box-shadow: inset 0 0 0 1.5px #E4DFDB"></span><span style="background: #FFFFFF; box-shadow: inset 0 0 0 1.5px #E4DFDB"></span>
+    <div style="display: flex; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.10)">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB95C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 21h6M10 17h4"></path></svg>
+      <div style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1; min-width: 0">
+        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13px"><span style="font-weight: 700">30-day badge</span><span style="color: #B5ADA8">10 days to go</span></div>
+        <div style="height: 5px; border-radius: 3px; background: rgba(255,255,255,0.12)"><div style="height: 5px; border-radius: 3px; background: #FFB95C; width: 38%"></div></div>
       </div>
-      <div aria-hidden="true" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: #6B625C"><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span></div>
-    </div>
-
-    <div style="display: flex; align-items: center; gap: 10px; margin-top: auto">
-      <button aria-label="Delete habit" style="width: 58px; height: 58px; border-radius: 29px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.08)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B3261E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"></path></svg></button>
-      <a href="#" style="flex-grow: 1; height: 58px; border-radius: 29px; background: #1A1614; color: #FFFFFF; font-size: 17px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 12px 30px rgba(26,22,20,0.25)"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg>Edit habit</a>
     </div>
   </section>
-</div>
 
+  <div role="tablist" aria-label="Range" style="display: flex; height: 48px; padding: 4px; box-sizing: border-box; border-radius: 24px; background: #E8E3DF; margin-top: 4px">
+    
+      <button role="tab" aria-selected="true" onclick="() =&gt; this.setState({ range: k })" style="flex: 1; border: none; border-radius: 20px; background: #1A1614; color: #FFFFFF; font-size: 14px; font-weight: 700">30 days</button>
+    
+      <button role="tab" aria-selected="false" onclick="() =&gt; this.setState({ range: k })" style="flex: 1; border: none; border-radius: 20px; background: transparent; color: #5E5752; font-size: 14px; font-weight: 600">90 days</button>
+    
+      <button role="tab" aria-selected="false" onclick="() =&gt; this.setState({ range: k })" style="flex: 1; border: none; border-radius: 20px; background: transparent; color: #5E5752; font-size: 14px; font-weight: 600">All time</button>
+    
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 12px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <span style="font-size: 12px; font-weight: 600; color: #6B625C">Completion</span>
+      <span style="font-size: 26px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.1">93<span style="font-size: 15px; letter-spacing: 0">%</span></span>
+      <span style="font-size: 11px; font-weight: 700; color: #1F6B45">Up from 67%</span>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 12px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <span style="font-size: 12px; font-weight: 600; color: #6B625C">Best streak</span>
+      <span style="font-size: 26px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.1">20<span style="font-size: 15px; font-weight: 600; color: #6B625C; letter-spacing: 0"> days</span></span>
+      <span style="font-size: 11px; font-weight: 600; color: #6B625C">That’s now</span>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 12px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+      <span style="font-size: 12px; font-weight: 600; color: #6B625C">Pages read</span>
+      <span style="font-size: 26px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.1">749</span>
+      <span style="font-size: 11px; font-weight: 600; color: #6B625C">25 a day</span>
+    </div>
+  </div>
+
+  <section aria-label="Activity" style="background: #FFFFFF; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.3px">Last 30 days</h2>
+      <span style="display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #6B625C"><span style="width: 10px; height: 10px; border-radius: 3px; background: #E4DFDB"></span>Missed<span style="width: 10px; height: 10px; border-radius: 3px; background: #A7D7BB; margin-left: 4px"></span>Partly<span style="width: 10px; height: 10px; border-radius: 3px; background: #2D8657; margin-left: 4px"></span>Done</span>
+    </div>
+
+    
+      <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; font-size: 11px; font-weight: 700; color: #6B625C; text-align: center"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+    
+
+    <div style="display: flex; gap: 6px">
+      
+      <div role="grid" aria-label="Last 30 days" style="flex-grow: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
+        
+          <button aria-label="Mon 19 Oct, done, 35 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">19</button>
+        
+          <button aria-label="Tue 20 Oct, done, 32 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">20</button>
+        
+          <button aria-label="Wed 21 Oct, done, 22 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">21</button>
+        
+          <button aria-label="Thu 22 Oct, done, 25 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">22</button>
+        
+          <button aria-label="Fri 23 Oct, done, 23 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">23</button>
+        
+          <button aria-label="Sat 24 Oct, missed" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #E4DFDB; color: #5E5752; font-size: 13px; font-weight: 600; font-family: inherit; ">24</button>
+        
+          <button aria-label="Sun 25 Oct, done, 27 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">25</button>
+        
+          <button aria-label="Mon 26 Oct, done, 29 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">26</button>
+        
+          <button aria-label="Tue 27 Oct, missed" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #E4DFDB; color: #5E5752; font-size: 13px; font-weight: 600; font-family: inherit; ">27</button>
+        
+          <button aria-label="Wed 28 Oct, done, 20 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">28</button>
+        
+          <button aria-label="Thu 29 Oct, done, 24 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">29</button>
+        
+          <button aria-label="Fri 30 Oct, done, 22 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">30</button>
+        
+          <button aria-label="Sat 31 Oct, done, 35 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">31</button>
+        
+          <button aria-label="Sun 1 Nov, done, 34 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 10px; font-weight: 600; font-family: inherit; ">1 Nov</button>
+        
+          <button aria-label="Mon 2 Nov, done, 30 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">2</button>
+        
+          <button aria-label="Tue 3 Nov, done, 33 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">3</button>
+        
+          <button aria-label="Wed 4 Nov, done, 24 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">4</button>
+        
+          <button aria-label="Thu 5 Nov, done, 35 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">5</button>
+        
+          <button aria-label="Fri 6 Nov, done, 21 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">6</button>
+        
+          <button aria-label="Sat 7 Nov, done, 34 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">7</button>
+        
+          <button aria-label="Sun 8 Nov, done, 21 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">8</button>
+        
+          <button aria-label="Mon 9 Nov, done, 22 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">9</button>
+        
+          <button aria-label="Tue 10 Nov, done, 31 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">10</button>
+        
+          <button aria-label="Wed 11 Nov, done, 25 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">11</button>
+        
+          <button aria-label="Thu 12 Nov, done, 26 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">12</button>
+        
+          <button aria-label="Fri 13 Nov, done, 33 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">13</button>
+        
+          <button aria-label="Sat 14 Nov, done, 23 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">14</button>
+        
+          <button aria-label="Sun 15 Nov, done, 28 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">15</button>
+        
+          <button aria-label="Mon 16 Nov, done, 23 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #2D8657; color: #FFFFFF; font-size: 13px; font-weight: 600; font-family: inherit; ">16</button>
+        
+          <button aria-label="Tue 17 Nov, today, 12 of 20 pages" onclick="() =&gt; this.setState({ sel: t })" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: #A7D7BB; color: #1F5E3D; font-size: 13px; font-weight: 800; font-family: inherit; box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #1A1614;">17</button>
+        
+          <button aria-label="Wed 18 Nov, upcoming" disabled="" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: transparent; color: #A39B96; font-size: 13px; font-weight: 600; font-family: inherit; box-shadow: inset 0 0 0 1.5px #EBE6E2;">18</button>
+        
+          <button aria-label="Thu 19 Nov, upcoming" disabled="" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: transparent; color: #A39B96; font-size: 13px; font-weight: 600; font-family: inherit; box-shadow: inset 0 0 0 1.5px #EBE6E2;">19</button>
+        
+          <button aria-label="Fri 20 Nov, upcoming" disabled="" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: transparent; color: #A39B96; font-size: 13px; font-weight: 600; font-family: inherit; box-shadow: inset 0 0 0 1.5px #EBE6E2;">20</button>
+        
+          <button aria-label="Sat 21 Nov, upcoming" disabled="" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: transparent; color: #A39B96; font-size: 13px; font-weight: 600; font-family: inherit; box-shadow: inset 0 0 0 1.5px #EBE6E2;">21</button>
+        
+          <button aria-label="Sun 22 Nov, upcoming" disabled="" style="height: 40px; min-width: 0; padding: 0; border: none; border-radius: 12px; background: transparent; color: #A39B96; font-size: 13px; font-weight: 600; font-family: inherit; box-shadow: inset 0 0 0 1.5px #EBE6E2;">22</button>
+        
+      </div>
+    </div>
+
+    
+
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 18px; background: #F4F1EE">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="width: 14px; height: 14px; border-radius: 5px; flex-shrink: 0; background: #A7D7BB"></span>
+        <span style="font-size: 15px; font-weight: 700; white-space: nowrap">Today</span>
+        <span style="font-size: 13px; color: #5E5752; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0">12 of 20 pages</span>
+      </div>
+      
+        <div style="display: flex; gap: 8px">
+          <button aria-label="Change pages for Tue 17 Nov" onclick="() =&gt; this.setState({ edit: { t, v: info(t).pages || 0 }, sel: t, lastAdd: 0 })" style="flex: 1; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; color: #1A1614; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg>Edit pages</button>
+          <button onclick="() =&gt; {
+    const f = info(t);
+    commit(t, f.s === 'done' ? 0 : Math.max(GOAL, f.pages || 0));
+  }" style="flex: 1; height: 44px; border-radius: 22px; border: none; font-size: 14px; font-weight: 700; background: #1A1614; color: #FFFFFF">Mark done</button>
+        </div>
+      
+      
+    </div>
+    <span style="font-size: 12px; color: #6B625C; text-align: center">Tap any day to see it, change its pages or mark it done</span>
+  </section>
+
+  <section aria-label="Insight" style="background: #E6F4EC; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; gap: 12px">
+      <span style="width: 40px; height: 40px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F5E3D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"></path></svg></span>
+      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+        <span style="font-size: 15px; font-weight: 700">Steady all week</span>
+        <span style="font-size: 13px; color: #33503F; line-height: 1.4">No day of the week falls behind in this range. Your 9:30 PM reminder is working.</span>
+      </div>
+    </div>
+    <div role="img" aria-label="Completion by weekday: Mon 100%, Tue 75%, Wed 100%, Thu 100%, Fri 100%, Sat 75%, Sun 100%" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; height: 76px; padding: 10px 12px 8px; border-radius: 16px; background: #FFFFFF">
+      
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end">
+          <span style="width: 100%; height: 44px; border-radius: 6px; background: #2D8657"></span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B625C">M</span>
+        </div>
+      
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end">
+          <span style="width: 100%; height: 33px; border-radius: 6px; background: #2D8657"></span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B625C">T</span>
+        </div>
+      
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end">
+          <span style="width: 100%; height: 44px; border-radius: 6px; background: #2D8657"></span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B625C">W</span>
+        </div>
+      
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end">
+          <span style="width: 100%; height: 44px; border-radius: 6px; background: #2D8657"></span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B625C">T</span>
+        </div>
+      
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end">
+          <span style="width: 100%; height: 44px; border-radius: 6px; background: #2D8657"></span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B625C">F</span>
+        </div>
+      
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end">
+          <span style="width: 100%; height: 33px; border-radius: 6px; background: #2D8657"></span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B625C">S</span>
+        </div>
+      
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end">
+          <span style="width: 100%; height: 44px; border-radius: 6px; background: #2D8657"></span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B625C">S</span>
+        </div>
+      
+    </div>
+    
+  </section>
+
+  <section aria-label="Trend" style="background: #FFFFFF; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">
+    <div style="display: flex; align-items: baseline; justify-content: space-between">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.3px">Getting steadier?</h2>
+      <span style="font-size: 12px; font-weight: 700; color: #1F6B45">Yes, trending up</span>
+    </div>
+    <div style="display: flex; gap: 6px">
+      <div aria-hidden="true" style="display: flex; flex-direction: column; justify-content: space-between; height: 96px; font-size: 10px; font-weight: 600; color: #6B625C; text-align: right; width: 30px; flex-shrink: 0"><span>100%</span><span>50%</span><span>0%</span></div>
+      <svg role="img" aria-label="7-day average completion, now 100 percent; Yes, trending up" width="100%" height="96" viewBox="0 0 300 96" preserveAspectRatio="none" style="overflow: visible">
+        <line x1="0" y1="1" x2="300" y2="1" stroke="#F0ECE8" stroke-width="1"></line>
+        <line x1="0" y1="48" x2="300" y2="48" stroke="#F0ECE8" stroke-width="1"></line>
+        <line x1="0" y1="95" x2="300" y2="95" stroke="#E4DFDB" stroke-width="1"></line>
+        <path d="M0.0 14.4 L10.7 14.4 L21.4 14.4 L32.1 14.4 L42.9 14.4 L53.6 14.4 L64.3 14.4 L75.0 14.4 L85.7 27.9 L96.4 27.9 L107.1 27.9 L117.9 27.9 L128.6 14.4 L139.3 14.4 L150.0 14.4 L160.7 1.0 L171.4 1.0 L182.1 1.0 L192.9 1.0 L203.6 1.0 L214.3 1.0 L225.0 1.0 L235.7 1.0 L246.4 1.0 L257.1 1.0 L267.9 1.0 L278.6 1.0 L289.3 1.0 L300.0 1.0 L300 96 L0 96 Z" fill="#2D8657" fill-opacity="0.12"></path>
+        <line x1="0" y1="19.8" x2="300" y2="19.8" stroke="#A35E12" stroke-width="1.5" stroke-dasharray="4 4"></line>
+        <path d="M0.0 14.4 L10.7 14.4 L21.4 14.4 L32.1 14.4 L42.9 14.4 L53.6 14.4 L64.3 14.4 L75.0 14.4 L85.7 27.9 L96.4 27.9 L107.1 27.9 L117.9 27.9 L128.6 14.4 L139.3 14.4 L150.0 14.4 L160.7 1.0 L171.4 1.0 L182.1 1.0 L192.9 1.0 L203.6 1.0 L214.3 1.0 L225.0 1.0 L235.7 1.0 L246.4 1.0 L257.1 1.0 L267.9 1.0 L278.6 1.0 L289.3 1.0 L300.0 1.0" fill="none" stroke="#2D8657" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+        <circle cx="300" cy="1.0" r="5" fill="#2D8657" stroke="#FFFFFF" stroke-width="2.5"></circle>
+      </svg>
+    </div>
+    <div aria-hidden="true" style="display: flex; justify-content: space-between; padding-left: 36px; font-size: 11px; font-weight: 600; color: #6B625C"><span>19 Oct</span><span>2 Nov</span><span>Today</span></div>
+    <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6B625C"><span style="width: 14px; height: 0; border-top: 2px dashed #A35E12"></span>7-day average against your 80% target</span>
+  </section>
+
+  <a href="Habits.dc.html" style="height: 52px; border-radius: 26px; background: #FFFFFF; color: #1A1614; font-size: 15px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 5h16v4H4zM6 9v10h12V9M10 13h4"></path></svg>Archive habit</a>
+  <span style="font-size: 12px; color: #6B625C; text-align: center; line-height: 1.4">Started 24 Jul · Archived habits keep their history.<br>Delete is in the ⋯ menu.</span>
+</div>
 
 </body>
 </html>
