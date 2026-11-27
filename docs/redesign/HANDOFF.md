@@ -234,6 +234,105 @@ Screen 23 has its own, complete handoff: **`docs/redesign/HABIT_DETAIL_HANDOFF.m
 It replaces the habit detail bottom sheet with a full page and overrides
 anything this file says about screen 23.
 
+### Screen 07 · Modules (interactive)
+
+References: `screens/07-modules.png` (default), `07b-modules-edit.png` (edit
+mode), `07c-modules-states.png` (dose taken with Undo toast, two modules
+switched off), `07d-modules-unlock.png` (tapping a locked module), and
+`html/07-modules.html` for measurements. Code: `modules/modules_screen.dart`.
+No schema or settings changes: everything below uses `enabledModules`,
+`lockedModules`, `toggleModule`, `toggleModuleLock` and the providers the
+screen already watches.
+
+Top to bottom:
+
+1. **Header.** "Modules" (30/800) with a live subtitle: `Fri 27 Nov · N things
+   need you`, where N counts a pending dose that is due now and overdue tasks
+   (`taskStatsProvider(7).overdue > 0`). N = 0 reads "all clear". Locked
+   modules never count. In edit mode the subtitle is `X on · Y locked`. The
+   right button reads "Edit" (white pill) or "Done" (ink pill, white label).
+2. **Search row.** A white 48-high pill, "Search all modules", which pushes
+   `/search`, and a 48 circle with a mic icon, which opens `/assistant` in
+   listening mode.
+3. **Medicine hero.** Shown when Medicine is on. It is the ink hero card, built
+   from `todayDoseViewsProvider`:
+   - Eyebrow "MEDICINE · DUE NOW" (or "ALL CAUGHT UP"), with "X of Y taken" on
+     the right.
+   - The title is the next pending dose's medicine; the subtitle is the
+     amount, instructions and due time. When no dose is pending, the title is
+     "Next at {time}" for tomorrow's or tonight's next dose.
+   - A dose rail: one 28 dot per dose today, in time order. Taken is a medicine
+     fill with a white tick, due now is a ring with a soft pulse, later is a
+     dim ring. Connectors are filled between taken doses, with the time under
+     each dot.
+   - Buttons: "Take now" (white, `setDoseStatus(id, taken)`) plus "Schedule"
+     (opens `/medicine`). After taking, show "Undo" (sets it back to pending)
+     plus "Open Medicine", and a toast with Undo.
+   - Today's doses are cut to a maximum of 6 dots; past that, show the next 6.
+   - If Medicine is locked, show "Doses are hidden" and an "Unlock to see
+     doses" button. Do not read dose data while it is locked.
+4. **Module tiles**, a 2-column grid in this order: Tasks, Habits, Expenses,
+   Focus, Notes, Drop (enabled only). Each tile is a white card with radius
+   24, 16 padding and a minimum height of 170:
+   - Top row: a 40 icon chip in the module tint. On the right is a 36 circle
+     with the quick action, the same action the Quick add sheet runs for that
+     module: Task, Habit, Expense, Note, Drop. Focus uses a play icon and starts
+     a session.
+   - A big figure (26/800) with a small unit, then a 6-high progress bar in the
+     module colour, or a one-line "peek" chip for Notes and Drop.
+   - The name (17/700) and a one-line subtitle.
+   - The whole tile opens the module. The quick action is a separate target
+     that sits on top of it.
+
+   | Tile | Figure | Bar / peek | Subtitle |
+   |---|---|---|---|
+   | Tasks | done of today's total | done ÷ total | "N overdue · M left" (danger colour when overdue > 0), else "All done today" |
+   | Habits | done of today's habits | done ÷ total | best current streak, or omit |
+   | Expenses | spent today | spent ÷ daily budget (only when a budget exists) | "৳ X left of ৳ Y", else "Spent today" |
+   | Focus | minutes today | minutes ÷ goal (only when a goal is set) | sessions today, or omit |
+   | Notes | number of notes | title of the last edited note (skip notes with `isLocked`) | "Edited {relative}" |
+   | Drop | unread count | kinds of unread items if cheap to get, else omit | "Saved {relative}" or "Links and clips" |
+
+5. **Locked tiles.** When a module is in `lockedModules`, its tile must not
+   show or even read its figures. It shows:
+   - a grey icon chip and an ink lock badge instead of the quick action
+   - "Locked" and "Tap to unlock"
+
+   Tapping pushes the module's route as today, and `ModuleLockGate` prompts.
+   The sheet in `07d` stands in for the system biometric prompt. **Do not
+   build a custom sheet.**
+6. **Switched off.** When any module is off, show a "SWITCHED OFF" label and
+   dashed 44-high chips, "+ {Module}". Tapping one calls `toggleModule(m,
+   true)` and shows a toast. This replaces the old long-press-to-switch-off,
+   which was not discoverable; remove the long press.
+7. **Edit mode** (`07b`). The grid cross-fades into one white list card with a
+   row per module, in the order Medicine, Tasks, Habits, Expenses, Focus,
+   Notes, Drop. Each row has:
+   - an icon chip, tinted when on and grey when off
+   - the name and the blurb
+   - a 40 lock toggle: ink with a closed lock when locked, well colour with an
+     open lock when not, and disabled while the module is off. It runs the
+     same flow as Settings → Lock individual modules: if neither biometrics
+     nor a PIN is available, ask to set a PIN first.
+   - a 52×32 switch that is ink when on
+
+   Under the card goes the note: "Switched-off modules leave Today and Quick
+   add. Nothing is deleted. A lock asks for your fingerprint or app PIN each
+   time the module opens."
+8. **Empty.** If everything is off, keep the existing `EmptyState` above the
+   switched-off chips.
+
+Motion: tiles rise in with a 55 ms stagger and bars grow from the left on
+first build. The edit toggle cross-fades (300–400 ms), the due dot pulses,
+and taking a dose pops its dot. The toast slides up above the nav bar. Pressed
+tiles scale to 0.97. Skip all of it when `MediaQuery.disableAnimations` is
+true. Haptics: light on take, toggle and lock.
+
+Accessibility: each tile is one button labelled "Open {Module}", or "{Module},
+locked. Unlock to open". The quick action has its own label ("New task",
+"Start a focus session"). Switches use the switch role, and the lock button
+reports its pressed state.
+
 ## 9. Shared widgets: what to change
 
 Change the kit first. Most screens then update with little per-screen work.
@@ -275,7 +374,7 @@ Change the kit first. Most screens then update with little per-screen work.
 | 05, 22, 23 | Habits, editor, detail (23: see `HABIT_DETAIL_HANDOFF.md`) | `habits/habits_screen.dart` |
 | 06, 26, 27 | Medicine: today, calendar, medicines | `medicine/medicine_screen.dart` |
 | 25 | Medicine editor | `medicine/widgets/medicine_editor_sheet.dart` |
-| 07 | Modules | `modules/modules_screen.dart` |
+| 07 | Modules (interactive; see "Screen 07 · Modules" in section 8) | `modules/modules_screen.dart` |
 | 08, 32–35 | Expenses: overview, reports, budgets, bills, loans | `expenses/expenses_screen.dart`, `expenses/widgets/*_tab.dart` |
 | 36 | Accounts and transfer | `expenses/widgets/accounts_sheet.dart` |
 | 37 | Categories | `expenses/categories_screen.dart` |
