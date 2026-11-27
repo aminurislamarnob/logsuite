@@ -199,18 +199,18 @@ button:disabled{cursor:default}
     <div style="display: flex; flex-direction: column; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 18px; background: #F4F1EE">
       <div style="display: flex; align-items: center; gap: 10px">
         <span style="width: 14px; height: 14px; border-radius: 5px; flex-shrink: 0; background: #A7D7BB"></span>
-        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
-          <span style="font-size: 15px; font-weight: 700">Tue 17 Nov · Today</span>
-          <span style="font-size: 13px; color: #5E5752">12 of 20 pages so far</span>
-        </div>
-        
-          <button aria-label="Change pages for Tue 17 Nov" onclick="() =&gt; this.setState({ edit: { t, v: info(t).pages || 0 }, sel: t, lastAdd: 0 })" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg></button>
+        <span style="font-size: 15px; font-weight: 700; white-space: nowrap">Today</span>
+        <span style="font-size: 13px; color: #5E5752; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0">12 of 20 pages</span>
+      </div>
+      
+        <div style="display: flex; gap: 8px">
+          <button aria-label="Change pages for Tue 17 Nov" onclick="() =&gt; this.setState({ edit: { t, v: info(t).pages || 0 }, sel: t, lastAdd: 0 })" style="flex: 1; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; color: #1A1614; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg>Edit pages</button>
           <button onclick="() =&gt; {
     const f = info(t);
     commit(t, f.s === 'done' ? 0 : Math.max(GOAL, f.pages || 0));
-  }" style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; font-size: 14px; font-weight: 700; flex-shrink: 0; background: #1A1614; color: #FFFFFF">Mark done</button>
-        
-      </div>
+  }" style="flex: 1; height: 44px; border-radius: 22px; border: none; font-size: 14px; font-weight: 700; background: #1A1614; color: #FFFFFF">Mark done</button>
+        </div>
+      
       
     </div>
     <span style="font-size: 12px; color: #6B625C; text-align: center">Tap any day to see it, change its pages or mark it done</span>

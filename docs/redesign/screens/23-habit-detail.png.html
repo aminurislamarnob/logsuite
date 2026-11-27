@@ -151,15 +151,15 @@ button:disabled{cursor:default}
     <div style="display: flex; flex-direction: column; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 18px; background: #F4F1EE">
       <div style="display: flex; align-items: center; gap: 10px">
         <span style="{{sel.dotStyle}}"></span>
-        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
-          <span style="font-size: 15px; font-weight: 700">{{sel.title}}</span>
-          <span style="font-size: 13px; color: #5E5752">{{sel.detail}}</span>
-        </div>
-        <sc-if value="{{sel.notEditing}}" hint-placeholder-val="{{ true }}">
-          <button aria-label="{{sel.editAria}}" onClick="{{sel.startEdit}}" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg></button>
-          <button onClick="{{sel.toggle}}" style="{{sel.btnStyle}}">{{sel.btn}}</button>
-        </sc-if>
+        <span style="font-size: 15px; font-weight: 700; white-space: nowrap">{{sel.title}}</span>
+        <span style="font-size: 13px; color: #5E5752; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0">{{sel.detail}}</span>
       </div>
+      <sc-if value="{{sel.notEditing}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; gap: 8px">
+          <button aria-label="{{sel.editAria}}" onClick="{{sel.startEdit}}" style="flex: 1; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; color: #1A1614; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg>Edit pages</button>
+          <button onClick="{{sel.toggle}}" style="{{sel.btnStyle}}">{{sel.btn}}</button>
+        </div>
+      </sc-if>
       <sc-if value="{{sel.editing}}" hint-placeholder-val="{{ false }}">
         <div style="display: flex; flex-direction: column; gap: 8px">
           <div style="display: flex; align-items: center; gap: 8px">

@@ -262,10 +262,12 @@ Everything below can be built from `Habits`, `HabitLogs` and `HabitStats`.
   under target — matches `HabitStats.intensityOn`), Missed. Days before the
   habit existed, and days not in its schedule, are drawn empty and are never
   counted as missed.
-- **Tap a day** to show its detail in the bar under the grid. The bar has a
-  pencil button and Mark done / Undo. The pencil opens the same − / field / +
-  editor inline in the bar, with Cancel / Save on their own row; for today it
-  opens the editor in the Today card instead. Edited past days show
+- **Tap a day** to show its detail in the bar under the grid. The bar is two
+  rows: the date (or "Today") and its status on one line that never wraps
+  (ellipsis if needed), then two equal labelled buttons, **Edit pages** and
+  **Mark done** / **Undo**. No icon-only buttons here. Edit pages opens the
+  same − / field / + editor inline in the bar, with Cancel / Save on their own
+  row; for today it opens the editor in the Today card instead. Edited past days show
   "· edited" in their detail line. Mark done writes the full target, Undo
   writes 0. No floating tooltip.
 - **Stats**: Completion with the change versus the previous range of equal
