@@ -10,7 +10,7 @@ button:disabled{cursor:default}
 .page>*{flex-shrink:0}
 </style>
 
-<div class="page" style="width: 390px; height: 1590px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 14px">
+<div class="page" style="width: 390px; height: 1660px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 14px">
 
   <header style="display: flex; align-items: center; gap: 10px">
     <a href="Habits.dc.html" aria-label="Back to habits" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
@@ -34,10 +34,11 @@ button:disabled{cursor:default}
         <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15">{{hero.headline}}</span>
         <span style="font-size: 13px; color: #B5ADA8; line-height: 1.35">{{hero.sub}}</span>
       </div>
-      <div style="position: relative; width: 84px; height: 84px; flex-shrink: 0">
-        <svg role="img" aria-label="{{hero.ringAria}}" width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="9"></circle><circle cx="42" cy="42" r="35" fill="none" stroke="#56CE8E" stroke-width="9" stroke-linecap="round" stroke-dasharray="{{hero.dash}}" transform="rotate(-90 42 42)"></circle></svg>
+      <button aria-label="{{hero.ringAria}}" onClick="{{hero.startEdit}}" style="position: relative; width: 84px; height: 84px; flex-shrink: 0; padding: 0; border: none; background: transparent; color: #FFFFFF">
+        <svg aria-hidden="true" width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="9"></circle><circle cx="42" cy="42" r="35" fill="none" stroke="#56CE8E" stroke-width="9" stroke-linecap="round" stroke-dasharray="{{hero.dash}}" transform="rotate(-90 42 42)"></circle></svg>
         <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 24px; font-weight: 800; letter-spacing: -0.8px; line-height: 1">{{hero.pages}}</span><span style="font-size: 11px; color: #B5ADA8">of 20</span></div>
-      </div>
+        <span aria-hidden="true" style="position: absolute; right: -2px; bottom: -2px; width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #1A1614"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg></span>
+      </button>
     </div>
 
     <sc-if value="{{hero.open}}" hint-placeholder-val="{{ true }}">
@@ -49,8 +50,41 @@ button:disabled{cursor:default}
     </sc-if>
     <sc-if value="{{hero.closed}}" hint-placeholder-val="{{ false }}">
       <div style="display: flex; gap: 8px">
-        <button aria-label="Add 5 more pages" onClick="{{hero.add5}}" style="height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">+5 more</button>
-        <button onClick="{{hero.undo}}" style="flex-grow: 1; height: 52px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"></path></svg>Undo today</button>
+        <button aria-label="Add 5 more pages" onClick="{{hero.add5}}" style="flex: 1; height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">+5 more</button>
+        <button aria-label="Add 10 more pages" onClick="{{hero.add10}}" style="flex: 1; height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">+10 more</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{hero.notEditing}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: -4px">
+        <span role="status" style="flex-grow: 1; font-size: 13px; color: #B5ADA8">{{hero.feedback}}</span>
+        <sc-if value="{{hero.hasLast}}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{hero.undoLast}}" style="height: 36px; padding: 0 12px; border-radius: 18px; border: none; background: transparent; color: #7EE0AC; font-size: 13px; font-weight: 700">Undo</button>
+        </sc-if>
+        <button onClick="{{hero.startEdit}}" style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg>Edit</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{hero.editing}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <button aria-label="One page less" onClick="{{edit.dec}}" style="width: 56px; height: 56px; border-radius: 28px; border: none; background: rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+          <div style="flex-grow: 1; height: 56px; border-radius: 18px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 6px; color: #1A1614">
+            <label for="todayPages" style="position: absolute; left: -9999px">Pages read today</label>
+            <input id="todayPages" type="number" inputmode="numeric" min="0" value="{{edit.v}}" onChange="{{edit.onInput}}" style="width: 64px; border: none; outline: none; background: transparent; font-family: inherit; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; color: #1A1614; text-align: right">
+            <span style="font-size: 15px; font-weight: 600; color: #6B625C">pages</span>
+          </div>
+          <button aria-label="One page more" onClick="{{edit.inc}}" style="width: 56px; height: 56px; border-radius: 28px; border: none; background: rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+        </div>
+        <div style="display: flex; gap: 6px">
+          <sc-for list="{{edit.chips}}" as="ch" hint-placeholder-count="4">
+            <button onClick="{{ch.pick}}" style="{{ch.style}}">{{ch.label}}</button>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button onClick="{{edit.cancel}}" style="flex: 1; height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">Cancel</button>
+          <button onClick="{{edit.save}}" style="flex: 1.4; height: 52px; border-radius: 26px; border: none; background: #FFFFFF; color: #1A1614; font-size: 16px; font-weight: 700">Save</button>
+        </div>
       </div>
     </sc-if>
 
@@ -114,17 +148,37 @@ button:disabled{cursor:default}
       </div>
     </sc-if>
 
-    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 18px; background: #F4F1EE">
-      <span style="{{sel.dotStyle}}"></span>
-      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
-        <span style="font-size: 15px; font-weight: 700">{{sel.title}}</span>
-        <span style="font-size: 13px; color: #5E5752">{{sel.detail}}</span>
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 18px; background: #F4F1EE">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="{{sel.dotStyle}}"></span>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+          <span style="font-size: 15px; font-weight: 700">{{sel.title}}</span>
+          <span style="font-size: 13px; color: #5E5752">{{sel.detail}}</span>
+        </div>
+        <sc-if value="{{sel.notEditing}}" hint-placeholder-val="{{ true }}">
+          <button aria-label="{{sel.editAria}}" onClick="{{sel.startEdit}}" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg></button>
+          <button onClick="{{sel.toggle}}" style="{{sel.btnStyle}}">{{sel.btn}}</button>
+        </sc-if>
       </div>
-      <sc-if value="{{sel.hasBtn}}" hint-placeholder-val="{{ true }}">
-        <button onClick="{{sel.toggle}}" style="{{sel.btnStyle}}">{{sel.btn}}</button>
+      <sc-if value="{{sel.editing}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <button aria-label="One page less" onClick="{{edit.dec}}" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+            <div style="flex-grow: 1; height: 44px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 6px; outline: 2px solid #1A1614; outline-offset: -2px">
+              <label for="dayPages" style="position: absolute; left: -9999px">{{sel.editAria}}</label>
+              <input id="dayPages" type="number" inputmode="numeric" min="0" value="{{edit.v}}" onChange="{{edit.onInput}}" style="width: 48px; border: none; outline: none; background: transparent; font-family: inherit; font-size: 20px; font-weight: 800; color: #1A1614; text-align: right">
+              <span style="font-size: 13px; font-weight: 600; color: #6B625C">of 20 pages</span>
+            </div>
+            <button aria-label="One page more" onClick="{{edit.inc}}" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+          </div>
+          <div style="display: flex; gap: 8px">
+            <button onClick="{{edit.cancel}}" style="flex: 1; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; color: #1A1614; font-size: 14px; font-weight: 700">Cancel</button>
+            <button onClick="{{edit.save}}" style="flex: 1.4; height: 44px; border-radius: 22px; border: none; background: #1A1614; color: #FFFFFF; font-size: 14px; font-weight: 700">Save</button>
+          </div>
+        </div>
       </sc-if>
     </div>
-    <span style="font-size: 12px; color: #6B625C; text-align: center">Tap any day to see or fix it</span>
+    <span style="font-size: 12px; color: #6B625C; text-align: center">Tap any day to see it, change its pages or mark it done</span>
   </section>
 
   <section aria-label="Insight" style="background: #E6F4EC; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">

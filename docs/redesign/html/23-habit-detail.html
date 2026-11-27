@@ -20,7 +20,7 @@ button:disabled{cursor:default}
 
 
 
-<div class="page" style="width: 390px; height: 1590px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 14px">
+<div class="page" style="width: 390px; height: 1660px; position: relative; overflow: hidden; box-sizing: border-box; background: #F4F1EE; font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #1A1614; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 14px">
 
   <header style="display: flex; align-items: center; gap: 10px">
     <a href="Habits.dc.html" aria-label="Back to habits" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 4px 14px rgba(26,22,20,0.06)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></a>
@@ -44,19 +44,30 @@ button:disabled{cursor:default}
         <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15">8 pages to go</span>
         <span style="font-size: 13px; color: #B5ADA8; line-height: 1.35">Finish to reach a 21-day streak.</span>
       </div>
-      <div style="position: relative; width: 84px; height: 84px; flex-shrink: 0">
-        <svg role="img" aria-label="12 of 20 pages today" width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="9"></circle><circle cx="42" cy="42" r="35" fill="none" stroke="#56CE8E" stroke-width="9" stroke-linecap="round" stroke-dasharray="131.9 219.9" transform="rotate(-90 42 42)"></circle></svg>
+      <button aria-label="12 of 20 pages today. Edit" onclick="() =&gt; this.setState({ edit: { t, v: info(t).pages || 0 }, sel: t, lastAdd: 0 })" style="position: relative; width: 84px; height: 84px; flex-shrink: 0; padding: 0; border: none; background: transparent; color: #FFFFFF">
+        <svg aria-hidden="true" width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="9"></circle><circle cx="42" cy="42" r="35" fill="none" stroke="#56CE8E" stroke-width="9" stroke-linecap="round" stroke-dasharray="131.9 219.9" transform="rotate(-90 42 42)"></circle></svg>
         <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 24px; font-weight: 800; letter-spacing: -0.8px; line-height: 1">12</span><span style="font-size: 11px; color: #B5ADA8">of 20</span></div>
-      </div>
+        <span aria-hidden="true" style="position: absolute; right: -2px; bottom: -2px; width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #1A1614"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg></span>
+      </button>
     </div>
 
     
       <div style="display: flex; gap: 8px">
-        <button aria-label="Add 5 pages" onclick="() =&gt; this.setState({ pages: Math.max(0, n) })" style="height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">+5</button>
-        <button aria-label="Add 10 pages" onclick="() =&gt; this.setState({ pages: Math.max(0, n) })" style="height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">+10</button>
-        <button onclick="() =&gt; this.setState({ pages: Math.max(0, n) })" style="flex-grow: 1; height: 52px; border-radius: 26px; border: none; background: #FFFFFF; color: #1A1614; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Mark done</button>
+        <button aria-label="Add 5 pages" onclick="() =&gt; this.setState({ pages: todayPages + n, lastAdd: n, edit: null })" style="height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">+5</button>
+        <button aria-label="Add 10 pages" onclick="() =&gt; this.setState({ pages: todayPages + n, lastAdd: n, edit: null })" style="height: 52px; padding: 0 16px; border-radius: 26px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 15px; font-weight: 700">+10</button>
+        <button onclick="() =&gt; this.setState({ pages: Math.max(GOAL, todayPages), lastAdd: Math.max(0, GOAL - todayPages), edit: null })" style="flex-grow: 1; height: 52px; border-radius: 26px; border: none; background: #FFFFFF; color: #1A1614; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Mark done</button>
       </div>
     
+    
+
+    
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: -4px">
+        <span role="status" style="flex-grow: 1; font-size: 13px; color: #B5ADA8">12 pages logged today</span>
+        
+        <button onclick="() =&gt; this.setState({ edit: { t, v: info(t).pages || 0 }, sel: t, lastAdd: 0 })" style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; background: rgba(255,255,255,0.10); color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg>Edit</button>
+      </div>
+    
+
     
 
     <div style="display: flex; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.10)">
@@ -185,22 +196,24 @@ button:disabled{cursor:default}
 
     
 
-    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 18px; background: #F4F1EE">
-      <span style="width: 14px; height: 14px; border-radius: 5px; flex-shrink: 0; background: #A7D7BB"></span>
-      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
-        <span style="font-size: 15px; font-weight: 700">Tue 17 Nov · Today</span>
-        <span style="font-size: 13px; color: #5E5752">12 of 20 pages so far</span>
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 18px; background: #F4F1EE">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="width: 14px; height: 14px; border-radius: 5px; flex-shrink: 0; background: #A7D7BB"></span>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+          <span style="font-size: 15px; font-weight: 700">Tue 17 Nov · Today</span>
+          <span style="font-size: 13px; color: #5E5752">12 of 20 pages so far</span>
+        </div>
+        
+          <button aria-label="Change pages for Tue 17 Nov" onclick="() =&gt; this.setState({ edit: { t, v: info(t).pages || 0 }, sel: t, lastAdd: 0 })" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1614" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"></path></svg></button>
+          <button onclick="() =&gt; {
+    const f = info(t);
+    commit(t, f.s === 'done' ? 0 : Math.max(GOAL, f.pages || 0));
+  }" style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; font-size: 14px; font-weight: 700; flex-shrink: 0; background: #1A1614; color: #FFFFFF">Mark done</button>
+        
       </div>
       
-        <button onclick="() =&gt; {
-    if (t === T) { this.setState({ pages: todayDone ? 0 : GOAL, sel: t }); return; }
-    const next = Object.assign({}, ov);
-    next[key(t)] = isDone(t) ? 'missed' : 'done';
-    this.setState({ ov: next, sel: t });
-  }" style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; font-size: 14px; font-weight: 700; flex-shrink: 0; background: #1A1614; color: #FFFFFF">Mark done</button>
-      
     </div>
-    <span style="font-size: 12px; color: #6B625C; text-align: center">Tap any day to see or fix it</span>
+    <span style="font-size: 12px; color: #6B625C; text-align: center">Tap any day to see it, change its pages or mark it done</span>
   </section>
 
   <section aria-label="Insight" style="background: #E6F4EC; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(26,22,20,0.05), 0 6px 20px rgba(26,22,20,0.06)">

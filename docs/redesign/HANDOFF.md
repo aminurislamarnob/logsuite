@@ -239,8 +239,20 @@ Everything below can be built from `Habits`, `HabitLogs` and `HabitStats`.
   amount against the target, quick-add buttons (`+5`, `+10`, derived from the
   target: about a quarter and a half of it) and **Mark done**, which logs the
   full target. Once the target is met it shows the streak, `+5 more` and
-  **Undo today**. For a plain yes/no habit (target 1, no unit) show only
+  `+10 more`. For a plain yes/no habit (target 1, no unit) show only
   Mark done / Undo. For a *reduce* habit invert the copy ("Stay under 2").
+- **Changing today's value** (see `screens/23b-habit-detail-editing.png`):
+  1. *Undo the last tap.* After a quick-add or Mark done, a status line says
+     "Added 5 pages" with **Undo**, which subtracts exactly that amount. It
+     clears when the user edits or leaves the screen.
+  2. *Edit the number.* Tapping the ring (it carries a pencil badge) or the
+     **Edit** button turns the card into an editor: − and + (step 1), a
+     numeric field the user can type in, shortcut chips (Clear, half the
+     target, the target, target × 1.5) and Cancel / Save. The headline and
+     ring preview the draft ("5 pages to go") and the subtitle shows the old
+     value ("Was 12 pages"). Nothing is written until Save; Cancel discards.
+  3. Save writes the day's total to that day's `HabitLogs.amount` (one row per
+     habit per day, as today). Saving 0 deletes the row.
 - **Today is not a miss until it is over.** An unfinished today does not
   break the streak and is not counted in Completion or the trend.
 - **Range tabs drive every section below them**: 30 days, 90 days, All time.
@@ -250,9 +262,12 @@ Everything below can be built from `Habits`, `HabitLogs` and `HabitStats`.
   under target — matches `HabitStats.intensityOn`), Missed. Days before the
   habit existed, and days not in its schedule, are drawn empty and are never
   counted as missed.
-- **Tap a day** to show its detail in the bar under the grid, with
-  Mark done / Undo to fix it. That writes or deletes that day's `HabitLogs`
-  row. No floating tooltip.
+- **Tap a day** to show its detail in the bar under the grid. The bar has a
+  pencil button and Mark done / Undo. The pencil opens the same − / field / +
+  editor inline in the bar, with Cancel / Save on their own row; for today it
+  opens the editor in the Today card instead. Edited past days show
+  "· edited" in their detail line. Mark done writes the full target, Undo
+  writes 0. No floating tooltip.
 - **Stats**: Completion with the change versus the previous range of equal
   length (hidden when that range predates the habit), Best streak with when it
   ended, and the total of the habit's unit for unit habits (for a yes/no habit
