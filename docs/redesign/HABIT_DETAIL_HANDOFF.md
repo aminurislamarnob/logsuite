@@ -261,6 +261,29 @@ Tests to add in `test/`:
 - A widget test: open `/habits/:id`, tap Mark done, and the headline becomes
   the streak; tap Edit, set 15, Save, and `setDayAmount` stored 15.
 
+## 7b. Motion
+
+Motion explains what changed; it never delays input. Every animation must be
+skipped when `MediaQuery.of(context).disableAnimations` is true (the app
+already respects reduced motion in the shell).
+
+| What | When | How (duration, curve) |
+|---|---|---|
+| Cards enter | First build of the screen | Fade + slide up 14 pt, 550 ms `Curves.easeOutCubic`, staggered 50 ms per card from the header down. Once only, not on rebuilds. |
+| Ring fill | Today's amount or the editor draft changes | Tween the progress arc, 700 ms `easeOutCubic` (`TweenAnimationBuilder<double>`). |
+| Ring number | Same | Count up/down from the old to the new value, 520 ms `easeOutCubic`, rounded to whole units. |
+| Goal reached | Today goes from not done to done (Mark done, quick-add or Save) | Ring scales 1 → 1.12 → 1 over 600 ms with an overshoot curve, plus a burst of 12 small dots in the habit/brand colours flying out about 54–74 pt and fading, 800 ms. One light haptic (`HapticFeedback.lightImpact`, through the app's haptics helper). |
+| Headline / sub-line | Mode changes (open, done, editing) | `AnimatedSwitcher`, fade + 6 pt slide, 350 ms. |
+| "Added 5 pages" line | Each quick-add or save | Same fade + slide, replayed every time. |
+| Editors | Open | Expand from the top: fade + 6 pt slide + scale 0.98 → 1, 300 ms (`AnimatedSize` + `AnimatedSwitcher`). |
+| Button press | Any button | Scale to 0.95 while pressed, 140 ms. |
+| Range tabs | Tab change | The dark selected pill slides to the new tab, 380 ms with a slight overshoot (`Curves.easeOutBack`); labels cross-fade colour. |
+| Stats, grid, day bar | Range change / new day selected | Fade + 6 pt slide in, 350 ms. |
+| Calendar cells | A day's state changes | Colour cross-fades 350 ms; the edited cell pops (scale 1 → 1.22 → 1, 450 ms, overshoot). |
+| Badge bar | Streak changes | Width animates 700 ms `easeOutCubic`. |
+| Insight bars | Screen open / range change | Grow from the bottom, 500 ms, staggered 55 ms per weekday. |
+| Trend line | Screen open / range change | Line draws left to right over 1 s; area and end dot fade in after 200 ms. The end dot then emits a soft pulse ring every 1.8 s. |
+
 ## 8. Accessibility and quality checks
 
 - Every icon-only button has a tooltip / semantics label: Back, Edit habit,
